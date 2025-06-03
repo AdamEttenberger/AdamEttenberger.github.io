@@ -4,6 +4,7 @@ import ProjectLabel from './ProjectLabel.vue'
 const props = defineProps({
   image: { type: String, required: true },
   title: { type: String, required: true },
+  route: { type: String, required: true },
   date: { type: Date, required: true },
   lastmod: { type: Date, required: true },
 })
@@ -11,9 +12,13 @@ const props = defineProps({
 
 <template>
   <div class="item">
-    <img class="icon" :src="image" :alt="title" />
+    <RouterLink class="active" :to="route">
+      <img class="icon" :src="image" :alt="title" />
+    </RouterLink>
     <div class="details">
-      <ProjectLabel :title="title" :date="date" />
+      <RouterLink class="active" :to="route">
+        <ProjectLabel :title="title" :date="date" />
+      </RouterLink>
       <div class="summary">
         <slot></slot>
       </div>
@@ -37,7 +42,7 @@ const props = defineProps({
   margin: 0.33rem 0;
   overflow: hidden;
 
-  & > .icon {
+  & .icon {
     grid-column: 1 / 2;
     height: var(--project-card-item-image-size);
     width: var(--project-card-item-image-size);
