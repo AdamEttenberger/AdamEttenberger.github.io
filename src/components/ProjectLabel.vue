@@ -1,0 +1,46 @@
+<script setup>
+const props = defineProps({
+  title: { type: String, required: true },
+  date: { type: Date, required: true },
+})
+
+function formatDate(date) {
+  return new Date(date).toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+  });
+}
+</script>
+
+<template>
+  <div class="label">
+    <h3 class="title">{{ title }}</h3>
+    <time class="date" :datetime="date">{{ formatDate(date) }}</time>
+  </div>
+</template>
+
+<style scoped>
+.label {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+
+  font-size: 1.2rem;
+  margin-bottom: 0.4rem;
+  color: var(--color-heading);
+  margin-bottom: 0.4rem;
+
+  & > .title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-align: left;
+  }
+
+  & > .date {
+    font-size: 1rem;
+    font-style: italic;
+    text-align: right;
+  }
+}
+</style>
