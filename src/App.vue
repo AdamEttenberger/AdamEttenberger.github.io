@@ -27,7 +27,7 @@ header {
   display: flex;
   place-items: center;
   padding-right: calc(var(--section-gap) / 2);
-  padding-bottom: 2rem;
+  padding-bottom: 1rem;
   line-height: 1.5;
 
   & > .logo {
@@ -37,11 +37,12 @@ header {
 }
 
 footer {
-  background-color: var(--color-background-soft);
   display: flex;
   justify-content: center;
   align-items: center;
   font-size: medium;
   height: 2.5rem;
+  border-radius: 25px;
+  background-color: var(--color-background-soft);
 }
 </style>
