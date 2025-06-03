@@ -783,7 +783,7 @@
       "type": "rectangle",
       "x": 282.267450046809,
       "y": 160.085133610088,
-      "width": 270.07192259883976,
+      "width": 295.90092104438475,
       "height": 326.6656753344399,
       "angle": 0,
       "strokeColor": "#1e1e1e",
@@ -800,8 +800,8 @@
       "index": "b1eV",
       "roundness": null,
       "seed": 1605020810,
-      "version": 453,
-      "versionNonce": 660465478,
+      "version": 511,
+      "versionNonce": 921073074,
       "isDeleted": false,
       "boundElements": [
         {
@@ -809,15 +809,15 @@
           "type": "text"
         }
       ],
-      "updated": 1748935403035,
+      "updated": 1748940991605,
       "link": null,
       "locked": false
     },
     {
       "id": "oHUzwEWL3oeaOXsXyumwq",
       "type": "text",
-      "x": 349.3274744565805,
-      "y": 317.1770162624893,
+      "x": 362.24197367935295,
+      "y": 313.41797127730797,
       "width": 135.95187377929688,
       "height": 20,
       "angle": 0,
@@ -835,11 +835,11 @@
       "index": "b1el",
       "roundness": null,
       "seed": 1986624214,
-      "version": 398,
-      "versionNonce": 1793920646,
+      "version": 457,
+      "versionNonce": 1840312178,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1748935403035,
+      "updated": 1748940991608,
       "link": null,
       "locked": false,
       "text": "Project Card List",
