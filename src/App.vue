@@ -1,7 +1,3 @@
-<script setup>
-import ProjectCardList from './components/ProjectCardList.vue'
-</script>
-
 <template>
   <header>
     <img alt="Logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
@@ -30,6 +26,12 @@ header {
     display: block;
     margin: 0 2rem 0 0;
   }
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
 }
 
 footer {

@@ -1,3 +1,7 @@
+<script setup>
+import ProjectPlayer from '../../components/ProjectPlayer.vue'
+</script>
+
 <template>
-  <h1>🚧 Under Construction 🚧</h1>
+  <ProjectPlayer name="RENU - Imagine Cup 2013" />
 </template>
