@@ -34,15 +34,14 @@ const props = defineProps({
   grid-template-columns: min-content auto;
   grid-template-rows: var(--project-card-item-height);
 
-  background-color: var(--color-background-soft);
   margin: 0.33rem 0;
-  border-radius: 25px;
   overflow: hidden;
 
   & > .icon {
     grid-column: 1 / 2;
     height: var(--project-card-item-image-size);
     width: var(--project-card-item-image-size);
+    border-radius: 25px;
   }
 
   & > .details {
@@ -50,7 +49,10 @@ const props = defineProps({
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    margin: 0px 2rem;
+    margin: 0px 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 25px;
+    background-color: var(--color-background-soft);
 
     & > .summary {
       flex: 1;
