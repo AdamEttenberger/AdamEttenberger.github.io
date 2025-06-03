@@ -25,10 +25,6 @@ function formatDate(date) {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-
-  font-size: 1.2rem;
-  margin-bottom: 0.4rem;
-  color: var(--color-heading);
   margin-bottom: 0.4rem;
 
   & > .title {
