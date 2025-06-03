@@ -1,21 +1,16 @@
 <script setup>
+import DateLabel from './DateLabel.vue'
+
 const props = defineProps({
   title: { type: String, required: true },
   date: { type: Date, required: true },
 })
-
-function formatDate(date) {
-  return new Date(date).toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'short',
-  });
-}
 </script>
 
 <template>
   <div class="label">
     <h3 class="title">{{ title }}</h3>
-    <time class="date" :datetime="date">{{ formatDate(date) }}</time>
+    <DateLabel :date="date" />
   </div>
 </template>
 
