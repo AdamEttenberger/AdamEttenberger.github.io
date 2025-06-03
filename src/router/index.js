@@ -1,6 +1,6 @@
 import { createMemoryHistory, createRouter } from 'vue-router'
 
-import Home from '/src/views/Home.vue'
+import ProjectList from '/src/views/project/index.vue'
 import match_three from '/src/views/project/match_three.vue'
 import renu from '/src/views/project/renu.vue'
 import webgl_metaballs from '/src/views/project/webgl_metaballs.vue'
@@ -11,26 +11,30 @@ import { createWebHashHistory } from 'vue-router';
 const routes = [
   {
     path: "/",
-    component: Home,
+    component: ProjectList,
   },
   {
-    path: "/project/match_three",
+    path: "/project/",
+    component: ProjectList,
+  },
+  {
+    path: "/project/match_three/",
     component: match_three,
   },
   {
-    path: "/project/renu",
+    path: "/project/renu/",
     component: renu,
   },
   {
-    path: "/project/webgl_metaballs",
+    path: "/project/webgl_metaballs/",
     component: webgl_metaballs,
   },
   {
-    path: "/project/webgl_flocking",
+    path: "/project/webgl_flocking/",
     component: webgl_flocking,
   },
   {
-    path: "/project/webgl_example",
+    path: "/project/webgl_example/",
     component: webgl_example,
   },
 ];

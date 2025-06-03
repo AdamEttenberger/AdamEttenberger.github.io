@@ -1,5 +1,5 @@
 <script setup>
-import ProjectCardItem from './ProjectCardItem.vue'
+import ProjectCardItem from '/src/components/ProjectCardItem.vue'
 </script>
 
 <template>
