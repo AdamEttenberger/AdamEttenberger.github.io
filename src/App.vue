@@ -15,7 +15,7 @@ import ProjectCardList from './components/ProjectCardList.vue'
   </header>
 
   <main>
-    <ProjectCardList />
+    <RouterView />
   </main>
 
   <footer>&copy;&nbsp;{{ new Date().getFullYear() }} Adam Ettenberger</footer>
