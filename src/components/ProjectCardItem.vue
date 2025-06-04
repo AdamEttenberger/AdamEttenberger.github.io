@@ -6,7 +6,7 @@ const props = defineProps({
   title: { type: String, required: true },
   route: { type: String, required: true },
   date: { type: Date, required: true },
-  lastmod: { type: Date, required: true },
+  lastmod: { type: Date },
 })
 </script>
 
@@ -17,7 +17,7 @@ const props = defineProps({
     </RouterLink>
     <div class="details">
       <RouterLink class="active" :to="route">
-        <ProjectLabel :title="title" :date="date" />
+        <ProjectLabel :title="title" :date="date" :lastmod="lastmod" />
       </RouterLink>
       <div class="summary">
         <slot></slot>

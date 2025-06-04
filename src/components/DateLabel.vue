@@ -1,6 +1,7 @@
 <script setup>
 const props = defineProps({
   date: { type: Date, required: true },
+  lastmod: { type: Date },
 })
 
 function formatDate(date) {
@@ -12,5 +13,20 @@ function formatDate(date) {
 </script>
 
 <template>
-  <time class="date" :datetime="date">{{ formatDate(date) }}</time>
+  <span>
+    <time class="date" :datetime="date">{{ formatDate(date) }}</time>
+    <time v-if="lastmod && lastmod.getTime() != date.getTime()" class="lastmod" :datetime="lastmod">{{ formatDate(lastmod) }}</time>
+  </span>
 </template>
+
+<style scoped>
+.lastmod {
+  font-style: italic;
+  &::before {
+    content: " [edit: ";
+  }
+  &::after {
+    content: "]";
+  }
+}
+</style>

@@ -33,7 +33,11 @@
   --color-link: var(--theme-link-light-1);
   --color-link-hover: var(--theme-link-light-2);
   --color-link-active: var(--theme-link-light-3);
+  --color-divider: var(--theme-divider-light);
   --color-scrollbar: var(--theme-divider-light);
+  --size-player-aspect: 4 / 3;
+  --size-player-max-height: 768px;
+  --size-player-max-width: calc(var(--size-player-height) * var(--size-player-aspect));
 }
 
 @media (prefers-color-scheme: dark) {
@@ -45,6 +49,7 @@
     --color-link: var(--theme-link-dark-1);
     --color-link-hover: var(--theme-link-dark-2);
     --color-link-active: var(--theme-link-dark-3);
+    --color-divider: var(--theme-divider-dark);
     --color-scrollbar: var(--theme-divider-dark);
   }
 }

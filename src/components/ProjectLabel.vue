@@ -4,13 +4,14 @@ import DateLabel from './DateLabel.vue'
 const props = defineProps({
   title: { type: String, required: true },
   date: { type: Date, required: true },
+  lastmod: { type: Date },
 })
 </script>
 
 <template>
   <div class="label">
     <h3 class="title">{{ title }}</h3>
-    <DateLabel :date="date" />
+    <DateLabel :date="date" :lastmod="lastmod" />
   </div>
 </template>
 
