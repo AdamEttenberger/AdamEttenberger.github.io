@@ -1,0 +1,23 @@
+@import './base.css';
+
+#app {
+  min-height: 100vh;
+  width: 950px;
+
+  margin: 0 auto;
+  font-weight: normal;
+
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+
+  & > main {
+    flex: 1;
+    padding: 0 2rem;
+  }
+}
+
+body {
+  display: flex;
+  place-items: start;
+}

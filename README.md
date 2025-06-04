@@ -1,2 +1,18 @@
 # AdamEttenberger.github.io
-Things and thoughts portfolio website
+
+Personal portfolio website containing projects and demos.
+
+# Website Design
+
+## Hierarchy
+
+* Project Card List Layout
+  * Project Info Layout
+
+## Components
+
+![Components](./docs/diagrams/components.png)
+
+## Layouts
+
+![Layouts](./docs/diagrams/layouts.png)
