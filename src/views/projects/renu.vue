@@ -1,6 +1,6 @@
 <script setup>
 import Player from '../../components/player.vue'
-import ProjectLabel from '../../components/ProjectLabel.vue'
+import ProjectLabel from '../../components/project_label.vue'
 import UnderConstruction from '/src/components/under_construction.vue'
 const props = defineProps({
   title: { type: String, required: true },
