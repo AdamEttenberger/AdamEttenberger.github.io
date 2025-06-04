@@ -1,8 +1,10 @@
 <template>
   <header>
-    <img alt="Logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
+    <RouterLink to="/">
+      <img alt="Logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
+    </RouterLink>
     <div>
-      <h1>Adam Ettenberger</h1>
+      <RouterLink to="/"><h1>Adam Ettenberger</h1></RouterLink>
       <h2>
         <a target="_blank" href="https://www.linkedin.com/in/adamettenberger/"><font-awesome-icon size="2x" title="LinkedIn" icon="fa-brands fa-linkedin" aria-label="LinkedIn" /></a>
         <a target="_blank" href="https://github.com/AdamEttenberger"><font-awesome-icon size="2x" title="GitHub" icon="fa-brands fa-github-square" aria-label="GitHub" /></a>
@@ -22,7 +24,7 @@ header {
   display: flex;
   place-items: center;
 
-  & > .logo {
+  & .logo {
     display: block;
     margin: 0 2rem 0 0;
   }
