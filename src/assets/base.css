@@ -35,9 +35,6 @@
   --color-link-active: var(--theme-link-light-3);
   --color-divider: var(--theme-divider-light);
   --color-scrollbar: var(--theme-divider-light);
-  --size-player-aspect: 4 / 3;
-  --size-player-max-height: 768px;
-  --size-player-max-width: calc(var(--size-player-height) * var(--size-player-aspect));
 }
 
 @media (prefers-color-scheme: dark) {
@@ -52,6 +49,13 @@
     --color-divider: var(--theme-divider-dark);
     --color-scrollbar: var(--theme-divider-dark);
   }
+}
+
+/* sizing variables */
+:root {
+  --size-player-aspect: 4 / 3;
+  --size-player-max-height: 768px;
+  --size-player-max-width: calc(var(--size-player-height) * var(--size-player-aspect));
 }
 
 *,
