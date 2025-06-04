@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="/library/core/core.css">
+    <script type="text/javascript" src="/third_party/createjs/easeljs-0.5.0.min.js"></script>
+    <script type="text/javascript" src="/third_party/createjs/preloadjs-0.3.0.min.js"></script>
+    <script type="text/javascript" src="/third_party/createjs/soundjs-0.5.2.min.js"></script>
+    <script type="text/javascript" src="/third_party/createjs/soundjs.flashplugin-0.5.2.min.js"></script>
+    <script type="text/javascript" src="/library/projects/renu/resources/js/game.js"></script>
+  </head>
+  <body data-win-control="WinJS.UI.ViewBox">
+    <div style="background-color:black; color:white; text-align:center; position:relative; width: 75%; height:30px; padding:0 5px; margin:-30px auto 0 auto; top:384px; z-index:1;">
+      <progress id="progress" max="100" value="0" style="position:absolute; height:16px; left:0px; top:50%; margin-top:-8px; width:100%;">
+        <strong>Loading...</strong>
+      </progress>
+    </div>
+    <canvas id="myCanvas" width="1024" height="768" tabindex="0"></canvas>
+    <canvas style="display:none;" id="mapData" width="32" height="24"></canvas>
+  </body>
+</html>

@@ -1,0 +1,9 @@
+html, body {
+  display: flex;
+  flex-direction: column;
+  justify-content: stretch;
+  align-content: stretch;
+  border: none;
+  margin: 0px;
+  padding: 0px;
+}
