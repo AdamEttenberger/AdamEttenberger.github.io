@@ -1,4 +1,4 @@
-# AdamEttenberger.github.io
+# [AdamEttenberger.github.io](https://AdamEttenberger.github.io)
 
 Personal portfolio website containing projects and demos.
 
