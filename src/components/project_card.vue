@@ -1,5 +1,5 @@
 <script setup>
-import ProjectLabel from './ProjectLabel.vue'
+import ProjectLabel from './project_label.vue'
 
 const props = defineProps({
   image: { type: String, required: true },

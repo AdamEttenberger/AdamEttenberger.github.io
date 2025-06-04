@@ -1,5 +1,5 @@
 <script setup>
-import DateLabel from './DateLabel.vue'
+import DateLabel from './date_label.vue'
 
 const props = defineProps({
   title: { type: String, required: true },

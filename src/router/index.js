@@ -1,11 +1,11 @@
 import { createMemoryHistory, createRouter } from 'vue-router'
 
-import ProjectList from '/src/views/project/index.vue'
-import match_three from '/src/views/project/match_three.vue'
-import renu from '/src/views/project/renu.vue'
-import webgl_metaballs from '/src/views/project/webgl_metaballs.vue'
-import webgl_flocking from '/src/views/project/webgl_flocking.vue'
-import webgl_example from '/src/views/project/webgl_example.vue'
+import ProjectList from '/src/views/projects.vue'
+import match_three from '/src/views/projects/match_three.vue'
+import renu from '/src/views/projects/renu.vue'
+import webgl_metaballs from '/src/views/projects/webgl_metaballs.vue'
+import webgl_flocking from '/src/views/projects/webgl_flocking.vue'
+import webgl_example from '/src/views/projects/webgl_example.vue'
 import { createWebHashHistory } from 'vue-router';
 
 const routes = [
@@ -14,11 +14,11 @@ const routes = [
     component: ProjectList,
   },
   {
-    path: "/project/",
+    path: "/projects/",
     component: ProjectList,
   },
   {
-    path: "/project/match_three/",
+    path: "/projects/match_three/",
     component: match_three,
     props: {
       title: "Match-3 Game",
@@ -28,7 +28,7 @@ const routes = [
     },
   },
   {
-    path: "/project/renu/",
+    path: "/projects/renu/",
     component: renu,
     props: {
       title: "RENU - Imagine Cup 2013",
@@ -38,7 +38,7 @@ const routes = [
     },
   },
   {
-    path: "/project/webgl_metaballs/",
+    path: "/projects/webgl_metaballs/",
     component: webgl_metaballs,
     props: {
       title: "WebGL Metaballs",
@@ -48,7 +48,7 @@ const routes = [
     },
   },
   {
-    path: "/project/webgl_flocking/",
+    path: "/projects/webgl_flocking/",
     component: webgl_flocking,
     props: {
       title: "WebGL Flocking",
@@ -58,7 +58,7 @@ const routes = [
     },
   },
   {
-    path: "/project/webgl_example/",
+    path: "/projects/webgl_example/",
     component: webgl_example,
     props: {
       title: "WebGL Example",
