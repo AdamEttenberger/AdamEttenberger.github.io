@@ -1,5 +1,6 @@
 <script setup>
 import ProjectLabel from './project_label.vue'
+import ImageButton from './image_button.vue'
 
 const props = defineProps({
   image: { type: String, required: true },
@@ -12,16 +13,8 @@ const props = defineProps({
 
 <template>
   <article class="container">
-    <div class="icon">
-      <RouterLink :to="route">
-        <img :src="image" :alt="title" />
-      </RouterLink>
-    </div>
-    <div class="label">
-      <RouterLink :to="route">
-        <ProjectLabel :title="title" :date="date" :lastmod="lastmod" />
-      </RouterLink>
-    </div>
+    <ImageButton class="icon" :src="image" :alt="title" :route="route" />
+    <ProjectLabel class="label" :title="title" :date="date" :lastmod="lastmod" :route="route" />
     <section class="summary">
       <div class="scroller">
         <slot></slot>
@@ -32,7 +25,7 @@ const props = defineProps({
 
 <style setup>
 :root {
-  --project-card-item-height: 12rem;
+  --project-card-item-height: 200px;
 }
 </style>
 
@@ -48,33 +41,16 @@ const props = defineProps({
   max-height: var(--project-card-item-height);
 
   & > .icon {
-    display: block;
     aspect-ratio: 1;
     grid-column: 1 / 2;
     grid-row: 1 / 3;
-
-    overflow: hidden;
-    padding: 0;
-    margin-right: 0.5rem;
-    padding: 5%;
-    transition: padding var(--anim-transition);
-    &:hover {
-      padding: 0;
-    }
-
-    & img {
-      border-radius: var(--size-border-radius);
-      overflow: hidden;
-      width: 100%;
-      height: 100%;
-    }
   }
 
   & > .label {
     background-color: var(--color-background-soft);
     grid-column: 2 / 3;
     grid-row: 1 / 2;
-    padding: 0.5rem 1rem;
+    padding: var(--size-border-radius);
     border-radius: var(--size-border-radius) var(--size-border-radius) 0 0;
     transition: background-color var(--anim-transition);
     &:hover {
@@ -89,7 +65,7 @@ const props = defineProps({
     background-color: var(--color-background-soft);
     grid-column: 2 / 3;
     grid-row: 2 / 3;
-    padding: 0.5rem 1rem;
+    padding: var(--size-border-radius);
     border-radius: 0 0 var(--size-border-radius) var(--size-border-radius);
     justify-content: stretch;
     & > .scroller {

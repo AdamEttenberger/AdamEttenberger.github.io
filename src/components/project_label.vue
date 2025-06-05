@@ -5,11 +5,17 @@ const props = defineProps({
   title: { type: String, required: true },
   date: { type: Date, required: true },
   lastmod: { type: Date },
+  route: { type: String },
 })
 </script>
 
 <template>
-  <div class="label">
+  <RouterLink v-if="route" class="label" :to="route">
+    <h3 class="title">{{ title }}</h3>
+    <h4 class="date"><DateLabel :date="date" :lastmod="lastmod" /></h4>
+  </RouterLink>
+
+  <div v-else class="label">
     <h3 class="title">{{ title }}</h3>
     <h4 class="date"><DateLabel :date="date" :lastmod="lastmod" /></h4>
   </div>
