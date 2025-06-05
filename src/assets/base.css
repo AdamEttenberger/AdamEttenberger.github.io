@@ -53,6 +53,7 @@
 
 /* sizing variables */
 :root {
+  --size-border-radius: 0.5rem;
   --size-player-aspect: 4 / 3;
   --size-player-max-height: 768px;
   --size-player-max-width: calc(var(--size-player-height) * var(--size-player-aspect));
