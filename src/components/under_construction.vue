@@ -17,7 +17,7 @@ section {
     padding: 0 25px;
     white-space: nowrap;
     background-color: var(--color-background-soft);
-    border-radius: 25px;
+    border-radius: var(--size-border-radius);
   }
 }
 </style>

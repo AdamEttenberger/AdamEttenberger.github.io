@@ -46,7 +46,7 @@ const props = defineProps({
     grid-column: 1 / 2;
     height: var(--project-card-item-image-size);
     width: var(--project-card-item-image-size);
-    border-radius: 25px;
+    border-radius: var(--size-border-radius);
   }
 
   & > .details {
@@ -56,7 +56,7 @@ const props = defineProps({
     align-items: stretch;
     margin: 0px 0.5rem;
     padding: 0.5rem 1rem;
-    border-radius: 25px;
+    border-radius: var(--size-border-radius);
     background-color: var(--color-background-soft);
 
     & > .summary {

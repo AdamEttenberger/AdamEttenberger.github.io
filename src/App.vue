@@ -42,7 +42,7 @@ footer {
   align-items: center;
   font-size: medium;
   height: 2.5rem;
-  border-radius: 25px;
+  border-radius: var(--size-border-radius);
   background-color: var(--color-background-soft);
 }
 </style>
