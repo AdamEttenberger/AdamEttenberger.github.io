@@ -11,7 +11,7 @@ const props = defineProps({
 <template>
   <div class="label">
     <h3 class="title">{{ title }}</h3>
-    <DateLabel :date="date" :lastmod="lastmod" />
+    <h4 class="date"><DateLabel :date="date" :lastmod="lastmod" /></h4>
   </div>
 </template>
 
@@ -21,7 +21,6 @@ const props = defineProps({
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.4rem;
 
   & > .title {
     font-size: 1.2rem;
