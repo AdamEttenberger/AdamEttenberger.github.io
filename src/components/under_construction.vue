@@ -14,7 +14,7 @@ section {
   align-content: center;
   & > .message {
     justify-items: center;
-    padding: 0 25px;
+    padding: 0 var(--size-padding-round);
     white-space: nowrap;
     background-color: var(--color-background-soft);
     border-radius: var(--size-border-radius);

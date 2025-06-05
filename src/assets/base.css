@@ -53,10 +53,15 @@
 
 /* sizing variables */
 :root {
-  --size-border-radius: 0.5rem;
   --size-player-aspect: 4 / 3;
   --size-player-max-height: 768px;
   --size-player-max-width: calc(var(--size-player-height) * var(--size-player-aspect));
+
+  --size-border-radius: 0.5rem;
+  --size-padding-round: var(--size-border-radius);
+  --size-padding-hard: calc(var(--size-padding-round) / 2);
+
+  --size-column-gutter: 2rem;
 }
 
 /* animation variables */
@@ -111,7 +116,7 @@ h1, h2, h3, h4, h5, h6 {
   display: contents;
   text-decoration: none;
   color: var(--color-link);
-  padding: 3px;
+  padding: var(--size-padding-hard);
   transition: color var(--anim-transition);
   &:hover {
     color: var(--color-link-hover);
