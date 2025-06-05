@@ -14,7 +14,7 @@ const props = defineProps({
 <template>
   <article class="container">
     <ImageButton class="icon" :src="image" :alt="title" :route="route" />
-    <ProjectLabel class="label" :title="title" :date="date" :lastmod="lastmod" :route="route" />
+    <ProjectLabel class="label" :title="title" :date="date" :route="route" />
     <section class="summary">
       <div class="scroller">
         <slot></slot>
@@ -77,4 +77,34 @@ const props = defineProps({
     }
   }
 }
+
+@media only screen and (max-width: 740px) {
+  .container {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-areas: "image header"
+                         "content content";
+
+    max-height: calc(var(--project-card-item-height) * 2);
+
+    & > .icon {
+      max-height: calc(var(--project-card-item-height) / 2);
+      grid-column: 1 / 2;
+      grid-row: 1 / 2;
+    }
+
+    & > .label {
+      grid-column: 2 / 3;
+      grid-row: 1 / 2;
+    }
+
+    & > .summary {
+      grid-column: 1 / 3;
+      grid-row: 2 / 3;
+      border-radius: var(--size-border-radius) 0 var(--size-border-radius) var(--size-border-radius);
+    }
+  }
+}
+
 </style>
