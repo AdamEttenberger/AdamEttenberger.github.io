@@ -50,7 +50,7 @@ const props = defineProps({
     background-color: var(--color-background-soft);
     grid-column: 2 / 3;
     grid-row: 1 / 2;
-    padding: var(--size-border-radius);
+    padding: var(--size-padding-round);
     border-radius: var(--size-border-radius) var(--size-border-radius) 0 0;
     transition: background-color var(--anim-transition);
     &:hover {
@@ -65,7 +65,7 @@ const props = defineProps({
     background-color: var(--color-background-soft);
     grid-column: 2 / 3;
     grid-row: 2 / 3;
-    padding: var(--size-border-radius);
+    padding: var(--size-padding-round);
     border-radius: 0 0 var(--size-border-radius) var(--size-border-radius);
     justify-content: stretch;
     & > .scroller {

@@ -16,7 +16,6 @@ const props = defineProps({
 .image_button {
   display: block;
   margin: 0;
-  padding: 0;
   transition: padding var(--anim-transition);
   padding: 5%;
   &:hover {
