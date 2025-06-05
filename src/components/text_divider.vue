@@ -15,7 +15,7 @@ import Box from './box.vue'
   display: flex;
   align-items: center;
   text-align: center;
-  margin: 1lh;
+  margin: 1lh 0;
 
   & .heading {
     border: 3px solid var(--color-divider);
