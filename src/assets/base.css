@@ -53,10 +53,6 @@
 
 /* sizing variables */
 :root {
-  --size-player-aspect: 4 / 3;
-  --size-player-max-height: 768px;
-  --size-player-max-width: calc(var(--size-player-height) * var(--size-player-aspect));
-
   --size-border-radius: 0.5rem;
   --size-padding-round: var(--size-border-radius);
   --size-padding-hard: calc(var(--size-padding-round) / 2);
