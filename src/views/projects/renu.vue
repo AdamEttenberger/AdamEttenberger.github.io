@@ -37,10 +37,10 @@ const props = defineProps({
     <TextDivider>Team</TextDivider>
     <div class="team-grid">
       <img class="team_image" src="/library/projects/renu/images/team.jpg" width="640" height="160" />
-      <span class="team-c1">Adam Ettenberger</span>
-      <span class="team-c2">Amanda Rivet</span>
-      <span class="team-c3">Nate Lemoi</span>
-      <span class="team-c4">Le Josh Davis</span>
+      <h3 class="team-c1">Adam Ettenberger</h3>
+      <h3 class="team-c2">Amanda Rivet</h3>
+      <h3 class="team-c3">Nate Lemoi</h3>
+      <h3 class="team-c4">Le Josh Davis</h3>
     </div>
     <p>
       Our team consisted of Amanda Rivet, Nate Lemoi, Le Josh Davis, and myself. Amanda created all of the art and animations for the game, Nate created all of the music and sound effects, and Josh mostly helped design the game mechanics and experience as well as some programming. As for myself, I did nearly all of the programming and I designed each of the levels.
@@ -87,14 +87,20 @@ svg {
 
 .team-grid {
   display: grid;
-  grid-template-columns: repeat(4, min-content);
+  grid-template-columns: repeat(4, 1fr);
   grid-template-rows: auto min-content;
   justify-items: center;
   justify-self: center;
+  text-align: center;
+  border: 6px solid var(--color-divider);
+  margin: var(--size-padding-round) 0;
+
   & > .team_image {
     grid-column: 1 / 5;
     grid-row: 1 / 2;
-    margin-bottom: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
   }
   & > .team-c1,
   & > .team-c2,
