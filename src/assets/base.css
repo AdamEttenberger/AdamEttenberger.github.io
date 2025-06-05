@@ -13,12 +13,12 @@
   --theme-text-dark-1: var(--theme-white);
   --theme-text-dark-2: #C1E1C1;
 
-  --theme-link-light-1: #1E2BE1;
-  --theme-link-light-2: #1E8CE1;
-  --theme-link-light-3: #D32C72;
+  --theme-link-light-1: #1e2be1;
+  --theme-link-light-2: #73BDDD;
+  --theme-link-light-3: #1E8CE1;
   --theme-link-dark-1: #1E8CE1;
-  --theme-link-dark-2: #1E2BE1;
-  --theme-link-dark-3: #D32C72;
+  --theme-link-dark-2: #20688B;
+  --theme-link-dark-3: #1E2BE1;
 
   --theme-divider-light: #72bbce;
   --theme-divider-dark: #415a77;
