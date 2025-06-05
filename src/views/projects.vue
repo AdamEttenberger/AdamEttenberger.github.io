@@ -32,7 +32,7 @@ import ProjectCard from '/src/components/project_card.vue'
                route="/projects/webgl_flocking"
                :date="new Date('2012/10/05')"
                :lastmod="new Date('2012/10/05')">
-    <p>Using the GameObject/Component model in the WebGL example below, I have put together a 3D flocking simulation using Craig Reynolds' <a href="http://www.red3d.com/cwr/boids/">Boids Algorithm</a>. WebGL Flocking used <a href="https://github.com/toji/gl-matrix">gl-matrix</a> to speed production.</p>
+    <p>Using the GameObject/Component model in the WebGL example below, I have put together a 3D flocking simulation using Craig Reynolds' <a href="https://www.red3d.com/cwr/boids/">Boids Algorithm</a>. WebGL Flocking used <a href="https://github.com/toji/gl-matrix">gl-matrix</a> to speed production.</p>
   </ProjectCard>
 
   <ProjectCard title="WebGL Example"
