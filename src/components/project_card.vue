@@ -25,7 +25,7 @@ const props = defineProps({
 
 <style setup>
 :root {
-  --project-card-item-height: 200px;
+  --project-card-item-height: 12rem;
 }
 </style>
 
