@@ -25,13 +25,11 @@ const props = defineProps({
   & > .title {
     font-size: 1.2rem;
     font-weight: bold;
-    text-align: left;
   }
 
   & > .date {
     font-size: 1rem;
     font-style: italic;
-    text-align: right;
   }
 }
 </style>

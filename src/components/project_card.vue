@@ -11,57 +11,93 @@ const props = defineProps({
 </script>
 
 <template>
-  <div class="item">
-    <RouterLink class="active" :to="route">
-      <img class="icon" :src="image" :alt="title" />
-    </RouterLink>
-    <div class="details">
-      <RouterLink class="active" :to="route">
+  <article class="container">
+    <div class="icon">
+      <RouterLink :to="route">
+        <img :src="image" :alt="title" />
+      </RouterLink>
+    </div>
+    <div class="label">
+      <RouterLink :to="route">
         <ProjectLabel :title="title" :date="date" :lastmod="lastmod" />
       </RouterLink>
-      <div class="summary">
+    </div>
+    <section class="summary">
+      <div class="scroller">
         <slot></slot>
       </div>
-    </div>
-  </div>
+    </section>
+  </article>
 </template>
 
 <style setup>
 :root {
   --project-card-item-height: 12rem;
-  --project-card-item-image-size: var(--project-card-item-height);
 }
 </style>
 
 <style scoped>
-.item {
+.container {
   display: grid;
-  grid-template-columns: min-content auto;
-  grid-template-rows: var(--project-card-item-height);
-
+  grid-template-columns: var(--project-card-item-height) auto;
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-areas: "image header"
+                       "image content";
   margin: 0.33rem 0;
   overflow: hidden;
+  max-height: var(--project-card-item-height);
 
-  & .icon {
+  & > .icon {
+    display: block;
+    aspect-ratio: 1;
     grid-column: 1 / 2;
-    height: var(--project-card-item-image-size);
-    width: var(--project-card-item-image-size);
-    border-radius: var(--size-border-radius);
+    grid-row: 1 / 3;
+
+    overflow: hidden;
+    padding: 0;
+    margin-right: 0.5rem;
+    padding: 5%;
+    transition: padding var(--anim-transition);
+    &:hover {
+      padding: 0;
+    }
+
+    & img {
+      border-radius: var(--size-border-radius);
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+    }
   }
 
-  & > .details {
-    grid-column: 2 / 3;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    margin: 0px 0.5rem;
-    padding: 0.5rem 1rem;
-    border-radius: var(--size-border-radius);
+  & > .label {
     background-color: var(--color-background-soft);
+    grid-column: 2 / 3;
+    grid-row: 1 / 2;
+    padding: 0.5rem 1rem;
+    border-radius: var(--size-border-radius) var(--size-border-radius) 0 0;
+    transition: background-color var(--anim-transition);
+    &:hover {
+      background-color: var(--color-link-hover);
+    }
+    &:active {
+      background-color: var(--color-link-active);
+    }
+  }
 
-    & > .summary {
-      flex: 1;
+  & > .summary {
+    background-color: var(--color-background-soft);
+    grid-column: 2 / 3;
+    grid-row: 2 / 3;
+    padding: 0.5rem 1rem;
+    border-radius: 0 0 var(--size-border-radius) var(--size-border-radius);
+    justify-content: stretch;
+    & > .scroller {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
       overflow-y: auto;
+      height: 100%;
     }
   }
 }
