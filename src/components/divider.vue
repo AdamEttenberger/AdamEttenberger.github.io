@@ -1,6 +1,6 @@
 <template>
   <div class="divider">
-    <h2 class="heading">
+    <h2 v-if="$slots.default" class="heading">
       <slot></slot>
     </h2>
   </div>
