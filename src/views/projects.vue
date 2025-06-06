@@ -12,6 +12,12 @@ import ProjectCard from '/src/components/project_card.vue'
     <p>A simple 3D Match-3 game made with the <ExternalLink to="https://godotengine.org/">Godot</ExternalLink> game engine and <ExternalLink to="https://www.blender.org/">Blender</ExternalLink>.</p>
   </ProjectCard>
 
+  <ProjectCard title="This Website"
+               image="/images/projects/website.png"
+               route="/projects/website">
+    <p>This portfolio website is something I initially created while at RIT to showcase some of my class projects or personal projects. Originally static HTML, CSS, JavaScript, and ShockWave Flash files, this has been migrated over the years to newer technologies, multiple frameworks / CMS / templating engines. Most recently switched to <ExternalLink to="https://vuejs.org/">Vue3</ExternalLink> + <ExternalLink to="https://vite.dev/">Vite</ExternalLink> hosted with <ExternalLink to="https://pages.github.com/">GitHub Pages</ExternalLink>.</p>
+  </ProjectCard>
+
   <ProjectCard title="RENU - Imagine Cup 2013 @ RIT"
                image="/images/projects/renu.png"
                route="/projects/renu"

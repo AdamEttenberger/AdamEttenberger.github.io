@@ -68,6 +68,13 @@ const routes = [
       frame: "/library/projects/metaballs/main.html",
     },
   },
+  {
+    path: "/projects/website/",
+    component: website,
+    props: {
+      title: "This Website",
+    },
+  },
 ];
 const router = createRouter({
   history: createWebHashHistory(),

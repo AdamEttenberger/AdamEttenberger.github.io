@@ -6,7 +6,7 @@ const props = defineProps({
   image: { type: String, required: true },
   title: { type: String, required: true },
   route: { type: String, required: true },
-  date: { type: Date, required: true },
+  date: { type: Date },
   lastmod: { type: Date },
 })
 </script>
