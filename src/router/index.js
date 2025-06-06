@@ -31,7 +31,7 @@ const routes = [
     path: "/projects/renu/",
     component: renu,
     props: {
-      title: "RENU - Imagine Cup 2013",
+      title: "RENU - Imagine Cup 2013 @ RIT",
       date: new Date('2012/12/01'),
       lastmod: new Date('2012/12/01'),
       frame: "/library/projects/renu/main.html",

@@ -1,7 +1,3 @@
-<script setup>
-import Box from './box.vue'
-</script>
-
 <template>
   <div class="divider">
     <h2 class="heading">

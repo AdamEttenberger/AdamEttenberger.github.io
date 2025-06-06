@@ -11,7 +11,7 @@ import ProjectCard from '/src/components/project_card.vue'
     <p>A simple 3D Match-3 game made with the <a href="https://godotengine.org/">Godot</a> game engine and <a href="https://www.blender.org/">Blender</a>.</p>
   </ProjectCard>
 
-  <ProjectCard title="RENU - Imagine Cup 2013"
+  <ProjectCard title="RENU - Imagine Cup 2013 @ RIT"
                image="/images/projects/renu.png"
                route="/projects/renu"
                :date="new Date('2012/12/01')"
@@ -24,7 +24,7 @@ import ProjectCard from '/src/components/project_card.vue'
                route="/projects/webgl_metaballs"
                :date="new Date('2012/10/08')"
                :lastmod="new Date('2012/10/08')">
-    <p>Demonstrates deferred rendering to achieve 2D <a href="https://en.wikipedia.org/wiki/Metaballs">Metaballs</a>. Deferred rendering is a technique where you render a scene multiple times using different shader to achieve a desired effect. In this demonstration, I am rendering points in the first pass and computing their gradient on the GPU, and the second pass is using an alpha threshold to give the desired look. WebGL Metaballs used <a href="https://github.com/toji/gl-matrix">gl-matrix</a> to speed production.</p>
+    <p>Demonstrates <a href="https://en.wikipedia.org/wiki/Deferred_shading">Deferred shading</a> to achieve 2D <a href="https://en.wikipedia.org/wiki/Metaballs">Metaballs</a>. Deferred shading is a screen-space shading technique where multiple render passes are made using different shaders to achieve a desired effect. In this demonstration, I am rendering points in the first pass and computing their gradient on the GPU, and the second pass is using an alpha threshold to give the desired look. WebGL Metaballs used <a href="https://github.com/toji/gl-matrix">gl-matrix</a> to speed production.</p>
   </ProjectCard>
 
   <ProjectCard title="WebGL Flocking"
