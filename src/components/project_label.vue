@@ -3,7 +3,7 @@ import DateLabel from './date_label.vue'
 
 const props = defineProps({
   title: { type: String, required: true },
-  date: { type: Date, required: true },
+  date: { type: Date },
   lastmod: { type: Date },
   route: { type: String },
 })
@@ -12,12 +12,12 @@ const props = defineProps({
 <template>
   <RouterLink v-if="route" class="label" :to="route">
     <h3 class="title">{{ title }}</h3>
-    <h4 class="date"><DateLabel :date="date" :lastmod="lastmod" /></h4>
+    <h4 v-if="date" class="date"><DateLabel :date="date" :lastmod="lastmod" /></h4>
   </RouterLink>
 
   <div v-else class="label">
     <h3 class="title">{{ title }}</h3>
-    <h4 class="date"><DateLabel :date="date" :lastmod="lastmod" /></h4>
+    <h4 v-if="date" class="date"><DateLabel :date="date" :lastmod="lastmod" /></h4>
   </div>
 </template>
 
