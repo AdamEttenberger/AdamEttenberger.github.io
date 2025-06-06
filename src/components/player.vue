@@ -30,6 +30,7 @@ const requested_play = ref(false);
   & > * {
     grid-row: 1;
     grid-column: 1;
+    aspect-ratio: v-bind(aspect);
     place-self: stretch;
     border: none;
     margin: 0;
@@ -56,7 +57,6 @@ const requested_play = ref(false);
   user-select: none;
 
   & > .renderer {
-    aspect-ratio: v-bind(aspect);
     /**
      * The background needs to be black for some of the WebGL projects
      * which involve blending but either expect the canvas to have a
