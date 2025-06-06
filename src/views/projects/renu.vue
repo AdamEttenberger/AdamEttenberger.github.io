@@ -82,7 +82,8 @@ const props = defineProps({
   & > img,
   & > svg,
   & > p > img,
-  & > p > svg {
+  & > p > svg,
+  & .team-grid {
     display: block;
     place-self: center;
     justify-self: center;
@@ -120,6 +121,18 @@ const props = defineProps({
     & > .team-c2 { grid-column: 2 / 3; }
     & > .team-c3 { grid-column: 3 / 4; }
     & > .team-c4 { grid-column: 4 / 5; }
+  }
+}
+
+@media only screen and (max-width: 740px) {
+  .column {
+    & > img,
+    & > svg,
+    & > p > img,
+    & > p > svg,
+    & .team-grid {
+      width: 100%;
+    }
   }
 }
 </style>
