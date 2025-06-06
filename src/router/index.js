@@ -6,6 +6,7 @@ import renu from '/src/views/projects/renu.vue'
 import webgl_metaballs from '/src/views/projects/webgl_metaballs.vue'
 import webgl_flocking from '/src/views/projects/webgl_flocking.vue'
 import webgl_example from '/src/views/projects/webgl_example.vue'
+import website from '/src/views/projects/website.vue'
 import { createWebHashHistory } from 'vue-router';
 
 const routes = [
@@ -38,13 +39,13 @@ const routes = [
     },
   },
   {
-    path: "/projects/webgl_metaballs/",
-    component: webgl_metaballs,
+    path: "/projects/webgl_example/",
+    component: webgl_example,
     props: {
-      title: "WebGL Metaballs",
-      date: new Date('2012/10/08'),
-      lastmod: new Date('2012/10/08'),
-      frame: "/library/projects/metaballs/main.html",
+      title: "WebGL Example",
+      date: new Date('2012/09/01'),
+      lastmod: new Date('2012/09/01'),
+      frame: "/library/projects/webgl/main.html",
     },
   },
   {
@@ -58,13 +59,13 @@ const routes = [
     },
   },
   {
-    path: "/projects/webgl_example/",
-    component: webgl_example,
+    path: "/projects/webgl_metaballs/",
+    component: webgl_metaballs,
     props: {
-      title: "WebGL Example",
-      date: new Date('2012/09/01'),
-      lastmod: new Date('2012/09/01'),
-      frame: "/library/projects/webgl/main.html",
+      title: "WebGL Metaballs",
+      date: new Date('2012/10/08'),
+      lastmod: new Date('2012/10/08'),
+      frame: "/library/projects/metaballs/main.html",
     },
   },
 ];
