@@ -1,7 +1,15 @@
 <template>
   <section>
     <div class="message">
-      <h1><font-awesome-icon :icon="['fas', 'server']" /> <font-awesome-icon :icon="['fas', 'cloud-arrow-down']" /> 🚧 Under Construction 🚧 <font-awesome-icon :icon="['fas', 'cloud-arrow-up']" /> <font-awesome-icon :icon="['fas', 'server']" /></h1>
+      <h1>
+        <span>
+          🚧
+        </span>
+        <span>Under Construction</span>
+        <span>
+          🚧
+        </span>
+      </h1>
       <h2><slot></slot></h2>
     </div>
   </section>

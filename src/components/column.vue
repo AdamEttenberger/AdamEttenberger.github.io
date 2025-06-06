@@ -1,14 +1,15 @@
 <template>
-  <div class="box">
+  <div class="column">
     <slot></slot>
   </div>
 </template>
 
 <style scoped>
-div.box {
-  flex: 1;
-  justify-items: stretch;
-  align-content: center;
+.column {
+  display: flex;
+  flex-direction: column;
+  justify-self: center;
+  text-align: justify;
   padding: 0 var(--size-padding-round);
   background-color: var(--color-background-soft);
   border-radius: var(--size-border-radius);

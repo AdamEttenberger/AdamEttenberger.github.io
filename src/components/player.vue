@@ -30,13 +30,14 @@ const requested_play = ref(false);
   & > * {
     grid-row: 1;
     grid-column: 1;
+    place-self: stretch;
+    border: none;
+    margin: 0;
+    padding: 0;
   }
 
   & > button {
     font-size: 4rem;
-    margin: 0;
-    padding: 0;
-    border: none;
     color: var(--color-link);
     transition: color var(--anim-transition);
     background-color: #000;
@@ -56,10 +57,6 @@ const requested_play = ref(false);
 
   & > .renderer {
     aspect-ratio: v-bind(aspect);
-    place-self: stretch;
-    border: none;
-    margin: 0;
-    padding: 0;
     /**
      * The background needs to be black for some of the WebGL projects
      * which involve blending but either expect the canvas to have a

@@ -10,9 +10,6 @@ import { library } from '@fortawesome/fontawesome-svg-core'
 // import { fab } from '@fortawesome/free-brands-svg-icons'
 import {
   faCirclePlay,
-  faCloudArrowUp,
-  faCloudArrowDown,
-  faServer,
 } from '@fortawesome/free-solid-svg-icons'
 import {
   faGithubSquare,
@@ -24,9 +21,6 @@ const app = createApp(App);
 // FontAwesome Config
 library.add(
   faCirclePlay,
-  faCloudArrowUp,
-  faCloudArrowDown,
-  faServer,
 );
 library.add(
   faLinkedin,
