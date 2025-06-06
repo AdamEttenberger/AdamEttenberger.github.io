@@ -76,4 +76,10 @@ const props = defineProps({
     list-style: none;
   }
 }
+
+@media only screen and (max-width: 740px) {
+  .software-list {
+    columns: 2;
+  }
+}
 </style>
