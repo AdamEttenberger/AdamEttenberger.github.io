@@ -79,19 +79,6 @@ const props = defineProps({
 
 <style scoped>
 .content {
-  & > img,
-  & > svg,
-  & > p > img,
-  & > p > svg {
-    display: block;
-    place-self: center;
-    justify-self: center;
-    align-self: center;
-    border: 6px solid var(--color-divider);
-    margin: var(--size-padding-round) 0;
-    width: 90%;
-  }
-
   & .team-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -120,6 +107,14 @@ const props = defineProps({
     & > .team-c2 { grid-column: 2 / 3; }
     & > .team-c3 { grid-column: 3 / 4; }
     & > .team-c4 { grid-column: 4 / 5; }
+  }
+}
+
+@media only screen and (max-width: 740px) {
+  .content {
+    & .team-grid {
+      width: 100%;
+    }
   }
 }
 </style>
