@@ -1,7 +1,8 @@
 <script setup>
+import Column from '../../components/column.vue'
+import ExternalLink from '/src/components/external_link.vue'
 import Player from '../../components/player.vue'
 import ProjectLabel from '../../components/project_label.vue'
-import Column from '../../components/column.vue'
 import TextDivider from '../../components/text_divider.vue'
 const props = defineProps({
   title: { type: String, required: true },
@@ -23,7 +24,7 @@ const props = defineProps({
   <Column class="content">
     <TextDivider>What's Imagine Cup?</TextDivider>
     <p>
-      <a href="https://imaginecup.microsoft.com/">Imagine Cup</a> is an annual competition run by Microsoft. This year, "Imagine Cup 2013 @ RIT" ran from November 30th from 7:00PM - December 1st 6:00PM EST, a mere 23 hours. Microsoft visited the Rochester Institute of Technology to talk about Windows 8 and sponsored a small Imagine Cup for Interactive Games and Media at RIT. I had participated in a group of four, and we built a platforming game with 5 levels and a boss battle using CreateJS, PreloadJS, and SoundJS in Visual Studios 2012 targeting Windows 8. Our game RENU won second place and everyone who played seemed to really enjoy it.
+      <ExternalLink to="https://imaginecup.microsoft.com/">Imagine Cup</ExternalLink> is an annual competition run by Microsoft. This year, "Imagine Cup 2013 @ RIT" ran from November 30th from 7:00PM - December 1st 6:00PM EST, a mere 23 hours. Microsoft visited the Rochester Institute of Technology to talk about Windows 8 and sponsored a small Imagine Cup for Interactive Games and Media at RIT. I had participated in a group of four, and we built a platforming game with 5 levels and a boss battle using CreateJS, PreloadJS, and SoundJS in Visual Studios 2012 targeting Windows 8. Our game RENU won second place and everyone who played seemed to really enjoy it.
     </p>
 
     <TextDivider>Competition Theme</TextDivider>
@@ -82,8 +83,7 @@ const props = defineProps({
   & > img,
   & > svg,
   & > p > img,
-  & > p > svg,
-  & .team-grid {
+  & > p > svg {
     display: block;
     place-self: center;
     justify-self: center;

@@ -1,3 +1,7 @@
+<script setup>
+import ExternalLink from '/src/components/external_link.vue'
+</script>
+
 <template>
   <header>
     <RouterLink to="/">
@@ -6,8 +10,8 @@
     <div>
       <RouterLink to="/"><h1>Adam Ettenberger</h1></RouterLink>
       <h2>
-        <a target="_blank" href="https://www.linkedin.com/in/adamettenberger/"><font-awesome-icon size="2x" title="LinkedIn" icon="fa-brands fa-linkedin" aria-label="LinkedIn" /></a>
-        <a target="_blank" href="https://github.com/AdamEttenberger"><font-awesome-icon size="2x" title="GitHub" icon="fa-brands fa-github-square" aria-label="GitHub" /></a>
+        <ExternalLink to="https://www.linkedin.com/in/adamettenberger/" :show_ext="false"><font-awesome-icon size="2x" title="LinkedIn" icon="fa-brands fa-linkedin" aria-label="LinkedIn" /></ExternalLink>
+        <ExternalLink to="https://github.com/AdamEttenberger" :show_ext="false"><font-awesome-icon size="2x" title="GitHub" icon="fa-brands fa-github-square" aria-label="GitHub" /></ExternalLink>
       </h2>
     </div>
   </header>
