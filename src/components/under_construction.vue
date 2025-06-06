@@ -17,11 +17,8 @@
 
 <style scoped>
 section {
-  flex: 1;
-  justify-items: stretch;
-  align-content: center;
   & > .message {
-    justify-items: center;
+    text-align: center;
     padding: 0 var(--size-padding-round);
     white-space: nowrap;
     background-color: var(--color-background-soft);
