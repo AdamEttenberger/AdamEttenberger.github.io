@@ -36,13 +36,15 @@ const props = defineProps({
     <p>
       Our team consisted of Amanda Rivet, Nate Lemoi, Le Josh Davis, and myself. Amanda created all of the art and animations for the game, Nate created all of the music and sound effects, and Josh mostly helped design the game mechanics and experience as well as some programming. As for myself, I did nearly all of the programming and I designed each of the levels.
     </p>
-    <div class="team-grid">
-      <img class="team_image" src="/library/projects/renu/images/team.jpg"
+    <div class="column-framed team">
+      <img src="/library/projects/renu/images/team.jpg"
            alt="profile pictures of the team members" />
-      <h3 class="team-c1">Adam Ettenberger</h3>
-      <h3 class="team-c2">Amanda Rivet</h3>
-      <h3 class="team-c3">Nate Lemoi</h3>
-      <h3 class="team-c4">Le Josh Davis</h3>
+      <ol>
+        <li>Adam Ettenberger</li>
+        <li>Amanda Rivet</li>
+        <li>Nate Lemoi</li>
+        <li>Le Josh Davis</li>
+      </ol>
     </div>
     <Divider>Levels</Divider>
     <p>
@@ -79,59 +81,25 @@ const props = defineProps({
 </template>
 
 <style scoped>
-.content {
-  & > img,
-  & > svg,
-  & > p > img,
-  & > p > svg {
-    display: block;
-    place-self: center;
-    justify-self: center;
-    align-self: center;
-    border: 6px solid var(--color-divider);
-    margin: var(--size-padding-round) 0;
-    width: 90%;
+.team {
+  display: flex;
+  flex-direction: column;
+  & > img {
+    width: 100%;
   }
 
-  & .team-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: auto min-content;
-    place-self: center;
-    text-align: center;
-    justify-items: stretch;
-    border: 6px solid var(--color-divider);
-    margin: var(--size-padding-round) 0;
-    width: 90%;
+  & > ol {
+    display: flex;
+    flex-direction: row;
+    list-style: none;
+    padding: 0;
 
-    & > .team_image {
-      grid-column: 1 / 5;
-      grid-row: 1 / 2;
-      margin: 0;
-      padding: 0;
-      border: 0;
-    }
-    & > .team-c1,
-    & > .team-c2,
-    & > .team-c3,
-    & > .team-c4 {
-      grid-row: 2 / 3;
-    }
-    & > .team-c1 { grid-column: 1 / 2; }
-    & > .team-c2 { grid-column: 2 / 3; }
-    & > .team-c3 { grid-column: 3 / 4; }
-    & > .team-c4 { grid-column: 4 / 5; }
-  }
-}
-
-@media only screen and (max-width: 740px) {
-  .column {
-    & > img,
-    & > svg,
-    & > p > img,
-    & > p > svg,
-    & .team-grid {
-      width: 100%;
+    & > * {
+      flex: 1;
+      font-size: large;
+      text-align: center;
+      min-width: 25%;
+      color: var(--color-text-heading);
     }
   }
 }
