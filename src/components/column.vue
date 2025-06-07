@@ -15,9 +15,8 @@
   border-radius: var(--size-border-radius);
   margin: var(--size-padding-round) 0;
 
-  & > :slotted(.column-framed),
-  & > :slotted(:is(img, svg)),
-  & > :slotted(p) > :is(img, svg) {
+  & > :slotted(:is(img, svg, .column-framed)),
+  & > :slotted(p) > :is(img, svg, .column-framed) {
     display: block;
     place-self: center;
     justify-self: center;
