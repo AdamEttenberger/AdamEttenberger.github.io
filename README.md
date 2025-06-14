@@ -13,8 +13,8 @@ Personal portfolio website containing projects and demos.
 
 ## Components
 
-![Components](./docs/diagrams/components.png)
+![Components](./public/images/projects/website/components.png)
 
 ## Layouts
 
-![Layouts](./docs/diagrams/layouts.png)
+![Layouts](./public/images/projects/website/layouts.png)
