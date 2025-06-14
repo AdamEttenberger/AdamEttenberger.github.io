@@ -10,7 +10,7 @@
   flex-direction: column;
   justify-self: center;
   text-align: justify;
-  padding: 0 var(--size-padding-round);
+  padding: var(--size-padding-round);
   background-color: var(--color-background-soft);
   border-radius: var(--size-border-radius);
   margin: var(--size-padding-round) 0;
