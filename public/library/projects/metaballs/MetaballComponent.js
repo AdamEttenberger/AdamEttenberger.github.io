@@ -150,7 +150,7 @@ function MetaballComponent( )
   var planarIndices = [ 0, 1, 2, 0, 2, 3 ];
 
   this.vertexPositionBuffer = new Buffer( gl, Buffer.POSITION, gl.ARRAY_BUFFER, planarVertices, 3 );
-   this.vertexTextureBuffer = new Buffer( gl, Buffer.TEXTURE, gl.ARRAY_BUFFER, planarUV, 2 );
+  this.vertexTextureBuffer = new Buffer( gl, Buffer.TEXTURE, gl.ARRAY_BUFFER, planarUV, 2 );
   this.indexBuffer = new Buffer( gl, null, gl.ELEMENT_ARRAY_BUFFER, planarIndices, 1 );
   this.startTime = Date.now();
 
