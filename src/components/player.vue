@@ -1,8 +1,11 @@
 <script setup>
 import { ref } from 'vue';
+import ProjectLabel from './project_label.vue'
 
 const props = defineProps({
   title: { type: String, required: true },
+  date: { type: Date, default: null },
+  lastmod: { type: Date, default: null },
   frame: { type: String, required: true },
   aspect: { type: String, default: "4 / 3" },
   paused: { type: Boolean, default: true },
@@ -12,32 +15,36 @@ const requested_play = ref(false);
 </script>
 
 <template>
-  <div v-if="!requested_play && paused" class="player">
-    <button class="play-button" @click.once="requested_play = true"><font-awesome-icon :icon="['fas', 'circle-play']" /></button>
-  </div>
-  <div v-else class="player">
-    <iframe class="renderer" :title="title" :src="frame"></iframe>
+  <div class="column-inset player">
+    <div class="framed">
+      <button v-if="!requested_play && paused" class="play-button" @click.once="requested_play = true"><font-awesome-icon :icon="['fas', 'circle-play']" /></button>
+      <iframe v-else class="renderer" :title="title" :src="frame"></iframe>
+    </div>
+    <ProjectLabel class="label" :title="title" :date="date" :lastmod="lastmod" />
   </div>
 </template>
 
 <style scoped>
 .player {
-  display: grid;
-  grid-template-columns: 100%;
-  grid-template-rows: auto;
-  aspect-ratio: v-bind(aspect);
+  display: flex;
+  flex-direction: column;
+  user-select: none;
 
-  & > * {
-    grid-row: 1;
-    grid-column: 1;
-    aspect-ratio: v-bind(aspect);
-    place-self: stretch;
-    border: none;
-    margin: 0;
-    padding: 0;
+  /**
+   * Mostly mitigates an issue where there's a small inexplicable gap between
+   * the lower edge of the iframe and the lower border.
+   */
+  & > .framed {
+    display: flex;
   }
 
-  & > button {
+  & .play-button,
+  & .renderer {
+    aspect-ratio: v-bind(aspect);
+    width: 100%;
+  }
+
+  & .play-button {
     font-size: 4rem;
     color: var(--color-link);
     transition: color var(--anim-transition);
@@ -53,10 +60,7 @@ const requested_play = ref(false);
     }
   }
 
-  border: 6px solid var(--color-divider);
-  user-select: none;
-
-  & > .renderer {
+  & .renderer {
     /**
      * The background needs to be black for some of the WebGL projects
      * which involve blending but either expect the canvas to have a

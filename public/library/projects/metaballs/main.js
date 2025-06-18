@@ -21,7 +21,10 @@ function main()
     return;
   }
 
-  initScene();
+  // Expects to be run from an iframe.
+  // e.g., <iframe src="/library/projects/metaballs/main.html?mode=WebFigure1"></iframe>
+  const url_params = new URLSearchParams(window.location.search);
+  initScene(url_params.get('mode'));
 
   mat4.ortho(Game.pMatrix, -2.0, 2.0, -2.0, 2.0, 0.0, 1000.0);
   mat4.fromTranslation(Game.mMatrix, vec3.fromValues(0.0, 0.0, -100.0));
@@ -29,12 +32,12 @@ function main()
   game.start();
 }
 
-function initScene()
+function initScene(mode)
 {
   game.m_managers.push( ParticleManager.Instance() );
 
   var plane = new GameObject();
-  plane.addComponent( new MetaballComponent( ) );
+  plane.addComponent( new MetaballComponent(mode) );
 
   game.m_root.addChildGameObject( plane );
 }

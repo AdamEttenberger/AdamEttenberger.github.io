@@ -9,12 +9,10 @@ uniform float uLightRadius;
 void main(void)
 {
   vec3 pos = vec3( gl_FragCoord.xy / uRenderbufferSize, 0.0 );
-  float dv = distance(pos, uLightPosition);
-  if (dv < uLightRadius)
-  {
-    float g = uLightColor.a  * ( 1.0 - ( dv / uLightRadius ) );
-    gl_FragColor = vec4(uLightColor.rgb, g * uAlpha);
-  }
-  else
+  float d = distance(pos, uLightPosition) - uLightRadius;
+  if (d <= 0.0) {
+    gl_FragColor = vec4(uLightColor.rgb, uLightColor.a * (-d / uLightRadius) * uAlpha);
+  } else {
     discard;
+  }
 }

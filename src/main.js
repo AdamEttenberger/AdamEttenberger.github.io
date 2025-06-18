@@ -11,6 +11,7 @@ import { library } from '@fortawesome/fontawesome-svg-core'
 import {
   faFileCircleXmark,
   faCirclePlay,
+  faDragon,
   faUpRightFromSquare,
 } from '@fortawesome/free-solid-svg-icons'
 import {
@@ -24,6 +25,7 @@ const app = createApp(App);
 library.add(
   faFileCircleXmark,
   faCirclePlay,
+  faDragon,
   faUpRightFromSquare,
 );
 library.add(

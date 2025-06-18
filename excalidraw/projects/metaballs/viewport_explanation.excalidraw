@@ -1,0 +1,318 @@
+{
+  "type": "excalidraw",
+  "version": 2,
+  "source": "https://marketplace.visualstudio.com/items?itemName=pomdtr.excalidraw-editor",
+  "elements": [
+    {
+      "id": "6IMRoHozmiEwxXqLkAgzM",
+      "type": "rectangle",
+      "x": 732.6388956705729,
+      "y": -385.61505139063286,
+      "width": 255.55554707845056,
+      "height": 255.55554707845056,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "#a5d8ff",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [
+        "ST-bk8Xfhp4zH3XxBuNs4"
+      ],
+      "frameId": null,
+      "index": "aH",
+      "roundness": {
+        "type": 3
+      },
+      "seed": 693478151,
+      "version": 234,
+      "versionNonce": 1347603980,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "type": "text",
+          "id": "xqblWtRjjZjtIfDMdbZzs"
+        }
+      ],
+      "updated": 1750055003574,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "xqblWtRjjZjtIfDMdbZzs",
+      "type": "text",
+      "x": 756.0867513020833,
+      "y": -332.8372778514076,
+      "width": 208.6598358154297,
+      "height": 150,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "#a5d8ff",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [
+        "ST-bk8Xfhp4zH3XxBuNs4"
+      ],
+      "frameId": null,
+      "index": "aI",
+      "roundness": null,
+      "seed": 1841462695,
+      "version": 187,
+      "versionNonce": 764537012,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1750055003574,
+      "link": null,
+      "locked": false,
+      "text": "(1)\n[ Base Texture ]\nRenders vertices as\ncolorful circles with a\nradial alpha gradient\nfalloff",
+      "fontSize": 20,
+      "fontFamily": 5,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "6IMRoHozmiEwxXqLkAgzM",
+      "originalText": "(1)\n[ Base Texture ]\nRenders vertices as colorful circles with a radial alpha gradient falloff",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "2BfWZSMMwH2ucAImdGo-V",
+      "type": "rectangle",
+      "x": 996.5277506510417,
+      "y": -385.61505139063286,
+      "width": 255.55554707845056,
+      "height": 255.55554707845056,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "#a5d8ff",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [
+        "ST-bk8Xfhp4zH3XxBuNs4"
+      ],
+      "frameId": null,
+      "index": "aJ",
+      "roundness": {
+        "type": 3
+      },
+      "seed": 1866008359,
+      "version": 264,
+      "versionNonce": 459615372,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "type": "text",
+          "id": "lKd_RctPT913HjYBhV7X-"
+        }
+      ],
+      "updated": 1750055003574,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "lKd_RctPT913HjYBhV7X-",
+      "type": "text",
+      "x": 1003.7956059773765,
+      "y": -357.8372778514076,
+      "width": 241.01983642578125,
+      "height": 200,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "#a5d8ff",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [
+        "ST-bk8Xfhp4zH3XxBuNs4"
+      ],
+      "frameId": null,
+      "index": "aK",
+      "roundness": null,
+      "seed": 2029750855,
+      "version": 329,
+      "versionNonce": 440054324,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1750055003574,
+      "link": null,
+      "locked": false,
+      "text": "(2)\n[ Diffuse Metaball ]\nShader blends the colors\nand gradients from\ntexture (1), creating an\neffect similar to a 2D\nplane containing diffuse\nshaded metaballs",
+      "fontSize": 20,
+      "fontFamily": 5,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "2BfWZSMMwH2ucAImdGo-V",
+      "originalText": "(2)\n[ Diffuse Metaball ]\nShader blends the colors and gradients from texture (1), creating an effect similar to a 2D plane containing diffuse shaded metaballs",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "9Wc_-6930NoVnUtztNr8Z",
+      "type": "rectangle",
+      "x": 996.5277506510417,
+      "y": -124.5039572337318,
+      "width": 255.55554707845056,
+      "height": 255.55554707845056,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "#a5d8ff",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [
+        "ST-bk8Xfhp4zH3XxBuNs4"
+      ],
+      "frameId": null,
+      "index": "aL",
+      "roundness": {
+        "type": 3
+      },
+      "seed": 1318553321,
+      "version": 251,
+      "versionNonce": 1101511436,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "type": "text",
+          "id": "iZqCQfb2XH4XK75-N4XQh"
+        }
+      ],
+      "updated": 1750055003574,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "iZqCQfb2XH4XK75-N4XQh",
+      "type": "text",
+      "x": 1006.3356068929038,
+      "y": -84.22618369450652,
+      "width": 235.93983459472656,
+      "height": 175,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "#a5d8ff",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [
+        "ST-bk8Xfhp4zH3XxBuNs4"
+      ],
+      "frameId": null,
+      "index": "aM",
+      "roundness": null,
+      "seed": 1169736137,
+      "version": 467,
+      "versionNonce": 1510886324,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1750055003574,
+      "link": null,
+      "locked": false,
+      "text": "(4)\n[ Hue + Outline ]\nSame as (3), but\ndiscards the color data,\nreplacing all critical\nmasses with a hue\ncycling effect",
+      "fontSize": 20,
+      "fontFamily": 5,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "9Wc_-6930NoVnUtztNr8Z",
+      "originalText": "(4)\n[ Hue + Outline ]\nSame as (3), but discards the color data, replacing all critical masses with a hue cycling effect",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "Xifn4qkClDm9o6ZYmsnsx",
+      "type": "rectangle",
+      "x": 732.6388956705729,
+      "y": -124.5039572337318,
+      "width": 255.55554707845056,
+      "height": 255.55554707845056,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "#a5d8ff",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [
+        "ST-bk8Xfhp4zH3XxBuNs4"
+      ],
+      "frameId": null,
+      "index": "aN",
+      "roundness": {
+        "type": 3
+      },
+      "seed": 1060285607,
+      "version": 254,
+      "versionNonce": 1301576076,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "type": "text",
+          "id": "72plerhAhrkaVUH3JLsoO"
+        }
+      ],
+      "updated": 1750055003574,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "72plerhAhrkaVUH3JLsoO",
+      "type": "text",
+      "x": 758.0567525227864,
+      "y": -84.22618369450652,
+      "width": 204.71983337402344,
+      "height": 175,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "#a5d8ff",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [
+        "ST-bk8Xfhp4zH3XxBuNs4"
+      ],
+      "frameId": null,
+      "index": "aO",
+      "roundness": null,
+      "seed": 899973063,
+      "version": 244,
+      "versionNonce": 1597158708,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1750055003574,
+      "link": null,
+      "locked": false,
+      "text": "(3)\n[ Diffuse + Outline ]\nSame as (2), but the\nshader includes\ntolerances creating a\ndouble outline effect\naround masses",
+      "fontSize": 20,
+      "fontFamily": 5,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "Xifn4qkClDm9o6ZYmsnsx",
+      "originalText": "(3)\n[ Diffuse + Outline ]\nSame as (2), but the shader includes tolerances creating a double outline effect around masses",
+      "autoResize": true,
+      "lineHeight": 1.25
+    }
+  ],
+  "appState": {
+    "gridSize": 20,
+    "gridStep": 5,
+    "gridModeEnabled": false,
+    "viewBackgroundColor": "#ffffff"
+  },
+  "files": {}
+}

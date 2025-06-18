@@ -64,7 +64,7 @@ const routes = [
     props: {
       title: "WebGL Metaballs",
       date: new Date('2012/10/08'),
-      lastmod: new Date('2012/10/08'),
+      lastmod: new Date('2025/06/18'),
       frame: "/library/projects/metaballs/main.html",
     },
   },

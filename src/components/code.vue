@@ -112,12 +112,12 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-if="init_failed" class="error column-framed">
+  <div v-if="init_failed" class="error framed">
     <font-awesome-icon :icon="['fas', 'file-circle-xmark']" />
     <br />
     <div>Error loading code view</div>
   </div>
-  <div v-else ref="editor" class="editor column-framed"></div>
+  <div v-else ref="editor" class="editor framed"></div>
 </template>
 
 <style scoped>

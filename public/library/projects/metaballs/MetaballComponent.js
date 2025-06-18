@@ -1,7 +1,22 @@
 MetaballComponent.prototype = new ModelComponent();
 MetaballComponent.prototype.constructor = MetaballComponent;
+MetaballComponent.Mode = {
+  kVersion2012: "Version2012",
+  kWebFigureBaseTexture: "WebFigureBaseTexture",
+  kWebFigureDiffuse: "WebFigureDiffuse",
+  kWebFigureDiffuseOutline: "WebFigureDiffuseOutline",
+  kWebFigureHueOutline: "WebFigureHueOutline",
+};
+MetaballComponent.Placement = {
+  kUpperLeft: "UpperLeft",
+  kUpperRight: "UpperRight",
+  kLowerLeft: "LowerLeft",
+  kLowerRight: "LowerRight",
+  kStretch: "Stretch",
+};
+MetaballComponent.TextureShader = null;
 
-function MetaballComponent( )
+function MetaballComponent( run_mode )
 {
   const kRenderTargetResolution = 512;
 
@@ -41,7 +56,7 @@ function MetaballComponent( )
       MetaballComponent.MetaballPointsShader = new ShaderProgram( );
       Promise.all([
         MetaballComponent.MetaballPointsShader.attachShader( "/library/projects/metaballs/shaders/metaball-points-vs.c", gl.VERTEX_SHADER ),
-        MetaballComponent.MetaballPointsShader.attachShader( "/library/projects/metaballs/shaders/metaball-points-fs.c", gl.FRAGMENT_SHADER ),
+        MetaballComponent.MetaballPointsShader.attachShader( "/library/projects/metaballs/shaders/metaball-points-fs-v2025.c", gl.FRAGMENT_SHADER ),
       ])
       .then(() => {
         MetaballComponent.MetaballPointsShader.linkProgram( );
@@ -149,6 +164,7 @@ function MetaballComponent( )
   var planarUV = [ 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0 ];
   var planarIndices = [ 0, 1, 2, 0, 2, 3 ];
 
+  this.mode = run_mode ?? MetaballComponent.Mode.kVersion2012;
   this.vertexPositionBuffer = new Buffer( gl, Buffer.POSITION, gl.ARRAY_BUFFER, planarVertices, 3 );
   this.vertexTextureBuffer = new Buffer( gl, Buffer.TEXTURE, gl.ARRAY_BUFFER, planarUV, 2 );
   this.indexBuffer = new Buffer( gl, null, gl.ELEMENT_ARRAY_BUFFER, planarIndices, 1 );
@@ -168,7 +184,7 @@ function MetaballComponent( )
     }
   }
 
-  this.spawnParticles( 25 );
+  this.spawnParticles( 40 );
 
   /*
    * quadrant:
@@ -179,22 +195,27 @@ function MetaballComponent( )
    * |=====|=====|
    *
    * shader:
-   *   - MetaballComponent.MetaballShader
-   *   - MetaballComponent.TextureShader
-   *   - MetaballComponent.OutlineMetaballShader
-   *   - MetaballComponent.HueMetaballShader
+   *   - (0) MetaballComponent.MetaballShader
+   *   - (1) MetaballComponent.TextureShader
+   *   - (2) MetaballComponent.OutlineMetaballShader
+   *   - (3) MetaballComponent.HueMetaballShader
    */
-  this.drawQuadrant = function( quadrant, shader ) {
+  this.drawShader = function( placement, shader ) {
     /* Render the Pre-Metaball RenderTarget to the Canvas ( On the Left Side ) */
     Game.pushMatrix( );
     var x, y;
-    switch (quadrant) {
-      case 0: x = 1.0; y = 1.0; break;
-      case 1: x = -1.0; y = 1.0; break;
-      case 2: x = -1.0; y = -1.0; break;
-      case 3: x = 1.0; y = -1.0; break;
+    var scale = 1.0;
+    switch (placement) {
+      case MetaballComponent.Placement.kUpperLeft: x = -1.0; y = 1.0; break;
+      case MetaballComponent.Placement.kUpperRight: x = 1.0; y = 1.0; break;
+      case MetaballComponent.Placement.kLowerLeft: x = -1.0; y = -1.0; break;
+      case MetaballComponent.Placement.kLowerRight: x = 1.0; y = -1.0; break;
+      case MetaballComponent.Placement.kStretch: x = 0.0; y = 0.0; scale = 2.0; break;
     }
     mat4.translate( Game.mMatrix, Game.mMatrix, vec3.fromValues( x, y, 0.0 ) );
+    if (scale != 1.0) {
+      mat4.scale( Game.mMatrix, Game.mMatrix, vec3.fromValues( scale, scale, 1.0 ) );
+    }
     if (shader.apply( ))
     {
       this.vertexPositionBuffer.bindBuffer();
@@ -230,15 +251,16 @@ function MetaballComponent( )
   {
     /* Render to the RenderTarget */
     target.begin( );
-    gl.clearColor( 0.0, 0.0, 0.0, 1.0 );
+    gl.clearColor( 0.0, 0.0, 0.0, 0.0 );
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
     // Enable Blending so the Alphas work properly
     gl.blendEquationSeparate( gl.FUNC_ADD, gl.FUNC_ADD );
-    gl.blendFuncSeparate( gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ZERO, gl.ONE_MINUS_SRC_ALPHA );
+    gl.blendFuncSeparate( gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA );
     gl.enable(gl.BLEND);
     gl.disable(gl.DEPTH_TEST);
 
     const kCycleTimeMs = 30000.0;
+    MetaballComponent.HueMetaballShader.apply( );
     gl.uniform1f(MetaballComponent.HueMetaballShader.hue, (((Date.now() - this.startTime) % kCycleTimeMs) / kCycleTimeMs));
 
     if (MetaballComponent.MetaballPointsShader.apply( ))
@@ -279,11 +301,25 @@ function MetaballComponent( )
     gl.disable(gl.BLEND);
     gl.enable(gl.DEPTH_TEST);
 
-    this.drawQuadrant(1, MetaballComponent.TextureShader);
-    this.drawQuadrant(0, MetaballComponent.MetaballShader);
-    this.drawQuadrant(2, MetaballComponent.OutlineMetaballShader);
-    this.drawQuadrant(3, MetaballComponent.HueMetaballShader);
+    switch (this.mode) {
+      case MetaballComponent.Mode.kVersion2012:
+        this.drawShader(MetaballComponent.Placement.kUpperLeft, MetaballComponent.TextureShader);
+        this.drawShader(MetaballComponent.Placement.kUpperRight, MetaballComponent.MetaballShader);
+        this.drawShader(MetaballComponent.Placement.kLowerLeft, MetaballComponent.OutlineMetaballShader);
+        this.drawShader(MetaballComponent.Placement.kLowerRight, MetaballComponent.HueMetaballShader);
+        break;
+      case MetaballComponent.Mode.kWebFigureBaseTexture:
+        this.drawShader(MetaballComponent.Placement.kStretch, MetaballComponent.TextureShader);
+        break;
+      case MetaballComponent.Mode.kWebFigureDiffuse:
+        this.drawShader(MetaballComponent.Placement.kStretch, MetaballComponent.MetaballShader);
+        break;
+      case MetaballComponent.Mode.kWebFigureDiffuseOutline:
+        this.drawShader(MetaballComponent.Placement.kStretch, MetaballComponent.OutlineMetaballShader);
+        break;
+      case MetaballComponent.Mode.kWebFigureHueOutline:
+        this.drawShader(MetaballComponent.Placement.kStretch, MetaballComponent.HueMetaballShader);
+        break;
+    }
   }
 }
-
-MetaballComponent.TextureShader = null;
