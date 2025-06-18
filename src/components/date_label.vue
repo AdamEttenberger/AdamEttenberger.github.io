@@ -13,20 +13,26 @@ function formatDate(date) {
 </script>
 
 <template>
-  <span>
+  <div class="date-label">
     <time class="date" :datetime="date">{{ formatDate(date) }}</time>
+    <br/>
     <time v-if="lastmod && lastmod.getTime() != date.getTime()" class="lastmod" :datetime="lastmod">{{ formatDate(lastmod) }}</time>
-  </span>
+  </div>
 </template>
 
 <style scoped>
-.lastmod {
+.date-label {
+  font-size: 1rem;
   font-style: italic;
-  &::before {
-    content: " [edit: ";
-  }
-  &::after {
-    content: "]";
+  text-align: right;
+
+  & > .lastmod {
+    &::before {
+      content: " [edit: ";
+    }
+    &::after {
+      content: "]";
+    }
   }
 }
 </style>

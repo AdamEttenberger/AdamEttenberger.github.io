@@ -12,12 +12,12 @@ const props = defineProps({
 <template>
   <RouterLink v-if="route" class="label" :to="route">
     <h3 class="title">{{ title }}</h3>
-    <h4 v-if="date" class="date"><DateLabel :date="date" :lastmod="lastmod" /></h4>
+    <DateLabel v-if="date" :date="date" :lastmod="lastmod" />
   </RouterLink>
 
   <div v-else class="label">
     <h3 class="title">{{ title }}</h3>
-    <h4 v-if="date" class="date"><DateLabel :date="date" :lastmod="lastmod" /></h4>
+    <DateLabel v-if="date" :date="date" :lastmod="lastmod" />
   </div>
 </template>
 
@@ -27,15 +27,12 @@ const props = defineProps({
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
+  color: var(--color-text-heading);
 
   & > .title {
     font-size: 1.2rem;
     font-weight: bold;
-  }
-
-  & > .date {
-    font-size: 1rem;
-    font-style: italic;
+    text-align: left;
   }
 }
 </style>
