@@ -69,9 +69,6 @@ const props = defineProps({
     border-radius: 0 0 var(--size-border-radius) var(--size-border-radius);
     justify-content: stretch;
     & > .scroller {
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
       overflow-y: auto;
       height: 100%;
     }

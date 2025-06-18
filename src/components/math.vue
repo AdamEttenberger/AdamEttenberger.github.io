@@ -2,7 +2,7 @@
 import { ref, onMounted, useSlots } from 'vue'
 
 const slots = useSlots();
-const math = ref();
+const mathml_parent = ref();
 const init_failed = ref(false);
 
 const props = defineProps({
@@ -42,7 +42,7 @@ function getTextAsync() {
 
 onMounted(() => {
   getTextAsync().then((text) => {
-    math.value.replaceChildren(TeXZilla.toMathML(text));
+    mathml_parent.value.replaceChildren(TeXZilla.toMathML(text));
   }).catch((e) => {
     console.log(e)
     init_failed.value = true
@@ -51,12 +51,12 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-if="init_failed" class="error column-framed">
+  <div v-if="init_failed" class="error framed">
     <font-awesome-icon :icon="['fas', 'file-circle-xmark']" />
     <br />
     <div>Error loading math view</div>
   </div>
-  <div v-else ref="math" class="math column-framed"></div>
+  <div v-else ref="mathml_parent" class="math framed"></div>
 </template>
 
 <style scoped>
@@ -64,7 +64,9 @@ onMounted(() => {
   text-align: center;
   font-size: xx-large;
   padding: var(--size-padding-round);
+  overflow-x: auto;
 }
+
 .error {
   text-align: center;
   font-size: xx-large;

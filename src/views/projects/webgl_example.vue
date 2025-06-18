@@ -16,8 +16,5 @@ const props = defineProps({
           :lastmod="lastmod"
           :frame="frame"
           :paused="false" />
-  <ProjectLabel :title="title"
-                :date="date"
-                :lastmod="lastmod" />
   <UnderConstruction />
 </template>

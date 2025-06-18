@@ -39,7 +39,7 @@ import ProjectCard from '/src/components/project_card.vue'
                image="/images/projects/metaballs.png"
                route="/projects/webgl_metaballs"
                :date="new Date('2012/10/08')"
-               :lastmod="new Date('2012/10/08')">
+               :lastmod="new Date('2025/06/18')">
     <p>
       Demonstrates something like <ExternalLink to="https://en.wikipedia.org/wiki/Deferred_shading">Deferred shading</ExternalLink> to achieve 2D <ExternalLink to="https://en.wikipedia.org/wiki/Metaballs">Metaballs</ExternalLink>.
       WebGL Metaballs used <ExternalLink to="https://github.com/toji/gl-matrix">gl-matrix</ExternalLink> to speed production.

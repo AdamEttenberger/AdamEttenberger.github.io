@@ -9,8 +9,9 @@ uniform float uThreshold;
 void main(void)
 {
   vec4 result = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
-  if (result.a < uThreshold)
+  if (result.a >= uThreshold) {
     gl_FragColor = vec4(result.rgb, result.a * uAlpha);
-  else
+  } else {
     discard;
+  }
 }

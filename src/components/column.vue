@@ -8,27 +8,22 @@
 .column {
   display: flex;
   flex-direction: column;
-  justify-self: center;
   text-align: justify;
-  padding: var(--size-padding-round);
+  padding: var(--size-column-padding);
   background-color: var(--color-background-soft);
   border-radius: var(--size-border-radius);
   margin: var(--size-padding-round) 0;
 
-  & > :slotted(:is(img, svg, math, .column-framed)),
-  & > :slotted(:is(p, div):not(.column-framed)) > :is(img, svg, math, .column-framed) {
-    display: block;
-    place-self: center;
-    justify-self: center;
-    align-self: center;
-    border: 6px solid var(--color-divider);
-    margin: var(--size-padding-round) 0;
-    width: 90%;
+  & > :slotted(:is(img, svg, .framed, .column-inset)) {
+    margin: var(--size-padding-round) var(--size-column-gutter);
     @media only screen and (max-width: 740px) {
-      width: 100%;
+      margin: var(--size-padding-round) 0;
     }
   }
 
+  & > :slotted(:is(img, svg, .framed)) {
+    border: var(--size-border-frame) solid var(--color-divider);
+  }
 }
 
 </style>

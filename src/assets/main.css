@@ -1,6 +1,13 @@
 @import './base.css';
 
 #app {
+  /**
+   * Setting min-width fixes some issues with <Column> layout which would
+   * prevent horizontal scrolling for content with an intrinsic size larger
+   * than the column width and would break mobile/responsive layout.
+   * For example, CodeMirror and TexZilla.
+   */
+  min-width: 0;
   min-height: 100vh;
   width: 950px;
 
@@ -20,11 +27,4 @@
 body {
   display: flex;
   place-items: start;
-}
-
-
-@media only screen and (max-width: 740px) {
-  #app > main {
-    padding: calc(var(--size-column-gutter) / 2);
-  }
 }
