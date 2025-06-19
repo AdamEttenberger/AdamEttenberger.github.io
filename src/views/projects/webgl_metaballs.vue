@@ -243,21 +243,24 @@ function scheduleUpdate() {
     height: 100%;
     aspect-ratio: 1;
     margin: 0 var(--size-padding-hard);
-    background-color: transparent;
+    border-radius: var(--size-border-radius);
 
+    transition-property: background-color, color, font-size;
+    transition-duration: var(--anim-transition-duration);
+    transition-timing-function: var(--anim-transition-timing-function);
+
+    background-color: transparent;
     color: var(--color-link);
-    transition: color var(--anim-transition);
-    &:hover {
+    font-size: 1rem;
+
+    &:has(:is(img, svg)):hover {
+      font-size: 1.2rem;
+      background-color: var(--color-background-button-hover);
       color: var(--color-link-hover);
     }
-    &:active {
+    &:has(:is(img, svg)):active {
+      background-color: var(--color-background-button-active);
       color: var(--color-link-active);
-    }
-
-    transition: font-size var(--anim-transition);
-    font-size: 1rem;
-    &:hover {
-      font-size: 1.2rem;
     }
   }
 }
