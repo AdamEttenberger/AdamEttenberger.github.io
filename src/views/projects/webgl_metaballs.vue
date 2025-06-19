@@ -236,6 +236,10 @@ function scheduleUpdate() {
 .controls {
   display: grid;
   grid-template-columns: min-content min-content minmax(0, auto);
+  place-self: center;
+  width: 100%;
+  max-width: calc(var(--size-column-width) / 2);
+  padding: var(--size-padding-hard);
 
   & > button.undo {
     height: 100%;
