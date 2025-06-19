@@ -161,3 +161,8 @@ merror {
 .framed {
   border: var(--size-border-frame) solid var(--color-divider);
 }
+
+input[type=range] {
+  transition: accent-color var(--anim-transition);
+  accent-color: var(--color-link);
+}
