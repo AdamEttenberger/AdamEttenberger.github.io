@@ -1,4 +1,5 @@
 <script setup>
+import { ref, onMounted, watch } from 'vue'
 import Code from '../../components/code.vue'
 import Column from '../../components/column.vue'
 import Divider from '../../components/divider.vue'
@@ -15,6 +16,28 @@ const props = defineProps({
   lastmod: { type: Date },
   frame: { type: String, required: true },
 })
+
+const metaball_radius = ref(0.1);
+watch(metaball_radius, async () => scheduleUpdate());
+const metaball_tolerance = ref(0.5);
+watch(metaball_tolerance, async () => scheduleUpdate());
+
+var pending_update = null;
+function scheduleUpdate() {
+  if (pending_update) {
+    return;
+  }
+  clearTimeout(pending_update);
+  pending_update = setTimeout(() => {
+    document.querySelectorAll('iframe').forEach((frame) => {
+      frame.contentWindow.postMessage({
+        radius: metaball_radius.value,
+        tolerance: metaball_tolerance.value
+      }, window.location.origin);
+    });
+    pending_update = null;
+  }, 300);
+}
 </script>
 
 <template>
@@ -24,6 +47,20 @@ const props = defineProps({
           :frame="frame"
           :paused="false" />
   <Column>
+    <Divider>Controls</Divider>
+    <div class="framed">
+      <label for="radius">Radius</label>
+      <input name="radius" type="range"
+             min="0.01" max="0.1" step="0.01"
+             v-model="metaball_radius" />
+      <br />
+      <label for="tolerance">Tolerance</label>
+      <input name="tolerance" type="range"
+             min="0.01" max="0.5" step="0.01"
+             v-model="metaball_tolerance" />
+    </div>
+    <br />
+
     <Divider>
       <Quote name="you, probably">What am I looking at?</Quote>
     </Divider>
