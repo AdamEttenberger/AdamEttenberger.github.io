@@ -17,10 +17,14 @@ const props = defineProps({
   frame: { type: String, required: true },
 })
 
-const metaball_radius = ref(0.1);
+const kDefaultRadius = 0.1;
+const kDefaultTolerance = 0.5;
+
+const metaball_radius = ref(kDefaultRadius);
 watch(metaball_radius, async () => scheduleUpdate());
-const metaball_tolerance = ref(0.5);
+const metaball_tolerance = ref(kDefaultTolerance);
 watch(metaball_tolerance, async () => scheduleUpdate());
+console.log(metaball_tolerance.value != kDefaultTolerance);
 
 var pending_update = null;
 function scheduleUpdate() {
@@ -48,15 +52,22 @@ function scheduleUpdate() {
           :paused="false" />
   <Column>
     <Divider>Controls</Divider>
-    <div class="framed">
+    <div class="framed controls">
       <label for="radius">Radius</label>
+      <button class="undo">
+        <font-awesome-icon v-if="metaball_radius != kDefaultRadius" :icon="['fas', 'arrow-rotate-left']"
+                           @click.once="metaball_radius = kDefaultRadius" />
+      </button>
       <input name="radius" type="range"
-             min="0.01" max="0.1" step="0.01"
+             min="0.01" max="0.2" step="0.01"
              v-model="metaball_radius" />
-      <br />
       <label for="tolerance">Tolerance</label>
+      <button class="undo">
+        <font-awesome-icon v-if="metaball_tolerance != kDefaultTolerance" :icon="['fas', 'arrow-rotate-left']"
+                           @click.once="metaball_tolerance = kDefaultTolerance" />
+      </button>
       <input name="tolerance" type="range"
-             min="0.01" max="0.5" step="0.01"
+             min="0.01" max="1.0" step="0.01"
              v-model="metaball_tolerance" />
     </div>
     <br />
@@ -221,5 +232,32 @@ function scheduleUpdate() {
 <style scoped>
 .flip-horizontal {
   transform: scale(-1, 1);
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: min-content min-content minmax(0, auto);
+
+  & > button.undo {
+    height: 100%;
+    aspect-ratio: 1;
+    margin: 0 var(--size-padding-hard);
+    background-color: transparent;
+
+    color: var(--color-link);
+    transition: color var(--anim-transition);
+    &:hover {
+      color: var(--color-link-hover);
+    }
+    &:active {
+      color: var(--color-link-active);
+    }
+
+    transition: font-size var(--anim-transition);
+    font-size: 1rem;
+    &:hover {
+      font-size: 1.2rem;
+    }
+  }
 }
 </style>

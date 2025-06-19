@@ -26,6 +26,7 @@ const init_failed = ref(false);
 function readFileProp(resolve, reject) {
   return fetch(props.file)
     .then(response => response.text())
+    .then(text => text.trimEnd())
     .then(resolve)
     .catch(reject);
 }
