@@ -47,7 +47,9 @@ const requested_play = ref(false);
   & .play-button {
     font-size: 4rem;
     color: var(--color-link);
-    transition: color var(--anim-transition);
+    transition-property: background-color, color;
+    transition-duration: var(--anim-transition-duration);
+    transition-timing-function: var(--anim-transition-timing-function);
     background-color: #000;
     cursor: pointer;
     &:hover {
