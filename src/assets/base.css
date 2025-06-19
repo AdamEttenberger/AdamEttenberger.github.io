@@ -69,13 +69,14 @@
 
 /* sizing variables */
 :root {
+  --size-column-width: 45rem;
   --size-border-frame: 4px;
   --size-border-radius: 0.5rem;
   --size-padding-round: var(--size-border-radius);
   --size-padding-hard: calc(var(--size-padding-round) / 2);
   --size-list-indentation: 1.5rem;
-  --size-column-gutter: 2rem;
-  --size-column-padding: 0rem 2rem;
+  --size-column-gutter: 1em;
+  --size-column-padding: 0rem var(--size-column-gutter);
 }
 
 /* animation variables */
