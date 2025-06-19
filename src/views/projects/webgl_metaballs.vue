@@ -21,9 +21,11 @@ const kDefaultRadius = 0.1;
 const kDefaultTolerance = 0.5;
 
 const metaball_radius = ref(kDefaultRadius);
-watch(metaball_radius, async () => scheduleUpdate());
 const metaball_tolerance = ref(kDefaultTolerance);
-watch(metaball_tolerance, async () => scheduleUpdate());
+watch([
+  metaball_radius,
+  metaball_tolerance
+], async () => scheduleUpdate());
 
 var pending_update = null;
 function scheduleUpdate() {
