@@ -53,17 +53,15 @@ function scheduleUpdate() {
     <Divider>Controls</Divider>
     <div class="framed controls">
       <label for="radius">Radius</label>
-      <button class="undo">
-        <font-awesome-icon v-if="metaball_radius != kDefaultRadius" :icon="['fas', 'arrow-rotate-left']"
-                           @click.once="metaball_radius = kDefaultRadius" />
+      <button class="undo" @click="metaball_radius = kDefaultRadius">
+        <font-awesome-icon v-if="metaball_radius != kDefaultRadius" :icon="['fas', 'arrow-rotate-left']" />
       </button>
       <input name="radius" type="range"
              min="0.01" max="0.2" step="0.01"
              v-model="metaball_radius" />
       <label for="tolerance">Tolerance</label>
-      <button class="undo">
-        <font-awesome-icon v-if="metaball_tolerance != kDefaultTolerance" :icon="['fas', 'arrow-rotate-left']"
-                           @click.once="metaball_tolerance = kDefaultTolerance" />
+      <button class="undo" @click="metaball_tolerance = kDefaultTolerance">
+        <font-awesome-icon v-if="metaball_tolerance != kDefaultTolerance" :icon="['fas', 'arrow-rotate-left']" />
       </button>
       <input name="tolerance" type="range"
              min="0.01" max="1.0" step="0.01"
