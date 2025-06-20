@@ -187,7 +187,16 @@ function MetaballComponent( run_mode )
     }
   }
 
-  this.spawnParticles( 40 );
+  this.setParticleCount = function( count ) {
+    var delta = count - ParticleManager.Instance().length();
+    if (delta > 0) {
+      this.spawnParticles(delta);
+    } else if (delta < 0) {
+      ParticleManager.Instance().destroyParticleCount(-delta);
+    }
+  }
+
+  this.setParticleCount( 40 );
 
   /*
    * quadrant:
@@ -336,5 +345,7 @@ function MetaballComponent( run_mode )
     gl.uniform1f(MetaballComponent.OutlineMetaballShader.alphaThreshold, g_tolerance);
     MetaballComponent.HueMetaballShader.apply( );
     gl.uniform1f(MetaballComponent.HueMetaballShader.alphaThreshold, g_tolerance);
+
+    this.setParticleCount(message.count);
   }
 }
