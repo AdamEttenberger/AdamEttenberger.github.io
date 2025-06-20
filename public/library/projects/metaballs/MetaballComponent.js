@@ -17,9 +17,6 @@ MetaballComponent.Placement = {
 };
 MetaballComponent.TextureShader = null;
 
-var g_radius = 0.1;
-var g_tolerance = 0.5;
-
 function MetaballComponent( run_mode )
 {
   const kRenderTargetResolution = 512;
@@ -170,6 +167,7 @@ function MetaballComponent( run_mode )
   var planarIndices = [ 0, 1, 2, 0, 2, 3 ];
 
   this.mode = run_mode ?? MetaballComponent.Mode.kVersion2025;
+  this.g_radius = 0.1;
   this.vertexPositionBuffer = new Buffer( gl, Buffer.POSITION, gl.ARRAY_BUFFER, planarVertices, 3 );
   this.vertexTextureBuffer = new Buffer( gl, Buffer.TEXTURE, gl.ARRAY_BUFFER, planarUV, 2 );
   this.indexBuffer = new Buffer( gl, null, gl.ELEMENT_ARRAY_BUFFER, planarIndices, 1 );
@@ -310,7 +308,7 @@ function MetaballComponent( run_mode )
 
         gl.uniform3f(MetaballComponent.MetaballPointsShader.lightPosition, p.position[0], p.position[1], 0.0);
         gl.uniform4f(MetaballComponent.MetaballPointsShader.lightColor, p.color[0], p.color[1], p.color[2], p.color[3]);
-        gl.uniform1f(MetaballComponent.MetaballPointsShader.lightRadius, g_radius);
+        gl.uniform1f(MetaballComponent.MetaballPointsShader.lightRadius, this.g_radius);
         gl.drawElements(gl.TRIANGLES, this.indexBuffer.numItems, gl.UNSIGNED_BYTE, 0);
       }
 
@@ -349,15 +347,14 @@ function MetaballComponent( run_mode )
   }
 
   this.handleMessage = function( message ) {
-    g_radius = message.radius;
-    g_tolerance = message.tolerance;
+    this.g_radius = message.radius;
 
     MetaballComponent.MetaballShader.apply( );
-    gl.uniform1f(MetaballComponent.MetaballShader.alphaThreshold, g_tolerance);
+    gl.uniform1f(MetaballComponent.MetaballShader.alphaThreshold, message.tolerance);
     MetaballComponent.OutlineMetaballShader.apply( );
-    gl.uniform1f(MetaballComponent.OutlineMetaballShader.alphaThreshold, g_tolerance);
+    gl.uniform1f(MetaballComponent.OutlineMetaballShader.alphaThreshold, message.tolerance);
     MetaballComponent.HueMetaballShader.apply( );
-    gl.uniform1f(MetaballComponent.HueMetaballShader.alphaThreshold, g_tolerance);
+    gl.uniform1f(MetaballComponent.HueMetaballShader.alphaThreshold, message.tolerance);
 
     this.setParticleCount(message.count);
   }
