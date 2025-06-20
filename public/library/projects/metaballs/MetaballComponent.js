@@ -2,6 +2,7 @@ MetaballComponent.prototype = new ModelComponent();
 MetaballComponent.prototype.constructor = MetaballComponent;
 MetaballComponent.Mode = {
   kVersion2012: "Version2012",
+  kVersion2025: "Version2025",
   kWebFigureBaseTexture: "WebFigureBaseTexture",
   kWebFigureDiffuse: "WebFigureDiffuse",
   kWebFigureDiffuseOutline: "WebFigureDiffuseOutline",
@@ -23,141 +24,142 @@ function MetaballComponent( run_mode )
 {
   const kRenderTargetResolution = 512;
 
-  // Initialize Default Vertex Texture shader
-  if ( gl != null )
-  {
-    // Shader for Rendering a basic Texture
-    if (MetaballComponent.TextureShader == null)
+  this.init = function( ) {
+    // Initialize Default Vertex Texture shader
+    if ( gl != null )
     {
-      MetaballComponent.TextureShader = new ShaderProgram( );
-      Promise.all([
-        MetaballComponent.TextureShader.attachShader( "/library/webgl/shaders/texture-vs.c", gl.VERTEX_SHADER ),
-        MetaballComponent.TextureShader.attachShader( "/library/webgl/shaders/texture-fs.c", gl.FRAGMENT_SHADER ),
-      ])
-      .then(() => {
-        MetaballComponent.TextureShader.linkProgram( );
-        MetaballComponent.TextureShader.apply( );
+      // Shader for Rendering a basic Texture
+      if (MetaballComponent.TextureShader == null)
+      {
+        MetaballComponent.TextureShader = new ShaderProgram( );
+        Promise.all([
+          MetaballComponent.TextureShader.attachShader( "/library/webgl/shaders/texture-vs.c", gl.VERTEX_SHADER ),
+          MetaballComponent.TextureShader.attachShader( "/library/webgl/shaders/texture-fs.c", gl.FRAGMENT_SHADER ),
+        ])
+        .then(() => {
+          MetaballComponent.TextureShader.linkProgram( );
+          MetaballComponent.TextureShader.apply( );
 
-        MetaballComponent.TextureShader.vertexPositionAttribute = gl.getAttribLocation(MetaballComponent.TextureShader, "aVertexPosition");
-        MetaballComponent.TextureShader.vertexTextureAttribute = gl.getAttribLocation(MetaballComponent.TextureShader, "aTextureCoord");
-        MetaballComponent.TextureShader.alphaUniform = gl.getUniformLocation(MetaballComponent.TextureShader, "uAlpha");
-        MetaballComponent.TextureShader.samplerUniform = gl.getUniformLocation(MetaballComponent.TextureShader, "uSampler");
-        MetaballComponent.TextureShader.mMatrix = gl.getUniformLocation(MetaballComponent.TextureShader, "mMatrix");
-        MetaballComponent.TextureShader.vMatrix = gl.getUniformLocation(MetaballComponent.TextureShader, "vMatrix");
-        MetaballComponent.TextureShader.pMatrix = gl.getUniformLocation(MetaballComponent.TextureShader, "pMatrix");
+          MetaballComponent.TextureShader.vertexPositionAttribute = gl.getAttribLocation(MetaballComponent.TextureShader, "aVertexPosition");
+          MetaballComponent.TextureShader.vertexTextureAttribute = gl.getAttribLocation(MetaballComponent.TextureShader, "aTextureCoord");
+          MetaballComponent.TextureShader.alphaUniform = gl.getUniformLocation(MetaballComponent.TextureShader, "uAlpha");
+          MetaballComponent.TextureShader.samplerUniform = gl.getUniformLocation(MetaballComponent.TextureShader, "uSampler");
+          MetaballComponent.TextureShader.mMatrix = gl.getUniformLocation(MetaballComponent.TextureShader, "mMatrix");
+          MetaballComponent.TextureShader.vMatrix = gl.getUniformLocation(MetaballComponent.TextureShader, "vMatrix");
+          MetaballComponent.TextureShader.pMatrix = gl.getUniformLocation(MetaballComponent.TextureShader, "pMatrix");
 
-        gl.uniform1f(MetaballComponent.TextureShader.alphaUniform, 1.0);
-            })
-            .catch(e => {
-                throw e;
-            });
+          gl.uniform1f(MetaballComponent.TextureShader.alphaUniform, 1.0);
+              })
+              .catch(e => {
+                  throw e;
+              });
+      }
+
+      // Shader for Rendering Gradient Points on the GPU
+      if (MetaballComponent.MetaballPointsShader == null)
+      {
+        MetaballComponent.MetaballPointsShader = new ShaderProgram( );
+        Promise.all([
+          MetaballComponent.MetaballPointsShader.attachShader( "/library/projects/metaballs/shaders/metaball-points-vs.c", gl.VERTEX_SHADER ),
+          MetaballComponent.MetaballPointsShader.attachShader( this.getMetaballPointsShaderPath(), gl.FRAGMENT_SHADER ),
+        ])
+        .then(() => {
+          MetaballComponent.MetaballPointsShader.linkProgram( );
+          MetaballComponent.MetaballPointsShader.apply( );
+
+          MetaballComponent.MetaballPointsShader.vertexPositionAttribute = gl.getAttribLocation(MetaballComponent.MetaballPointsShader, "aVertexPosition");
+          MetaballComponent.MetaballPointsShader.vertexColorAttribute = gl.getAttribLocation(MetaballComponent.MetaballPointsShader, "aVertexColor");
+          MetaballComponent.MetaballPointsShader.alphaUniform = gl.getUniformLocation(MetaballComponent.MetaballPointsShader, "uAlpha");
+          MetaballComponent.MetaballPointsShader.renderbufferSize = gl.getUniformLocation(MetaballComponent.MetaballPointsShader, "uRenderbufferSize");
+          MetaballComponent.MetaballPointsShader.lightPosition = gl.getUniformLocation(MetaballComponent.MetaballPointsShader, "uLightPosition");
+          MetaballComponent.MetaballPointsShader.lightRadius = gl.getUniformLocation(MetaballComponent.MetaballPointsShader, "uLightRadius");
+          MetaballComponent.MetaballPointsShader.lightColor = gl.getUniformLocation(MetaballComponent.MetaballPointsShader, "uLightColor");
+
+          gl.uniform1f(MetaballComponent.MetaballPointsShader.alphaUniform, 1.0);
+          gl.uniform2f(MetaballComponent.MetaballPointsShader.renderbufferSize, kRenderTargetResolution, kRenderTargetResolution);
+        });
+      }
+
+      // Shader for Rendering Metaballs given a Texture with gradient Alpha
+      if (MetaballComponent.MetaballShader == null)
+      {
+        MetaballComponent.MetaballShader = new ShaderProgram( );
+        Promise.all([
+          MetaballComponent.MetaballShader.attachShader( "/library/projects/metaballs/shaders/metaball-vs.c", gl.VERTEX_SHADER ),
+          MetaballComponent.MetaballShader.attachShader( "/library/projects/metaballs/shaders/metaball-fs.c", gl.FRAGMENT_SHADER ),
+        ])
+        .then(() => {
+          MetaballComponent.MetaballShader.linkProgram( );
+          MetaballComponent.MetaballShader.apply( );
+
+          MetaballComponent.MetaballShader.vertexPositionAttribute = gl.getAttribLocation(MetaballComponent.MetaballShader, "aVertexPosition");
+          MetaballComponent.MetaballShader.vertexTextureAttribute = gl.getAttribLocation(MetaballComponent.MetaballShader, "aTextureCoord");
+          MetaballComponent.MetaballShader.alphaUniform = gl.getUniformLocation(MetaballComponent.MetaballShader, "uAlpha");
+          MetaballComponent.MetaballShader.alphaThreshold = gl.getUniformLocation(MetaballComponent.MetaballShader, "uThreshold");
+          MetaballComponent.MetaballShader.samplerUniform = gl.getUniformLocation(MetaballComponent.MetaballShader, "uSampler");
+          MetaballComponent.MetaballShader.mMatrix = gl.getUniformLocation(MetaballComponent.MetaballShader, "mMatrix");
+          MetaballComponent.MetaballShader.vMatrix = gl.getUniformLocation(MetaballComponent.MetaballShader, "vMatrix");
+          MetaballComponent.MetaballShader.pMatrix = gl.getUniformLocation(MetaballComponent.MetaballShader, "pMatrix");
+
+          gl.uniform1f(MetaballComponent.MetaballShader.alphaUniform, 1.0);
+          gl.uniform1f(MetaballComponent.MetaballShader.alphaThreshold, 0.5);
+        });
+      }
+
+      // Shader for Rendering Outlined Metaballs given a Texture with gradient Alpha
+      if (MetaballComponent.OutlineMetaballShader == null)
+      {
+        MetaballComponent.OutlineMetaballShader = new ShaderProgram( );
+        Promise.all([
+          MetaballComponent.OutlineMetaballShader.attachShader( "/library/projects/metaballs/shaders/outline-metaball-vs.c", gl.VERTEX_SHADER ),
+          MetaballComponent.OutlineMetaballShader.attachShader( "/library/projects/metaballs/shaders/outline-metaball-fs.c", gl.FRAGMENT_SHADER ),
+        ])
+        .then(() => {
+          MetaballComponent.OutlineMetaballShader.linkProgram( );
+          MetaballComponent.OutlineMetaballShader.apply( );
+
+          MetaballComponent.OutlineMetaballShader.vertexPositionAttribute = gl.getAttribLocation(MetaballComponent.OutlineMetaballShader, "aVertexPosition");
+          MetaballComponent.OutlineMetaballShader.vertexTextureAttribute = gl.getAttribLocation(MetaballComponent.OutlineMetaballShader, "aTextureCoord");
+          MetaballComponent.OutlineMetaballShader.alphaUniform = gl.getUniformLocation(MetaballComponent.OutlineMetaballShader, "uAlpha");
+          MetaballComponent.OutlineMetaballShader.alphaThreshold = gl.getUniformLocation(MetaballComponent.OutlineMetaballShader, "uThreshold");
+          MetaballComponent.OutlineMetaballShader.samplerUniform = gl.getUniformLocation(MetaballComponent.OutlineMetaballShader, "uSampler");
+          MetaballComponent.OutlineMetaballShader.mMatrix = gl.getUniformLocation(MetaballComponent.OutlineMetaballShader, "mMatrix");
+          MetaballComponent.OutlineMetaballShader.vMatrix = gl.getUniformLocation(MetaballComponent.OutlineMetaballShader, "vMatrix");
+          MetaballComponent.OutlineMetaballShader.pMatrix = gl.getUniformLocation(MetaballComponent.OutlineMetaballShader, "pMatrix");
+
+          gl.uniform1f(MetaballComponent.OutlineMetaballShader.alphaUniform, 1.0);
+          gl.uniform1f(MetaballComponent.OutlineMetaballShader.alphaThreshold, 0.5);
+        });
+      }
+
+      // Shader for Rendering Outlined Metaballs given a Texture with gradient Alpha
+      if (MetaballComponent.HueMetaballShader == null)
+      {
+        MetaballComponent.HueMetaballShader = new ShaderProgram( );
+        Promise.all([
+          MetaballComponent.HueMetaballShader.attachShader( "/library/projects/metaballs/shaders/hue-metaball-vs.c", gl.VERTEX_SHADER ),
+          MetaballComponent.HueMetaballShader.attachShader( "/library/projects/metaballs/shaders/hue-metaball-fs.c", gl.FRAGMENT_SHADER ),
+        ])
+        .then(() => {
+          MetaballComponent.HueMetaballShader.linkProgram( );
+          MetaballComponent.HueMetaballShader.apply( );
+
+          MetaballComponent.HueMetaballShader.vertexPositionAttribute = gl.getAttribLocation(MetaballComponent.HueMetaballShader, "aVertexPosition");
+          MetaballComponent.HueMetaballShader.vertexTextureAttribute = gl.getAttribLocation(MetaballComponent.HueMetaballShader, "aTextureCoord");
+          MetaballComponent.HueMetaballShader.alphaUniform = gl.getUniformLocation(MetaballComponent.HueMetaballShader, "uAlpha");
+          MetaballComponent.HueMetaballShader.alphaThreshold = gl.getUniformLocation(MetaballComponent.HueMetaballShader, "uThreshold");
+          MetaballComponent.HueMetaballShader.hue = gl.getUniformLocation(MetaballComponent.HueMetaballShader, "uHue");
+          MetaballComponent.HueMetaballShader.samplerUniform = gl.getUniformLocation(MetaballComponent.HueMetaballShader, "uSampler");
+          MetaballComponent.HueMetaballShader.mMatrix = gl.getUniformLocation(MetaballComponent.HueMetaballShader, "mMatrix");
+          MetaballComponent.HueMetaballShader.vMatrix = gl.getUniformLocation(MetaballComponent.HueMetaballShader, "vMatrix");
+          MetaballComponent.HueMetaballShader.pMatrix = gl.getUniformLocation(MetaballComponent.HueMetaballShader, "pMatrix");
+
+          gl.uniform1f(MetaballComponent.HueMetaballShader.alphaUniform, 1.0);
+          gl.uniform1f(MetaballComponent.HueMetaballShader.alphaThreshold, 0.5);
+          gl.uniform1f(MetaballComponent.HueMetaballShader.hue, 0.0);
+        });
+      }
     }
-
-    // Shader for Rendering Gradient Points on the GPU
-    if (MetaballComponent.MetaballPointsShader == null)
-    {
-      MetaballComponent.MetaballPointsShader = new ShaderProgram( );
-      Promise.all([
-        MetaballComponent.MetaballPointsShader.attachShader( "/library/projects/metaballs/shaders/metaball-points-vs.c", gl.VERTEX_SHADER ),
-        MetaballComponent.MetaballPointsShader.attachShader( "/library/projects/metaballs/shaders/metaball-points-fs-v2025.c", gl.FRAGMENT_SHADER ),
-      ])
-      .then(() => {
-        MetaballComponent.MetaballPointsShader.linkProgram( );
-        MetaballComponent.MetaballPointsShader.apply( );
-
-        MetaballComponent.MetaballPointsShader.vertexPositionAttribute = gl.getAttribLocation(MetaballComponent.MetaballPointsShader, "aVertexPosition");
-        MetaballComponent.MetaballPointsShader.vertexColorAttribute = gl.getAttribLocation(MetaballComponent.MetaballPointsShader, "aVertexColor");
-        MetaballComponent.MetaballPointsShader.alphaUniform = gl.getUniformLocation(MetaballComponent.MetaballPointsShader, "uAlpha");
-        MetaballComponent.MetaballPointsShader.renderbufferSize = gl.getUniformLocation(MetaballComponent.MetaballPointsShader, "uRenderbufferSize");
-        MetaballComponent.MetaballPointsShader.lightPosition = gl.getUniformLocation(MetaballComponent.MetaballPointsShader, "uLightPosition");
-        MetaballComponent.MetaballPointsShader.lightRadius = gl.getUniformLocation(MetaballComponent.MetaballPointsShader, "uLightRadius");
-        MetaballComponent.MetaballPointsShader.lightColor = gl.getUniformLocation(MetaballComponent.MetaballPointsShader, "uLightColor");
-
-        gl.uniform1f(MetaballComponent.MetaballPointsShader.alphaUniform, 1.0);
-        gl.uniform2f(MetaballComponent.MetaballPointsShader.renderbufferSize, kRenderTargetResolution, kRenderTargetResolution);
-      });
-    }
-
-    // Shader for Rendering Metaballs given a Texture with gradient Alpha
-    if (MetaballComponent.MetaballShader == null)
-    {
-      MetaballComponent.MetaballShader = new ShaderProgram( );
-      Promise.all([
-        MetaballComponent.MetaballShader.attachShader( "/library/projects/metaballs/shaders/metaball-vs.c", gl.VERTEX_SHADER ),
-        MetaballComponent.MetaballShader.attachShader( "/library/projects/metaballs/shaders/metaball-fs.c", gl.FRAGMENT_SHADER ),
-      ])
-      .then(() => {
-        MetaballComponent.MetaballShader.linkProgram( );
-        MetaballComponent.MetaballShader.apply( );
-
-        MetaballComponent.MetaballShader.vertexPositionAttribute = gl.getAttribLocation(MetaballComponent.MetaballShader, "aVertexPosition");
-        MetaballComponent.MetaballShader.vertexTextureAttribute = gl.getAttribLocation(MetaballComponent.MetaballShader, "aTextureCoord");
-        MetaballComponent.MetaballShader.alphaUniform = gl.getUniformLocation(MetaballComponent.MetaballShader, "uAlpha");
-        MetaballComponent.MetaballShader.alphaThreshold = gl.getUniformLocation(MetaballComponent.MetaballShader, "uThreshold");
-        MetaballComponent.MetaballShader.samplerUniform = gl.getUniformLocation(MetaballComponent.MetaballShader, "uSampler");
-        MetaballComponent.MetaballShader.mMatrix = gl.getUniformLocation(MetaballComponent.MetaballShader, "mMatrix");
-        MetaballComponent.MetaballShader.vMatrix = gl.getUniformLocation(MetaballComponent.MetaballShader, "vMatrix");
-        MetaballComponent.MetaballShader.pMatrix = gl.getUniformLocation(MetaballComponent.MetaballShader, "pMatrix");
-
-        gl.uniform1f(MetaballComponent.MetaballShader.alphaUniform, 1.0);
-        gl.uniform1f(MetaballComponent.MetaballShader.alphaThreshold, 0.5);
-      });
-    }
-
-    // Shader for Rendering Outlined Metaballs given a Texture with gradient Alpha
-    if (MetaballComponent.OutlineMetaballShader == null)
-    {
-      MetaballComponent.OutlineMetaballShader = new ShaderProgram( );
-      Promise.all([
-        MetaballComponent.OutlineMetaballShader.attachShader( "/library/projects/metaballs/shaders/outline-metaball-vs.c", gl.VERTEX_SHADER ),
-        MetaballComponent.OutlineMetaballShader.attachShader( "/library/projects/metaballs/shaders/outline-metaball-fs.c", gl.FRAGMENT_SHADER ),
-      ])
-      .then(() => {
-        MetaballComponent.OutlineMetaballShader.linkProgram( );
-        MetaballComponent.OutlineMetaballShader.apply( );
-
-        MetaballComponent.OutlineMetaballShader.vertexPositionAttribute = gl.getAttribLocation(MetaballComponent.OutlineMetaballShader, "aVertexPosition");
-        MetaballComponent.OutlineMetaballShader.vertexTextureAttribute = gl.getAttribLocation(MetaballComponent.OutlineMetaballShader, "aTextureCoord");
-        MetaballComponent.OutlineMetaballShader.alphaUniform = gl.getUniformLocation(MetaballComponent.OutlineMetaballShader, "uAlpha");
-        MetaballComponent.OutlineMetaballShader.alphaThreshold = gl.getUniformLocation(MetaballComponent.OutlineMetaballShader, "uThreshold");
-        MetaballComponent.OutlineMetaballShader.samplerUniform = gl.getUniformLocation(MetaballComponent.OutlineMetaballShader, "uSampler");
-        MetaballComponent.OutlineMetaballShader.mMatrix = gl.getUniformLocation(MetaballComponent.OutlineMetaballShader, "mMatrix");
-        MetaballComponent.OutlineMetaballShader.vMatrix = gl.getUniformLocation(MetaballComponent.OutlineMetaballShader, "vMatrix");
-        MetaballComponent.OutlineMetaballShader.pMatrix = gl.getUniformLocation(MetaballComponent.OutlineMetaballShader, "pMatrix");
-
-        gl.uniform1f(MetaballComponent.OutlineMetaballShader.alphaUniform, 1.0);
-        gl.uniform1f(MetaballComponent.OutlineMetaballShader.alphaThreshold, 0.5);
-      });
-    }
-
-    // Shader for Rendering Outlined Metaballs given a Texture with gradient Alpha
-    if (MetaballComponent.HueMetaballShader == null)
-    {
-      MetaballComponent.HueMetaballShader = new ShaderProgram( );
-      Promise.all([
-        MetaballComponent.HueMetaballShader.attachShader( "/library/projects/metaballs/shaders/hue-metaball-vs.c", gl.VERTEX_SHADER ),
-        MetaballComponent.HueMetaballShader.attachShader( "/library/projects/metaballs/shaders/hue-metaball-fs.c", gl.FRAGMENT_SHADER ),
-      ])
-      .then(() => {
-        MetaballComponent.HueMetaballShader.linkProgram( );
-        MetaballComponent.HueMetaballShader.apply( );
-
-        MetaballComponent.HueMetaballShader.vertexPositionAttribute = gl.getAttribLocation(MetaballComponent.HueMetaballShader, "aVertexPosition");
-        MetaballComponent.HueMetaballShader.vertexTextureAttribute = gl.getAttribLocation(MetaballComponent.HueMetaballShader, "aTextureCoord");
-        MetaballComponent.HueMetaballShader.alphaUniform = gl.getUniformLocation(MetaballComponent.HueMetaballShader, "uAlpha");
-        MetaballComponent.HueMetaballShader.alphaThreshold = gl.getUniformLocation(MetaballComponent.HueMetaballShader, "uThreshold");
-        MetaballComponent.HueMetaballShader.hue = gl.getUniformLocation(MetaballComponent.HueMetaballShader, "uHue");
-        MetaballComponent.HueMetaballShader.samplerUniform = gl.getUniformLocation(MetaballComponent.HueMetaballShader, "uSampler");
-        MetaballComponent.HueMetaballShader.mMatrix = gl.getUniformLocation(MetaballComponent.HueMetaballShader, "mMatrix");
-        MetaballComponent.HueMetaballShader.vMatrix = gl.getUniformLocation(MetaballComponent.HueMetaballShader, "vMatrix");
-        MetaballComponent.HueMetaballShader.pMatrix = gl.getUniformLocation(MetaballComponent.HueMetaballShader, "pMatrix");
-
-        gl.uniform1f(MetaballComponent.HueMetaballShader.alphaUniform, 1.0);
-        gl.uniform1f(MetaballComponent.HueMetaballShader.alphaThreshold, 0.5);
-        gl.uniform1f(MetaballComponent.HueMetaballShader.hue, 0.0);
-      });
-    }
-
   }
 
   var target = new RenderTarget( kRenderTargetResolution, kRenderTargetResolution );
@@ -167,11 +169,21 @@ function MetaballComponent( run_mode )
   var planarUV = [ 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0 ];
   var planarIndices = [ 0, 1, 2, 0, 2, 3 ];
 
-  this.mode = run_mode ?? MetaballComponent.Mode.kVersion2012;
+  this.mode = run_mode ?? MetaballComponent.Mode.kVersion2025;
   this.vertexPositionBuffer = new Buffer( gl, Buffer.POSITION, gl.ARRAY_BUFFER, planarVertices, 3 );
   this.vertexTextureBuffer = new Buffer( gl, Buffer.TEXTURE, gl.ARRAY_BUFFER, planarUV, 2 );
   this.indexBuffer = new Buffer( gl, null, gl.ELEMENT_ARRAY_BUFFER, planarIndices, 1 );
   this.startTime = Date.now();
+
+  this.runLatest = function() {
+    return this.mode != MetaballComponent.Mode.kVersion2012;
+  }
+
+  this.getMetaballPointsShaderPath = function() {
+    return (this.runLatest())
+        ? "/library/projects/metaballs/shaders/metaball-points-fs-v2025.c"
+        : "/library/projects/metaballs/shaders/metaball-points-fs-v2012.c";
+  }
 
   this.spawnParticles = function( count )
   {
@@ -315,6 +327,7 @@ function MetaballComponent( run_mode )
 
     switch (this.mode) {
       case MetaballComponent.Mode.kVersion2012:
+      case MetaballComponent.Mode.kVersion2025:
         this.drawShader(MetaballComponent.Placement.kUpperLeft, MetaballComponent.TextureShader);
         this.drawShader(MetaballComponent.Placement.kUpperRight, MetaballComponent.MetaballShader);
         this.drawShader(MetaballComponent.Placement.kLowerLeft, MetaballComponent.OutlineMetaballShader);
@@ -348,4 +361,6 @@ function MetaballComponent( run_mode )
 
     this.setParticleCount(message.count);
   }
+
+  this.init();
 }

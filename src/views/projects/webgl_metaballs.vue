@@ -84,7 +84,7 @@ function onPropertyChanged(name) {
   <Player :title="title"
           :date="date"
           :lastmod="lastmod"
-          :frame="frame"
+          :frame="frame + '?mode=Version2025'"
           :paused="false"
           @load="onPlayerLoaded" />
   <Column>
