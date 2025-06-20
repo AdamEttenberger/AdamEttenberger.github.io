@@ -75,7 +75,7 @@ const props = defineProps({
   }
 }
 
-@media only screen and (max-width: 740px) {
+@media only screen and (max-width: 45rem) {
   .container {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);

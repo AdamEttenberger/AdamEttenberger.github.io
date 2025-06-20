@@ -1,8 +1,10 @@
 window.addEventListener("load", main, true);
+window.addEventListener("message", handleMessage);
 
 var game;
 var shaderProgram;
 var buffers = new Array();
+var metaball_component;
 
 function main()
 {
@@ -37,7 +39,16 @@ function initScene(mode)
   game.m_managers.push( ParticleManager.Instance() );
 
   var plane = new GameObject();
-  plane.addComponent( new MetaballComponent(mode) );
+  metaball_component = new MetaballComponent(mode);
+  plane.addComponent( metaball_component );
 
   game.m_root.addChildGameObject( plane );
+}
+
+function handleMessage( event ) {
+  if (event.origin !== window.location.origin) {
+    return;
+  }
+
+  metaball_component.handleMessage( event.data );
 }

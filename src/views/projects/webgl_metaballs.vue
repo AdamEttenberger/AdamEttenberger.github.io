@@ -1,4 +1,5 @@
 <script setup>
+import { ref, onMounted, watch } from 'vue'
 import Code from '../../components/code.vue'
 import Column from '../../components/column.vue'
 import Divider from '../../components/divider.vue'
@@ -6,6 +7,7 @@ import ExternalLink from '../../components/external_link.vue'
 import Math from '../../components/math.vue'
 import Player from '../../components/player.vue'
 import ProjectLabel from '../../components/project_label.vue'
+import PropertyEditor from '../../components/property_editor/property_editor.vue'
 import Quote from '../../components/quote.vue'
 import UnderConstruction from '../../components/under_construction.vue'
 
@@ -15,6 +17,56 @@ const props = defineProps({
   lastmod: { type: Date },
   frame: { type: String, required: true },
 })
+
+const editorProperties = ref({
+  radius: {
+    label: "Radius",
+    type: "range",
+    options: {
+      min_value: 0.01,
+      max_value: 0.2,
+      step_value: 0.01,
+    },
+    model: 0.1,
+  },
+  tolerance: {
+    label: "Min-Mass",
+    type: "range",
+    options: {
+      min_value: 0.01,
+      max_value: 0.99,
+      step_value: 0.01,
+    },
+    model: 0.5,
+  },
+});
+
+function onPlayerLoaded(target_frame) {
+  postMessageToFrame(target_frame);
+}
+
+function postMessageToFrame(target_frame) {
+  target_frame.contentWindow.postMessage({
+    radius: editorProperties.value.radius.model,
+    tolerance: editorProperties.value.tolerance.model,
+  }, window.location.origin);
+}
+
+var pending_update = null;
+function scheduleUpdate() {
+  if (pending_update) {
+    return;
+  }
+  clearTimeout(pending_update);
+  pending_update = setTimeout(() => {
+    document.querySelectorAll('iframe').forEach(postMessageToFrame);
+    pending_update = null;
+  }, 300);
+}
+
+function onPropertyChanged(name) {
+  scheduleUpdate();
+}
 </script>
 
 <template>
@@ -22,8 +74,14 @@ const props = defineProps({
           :date="date"
           :lastmod="lastmod"
           :frame="frame"
-          :paused="false" />
+          :paused="false"
+          @load="onPlayerLoaded" />
   <Column>
+    <Divider>Controls</Divider>
+    <PropertyEditor :properties="editorProperties"
+                    @property-changed="onPropertyChanged" />
+    <br />
+
     <Divider>
       <Quote name="you, probably">What am I looking at?</Quote>
     </Divider>
@@ -51,7 +109,7 @@ const props = defineProps({
               (2) Base Texture,
               (3) Each; Diffuse Metaball, Diffuse + Outline, Hue + Outline" />
 
-    <Divider><font-awesome-icon :icon="['fas', 'dragon']" /> Here be Dragons <font-awesome-icon class="flip-horizontal" :icon="['fas', 'dragon']" /></Divider>
+    <Divider><font-awesome-icon :icon="['fas', 'dragon']" /> Here be Dragons <font-awesome-icon class="fa-flip-horizontal" :icon="['fas', 'dragon']" /></Divider>
     <p>
       Be warned, this project was one of my first shader experiments.
       I really wouldn't recommend this approach, there's certainly better ways to achieve this effect with the latest OpenGL / WebGL APIs or more robust maths.
@@ -113,7 +171,9 @@ const props = defineProps({
     <Player title="Base Texture"
             :date="date"
             :lastmod="lastmod"
-            :frame="frame + '?mode=WebFigureBaseTexture'" />
+            :frame="frame + '?mode=WebFigureBaseTexture'"
+            @load="onPlayerLoaded" />
+    <PropertyEditor :properties="editorProperties" @property-changed="onPropertyChanged" />
 
     <Divider>Apply: Diffuse Metaball</Divider>
     <p>
@@ -126,7 +186,9 @@ const props = defineProps({
     <Player title="Diffuse Metaball"
             :date="date"
             :lastmod="lastmod"
-            :frame="frame + '?mode=WebFigureDiffuse'" />
+            :frame="frame + '?mode=WebFigureDiffuse'"
+            @load="onPlayerLoaded" />
+    <PropertyEditor :properties="editorProperties" @property-changed="onPropertyChanged" />
 
     <Divider>Apply: Diffuse Metaball + Outline</Divider>
     <p>
@@ -138,7 +200,9 @@ const props = defineProps({
     <Player title="Diffuse Metaball + Outline"
             :date="date"
             :lastmod="lastmod"
-            :frame="frame + '?mode=WebFigureDiffuseOutline'" />
+            :frame="frame + '?mode=WebFigureDiffuseOutline'"
+            @load="onPlayerLoaded" />
+    <PropertyEditor :properties="editorProperties" @property-changed="onPropertyChanged" />
 
     <Divider>Apply: Outline + Hue</Divider>
     <p>
@@ -150,7 +214,9 @@ const props = defineProps({
     <Player title="Outline + Hue"
             :date="date"
             :lastmod="lastmod"
-            :frame="frame + '?mode=WebFigureHueOutline'" />
+            :frame="frame + '?mode=WebFigureHueOutline'"
+            @load="onPlayerLoaded" />
+    <PropertyEditor :properties="editorProperties" @property-changed="onPropertyChanged" />
 
     <Divider>Limitations</Divider>
     <ul>
@@ -180,9 +246,3 @@ const props = defineProps({
 
   </Column>
 </template>
-
-<style scoped>
-.flip-horizontal {
-  transform: scale(-1, 1);
-}
-</style>
