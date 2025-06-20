@@ -9,6 +9,7 @@ import { library } from '@fortawesome/fontawesome-svg-core'
 // import { far } from '@fortawesome/free-regular-svg-icons'
 // import { fab } from '@fortawesome/free-brands-svg-icons'
 import {
+  faArrowRotateLeft,
   faFileCircleXmark,
   faCirclePlay,
   faDragon,
@@ -23,6 +24,7 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 const app = createApp(App);
 // FontAwesome Config
 library.add(
+  faArrowRotateLeft,
   faFileCircleXmark,
   faCirclePlay,
   faDragon,

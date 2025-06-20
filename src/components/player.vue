@@ -2,6 +2,11 @@
 import { ref } from 'vue';
 import ProjectLabel from './project_label.vue'
 
+/**
+ * Emits `target_frame: HTMLIFrameElement`
+ */
+const emits = defineEmits(['load']);
+
 const props = defineProps({
   title: { type: String, required: true },
   date: { type: Date, default: null },
@@ -11,6 +16,7 @@ const props = defineProps({
   paused: { type: Boolean, default: true },
 })
 
+const player_frame = ref();
 const requested_play = ref(false);
 </script>
 
@@ -18,7 +24,7 @@ const requested_play = ref(false);
   <div class="column-inset player">
     <div class="framed">
       <button v-if="!requested_play && paused" class="play-button" @click.once="requested_play = true"><font-awesome-icon :icon="['fas', 'circle-play']" /></button>
-      <iframe v-else class="renderer" :title="title" :src="frame"></iframe>
+      <iframe v-else ref="player_frame" class="renderer" :title="title" :src="frame" @load="$emit('load', player_frame)"></iframe>
     </div>
     <ProjectLabel class="label" :title="title" :date="date" :lastmod="lastmod" />
   </div>
@@ -47,7 +53,9 @@ const requested_play = ref(false);
   & .play-button {
     font-size: 4rem;
     color: var(--color-link);
-    transition: color var(--anim-transition);
+    transition-property: background-color, color;
+    transition-duration: var(--anim-transition-duration);
+    transition-timing-function: var(--anim-transition-timing-function);
     background-color: #000;
     cursor: pointer;
     &:hover {

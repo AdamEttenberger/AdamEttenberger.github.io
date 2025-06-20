@@ -16,6 +16,9 @@ MetaballComponent.Placement = {
 };
 MetaballComponent.TextureShader = null;
 
+var g_radius = 0.1;
+var g_tolerance = 0.5;
+
 function MetaballComponent( run_mode )
 {
   const kRenderTargetResolution = 512;
@@ -179,7 +182,7 @@ function MetaballComponent( run_mode )
       vec3.normalize( p.velocity, p.velocity );
       vec3.scale( p.velocity, p.velocity, 1.0 / 500 );
       p.position = vec3.fromValues( Math.random(), Math.random(), 0 );
-      p.radius = 0.1;//((Math.random()*30-5)+5)/100.0;
+      // p.radius = 0.1;//((Math.random()*30-5)+5)/100.0;
       p.color = vec4.fromValues( Math.ceil(Math.random()*10.0)/10.0, Math.ceil(Math.random()*10.0)/10.0, Math.ceil(Math.random()*10.0)/10.0, 1.0 );
     }
   }
@@ -286,7 +289,7 @@ function MetaballComponent( run_mode )
 
         gl.uniform3f(MetaballComponent.MetaballPointsShader.lightPosition, p.position[0], p.position[1], 0.0);
         gl.uniform4f(MetaballComponent.MetaballPointsShader.lightColor, p.color[0], p.color[1], p.color[2], p.color[3]);
-        gl.uniform1f(MetaballComponent.MetaballPointsShader.lightRadius, p.radius);
+        gl.uniform1f(MetaballComponent.MetaballPointsShader.lightRadius, g_radius);
         gl.drawElements(gl.TRIANGLES, this.indexBuffer.numItems, gl.UNSIGNED_BYTE, 0);
       }
 
@@ -321,5 +324,17 @@ function MetaballComponent( run_mode )
         this.drawShader(MetaballComponent.Placement.kStretch, MetaballComponent.HueMetaballShader);
         break;
     }
+  }
+
+  this.handleMessage = function( message ) {
+    g_radius = message.radius;
+    g_tolerance = message.tolerance;
+
+    MetaballComponent.MetaballShader.apply( );
+    gl.uniform1f(MetaballComponent.MetaballShader.alphaThreshold, g_tolerance);
+    MetaballComponent.OutlineMetaballShader.apply( );
+    gl.uniform1f(MetaballComponent.OutlineMetaballShader.alphaThreshold, g_tolerance);
+    MetaballComponent.HueMetaballShader.apply( );
+    gl.uniform1f(MetaballComponent.HueMetaballShader.alphaThreshold, g_tolerance);
   }
 }
