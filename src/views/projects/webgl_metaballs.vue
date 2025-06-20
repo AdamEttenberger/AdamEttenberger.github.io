@@ -19,6 +19,16 @@ const props = defineProps({
 })
 
 const editorProperties = ref({
+  count: {
+    label: "Count",
+    type: "range",
+    options: {
+      min_value: 1,
+      max_value: 100,
+      step_value: 1,
+    },
+    model: 40,
+  },
   radius: {
     label: "Radius",
     type: "range",
@@ -47,6 +57,7 @@ function onPlayerLoaded(target_frame) {
 
 function postMessageToFrame(target_frame) {
   target_frame.contentWindow.postMessage({
+    count: editorProperties.value.count.model,
     radius: editorProperties.value.radius.model,
     tolerance: editorProperties.value.tolerance.model,
   }, window.location.origin);

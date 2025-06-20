@@ -48,6 +48,15 @@ function ParticleManager()
     for( i in indices )
       m_recycled.push( this.m_members.splice( indices[i] - i, 1 )[0] );
   }
+
+  this.destroyParticleCount = function( count )
+  {
+    m_recycled.concat( this.m_members.splice( this.m_members.length - count, count ) )
+  }
+
+  this.length = function() {
+    return this.m_members.length;
+  }
 }
 
 ParticleManager.Instance = function()
