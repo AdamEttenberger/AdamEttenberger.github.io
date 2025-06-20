@@ -22,6 +22,7 @@ function MetaballComponent( run_mode )
   const kRenderTargetResolution = 512;
 
   this.init = function( ) {
+    var pending_shaders = [];
     // Initialize Default Vertex Texture shader
     if ( gl != null )
     {
@@ -29,7 +30,7 @@ function MetaballComponent( run_mode )
       if (MetaballComponent.TextureShader == null)
       {
         MetaballComponent.TextureShader = new ShaderProgram( );
-        Promise.all([
+        var loader = Promise.all([
           MetaballComponent.TextureShader.attachShader( "/library/webgl/shaders/texture-vs.c", gl.VERTEX_SHADER ),
           MetaballComponent.TextureShader.attachShader( "/library/webgl/shaders/texture-fs.c", gl.FRAGMENT_SHADER ),
         ])
@@ -50,13 +51,14 @@ function MetaballComponent( run_mode )
               .catch(e => {
                   throw e;
               });
+        pending_shaders.push(loader);
       }
 
       // Shader for Rendering Gradient Points on the GPU
       if (MetaballComponent.MetaballPointsShader == null)
       {
         MetaballComponent.MetaballPointsShader = new ShaderProgram( );
-        Promise.all([
+        var loader = Promise.all([
           MetaballComponent.MetaballPointsShader.attachShader( "/library/projects/metaballs/shaders/metaball-points-vs.c", gl.VERTEX_SHADER ),
           MetaballComponent.MetaballPointsShader.attachShader( this.getMetaballPointsShaderPath(), gl.FRAGMENT_SHADER ),
         ])
@@ -75,13 +77,14 @@ function MetaballComponent( run_mode )
           gl.uniform1f(MetaballComponent.MetaballPointsShader.alphaUniform, 1.0);
           gl.uniform2f(MetaballComponent.MetaballPointsShader.renderbufferSize, kRenderTargetResolution, kRenderTargetResolution);
         });
+        pending_shaders.push(loader);
       }
 
       // Shader for Rendering Metaballs given a Texture with gradient Alpha
       if (MetaballComponent.MetaballShader == null)
       {
         MetaballComponent.MetaballShader = new ShaderProgram( );
-        Promise.all([
+        var loader = Promise.all([
           MetaballComponent.MetaballShader.attachShader( "/library/projects/metaballs/shaders/metaball-vs.c", gl.VERTEX_SHADER ),
           MetaballComponent.MetaballShader.attachShader( "/library/projects/metaballs/shaders/metaball-fs.c", gl.FRAGMENT_SHADER ),
         ])
@@ -99,15 +102,15 @@ function MetaballComponent( run_mode )
           MetaballComponent.MetaballShader.pMatrix = gl.getUniformLocation(MetaballComponent.MetaballShader, "pMatrix");
 
           gl.uniform1f(MetaballComponent.MetaballShader.alphaUniform, 1.0);
-          gl.uniform1f(MetaballComponent.MetaballShader.alphaThreshold, 0.5);
         });
+        pending_shaders.push(loader);
       }
 
       // Shader for Rendering Outlined Metaballs given a Texture with gradient Alpha
       if (MetaballComponent.OutlineMetaballShader == null)
       {
         MetaballComponent.OutlineMetaballShader = new ShaderProgram( );
-        Promise.all([
+        var loader = Promise.all([
           MetaballComponent.OutlineMetaballShader.attachShader( "/library/projects/metaballs/shaders/outline-metaball-vs.c", gl.VERTEX_SHADER ),
           MetaballComponent.OutlineMetaballShader.attachShader( "/library/projects/metaballs/shaders/outline-metaball-fs.c", gl.FRAGMENT_SHADER ),
         ])
@@ -125,15 +128,15 @@ function MetaballComponent( run_mode )
           MetaballComponent.OutlineMetaballShader.pMatrix = gl.getUniformLocation(MetaballComponent.OutlineMetaballShader, "pMatrix");
 
           gl.uniform1f(MetaballComponent.OutlineMetaballShader.alphaUniform, 1.0);
-          gl.uniform1f(MetaballComponent.OutlineMetaballShader.alphaThreshold, 0.5);
         });
+        pending_shaders.push(loader);
       }
 
       // Shader for Rendering Outlined Metaballs given a Texture with gradient Alpha
       if (MetaballComponent.HueMetaballShader == null)
       {
         MetaballComponent.HueMetaballShader = new ShaderProgram( );
-        Promise.all([
+        var loader = Promise.all([
           MetaballComponent.HueMetaballShader.attachShader( "/library/projects/metaballs/shaders/hue-metaball-vs.c", gl.VERTEX_SHADER ),
           MetaballComponent.HueMetaballShader.attachShader( "/library/projects/metaballs/shaders/hue-metaball-fs.c", gl.FRAGMENT_SHADER ),
         ])
@@ -152,11 +155,15 @@ function MetaballComponent( run_mode )
           MetaballComponent.HueMetaballShader.pMatrix = gl.getUniformLocation(MetaballComponent.HueMetaballShader, "pMatrix");
 
           gl.uniform1f(MetaballComponent.HueMetaballShader.alphaUniform, 1.0);
-          gl.uniform1f(MetaballComponent.HueMetaballShader.alphaThreshold, 0.5);
           gl.uniform1f(MetaballComponent.HueMetaballShader.hue, 0.0);
         });
+        pending_shaders.push(loader);
       }
     }
+
+    Promise.all(pending_shaders).then(() => {
+      this.applyAlphaThresholdValues();
+    });
   }
 
   var target = new RenderTarget( kRenderTargetResolution, kRenderTargetResolution );
@@ -168,6 +175,7 @@ function MetaballComponent( run_mode )
 
   this.mode = run_mode ?? MetaballComponent.Mode.kVersion2025;
   this.g_radius = 0.1;
+  this.g_tolerance = 0.5;
   this.vertexPositionBuffer = new Buffer( gl, Buffer.POSITION, gl.ARRAY_BUFFER, planarVertices, 3 );
   this.vertexTextureBuffer = new Buffer( gl, Buffer.TEXTURE, gl.ARRAY_BUFFER, planarUV, 2 );
   this.indexBuffer = new Buffer( gl, null, gl.ELEMENT_ARRAY_BUFFER, planarIndices, 1 );
@@ -203,6 +211,29 @@ function MetaballComponent( run_mode )
       this.spawnParticles(delta);
     } else if (delta < 0) {
       ParticleManager.Instance().destroyParticleCount(-delta);
+    }
+  }
+
+  this.setAlphaTolerance = function(tolerance) {
+    var changed = (this.g_tolerance != tolerance);
+    this.g_tolerance = tolerance;
+    if (changed) {
+      this.applyAlphaThresholdValues();
+    }
+  }
+
+  this.applyAlphaThresholdValues = function() {
+    if (MetaballComponent.MetaballShader && MetaballComponent.MetaballShader.alphaThreshold) {
+      MetaballComponent.MetaballShader.apply( );
+      gl.uniform1f(MetaballComponent.MetaballShader.alphaThreshold, this.g_tolerance);
+    }
+    if (MetaballComponent.OutlineMetaballShader && MetaballComponent.OutlineMetaballShader.alphaThreshold) {
+      MetaballComponent.OutlineMetaballShader.apply( );
+      gl.uniform1f(MetaballComponent.OutlineMetaballShader.alphaThreshold, this.g_tolerance);
+    }
+    if (MetaballComponent.HueMetaballShader && MetaballComponent.HueMetaballShader.alphaThreshold) {
+      MetaballComponent.HueMetaballShader.apply( );
+      gl.uniform1f(MetaballComponent.HueMetaballShader.alphaThreshold, this.g_tolerance);
     }
   }
 
@@ -348,14 +379,7 @@ function MetaballComponent( run_mode )
 
   this.handleMessage = function( message ) {
     this.g_radius = message.radius;
-
-    MetaballComponent.MetaballShader.apply( );
-    gl.uniform1f(MetaballComponent.MetaballShader.alphaThreshold, message.tolerance);
-    MetaballComponent.OutlineMetaballShader.apply( );
-    gl.uniform1f(MetaballComponent.OutlineMetaballShader.alphaThreshold, message.tolerance);
-    MetaballComponent.HueMetaballShader.apply( );
-    gl.uniform1f(MetaballComponent.HueMetaballShader.alphaThreshold, message.tolerance);
-
+    this.setAlphaTolerance(message.tolerance);
     this.setParticleCount(message.count);
   }
 
