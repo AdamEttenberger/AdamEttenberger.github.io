@@ -7,6 +7,7 @@ import ExternalLink from '../../components/external_link.vue'
 import Math from '../../components/math.vue'
 import Player from '../../components/player.vue'
 import ProjectLabel from '../../components/project_label.vue'
+import PropertyEditor from '../../components/property_editor/property_editor.vue'
 import Quote from '../../components/quote.vue'
 import UnderConstruction from '../../components/under_construction.vue'
 
@@ -17,15 +18,39 @@ const props = defineProps({
   frame: { type: String, required: true },
 })
 
-const kDefaultRadius = 0.1;
-const kDefaultTolerance = 0.5;
+const editorProperties = ref({
+  radius: {
+    label: "Radius",
+    type: "range",
+    options: {
+      min_value: 0.01,
+      max_value: 0.2,
+      step_value: 0.01,
+    },
+    model: 0.1,
+  },
+  tolerance: {
+    label: "Min-Mass",
+    type: "range",
+    options: {
+      min_value: 0.01,
+      max_value: 0.99,
+      step_value: 0.01,
+    },
+    model: 0.5,
+  },
+});
 
-const metaball_radius = ref(kDefaultRadius);
-const metaball_tolerance = ref(kDefaultTolerance);
-watch([
-  metaball_radius,
-  metaball_tolerance
-], async () => scheduleUpdate());
+function onPlayerLoaded(target_frame) {
+  postMessageToFrame(target_frame);
+}
+
+function postMessageToFrame(target_frame) {
+  target_frame.contentWindow.postMessage({
+    radius: editorProperties.value.radius.model,
+    tolerance: editorProperties.value.tolerance.model,
+  }, window.location.origin);
+}
 
 var pending_update = null;
 function scheduleUpdate() {
@@ -34,14 +59,13 @@ function scheduleUpdate() {
   }
   clearTimeout(pending_update);
   pending_update = setTimeout(() => {
-    document.querySelectorAll('iframe').forEach((frame) => {
-      frame.contentWindow.postMessage({
-        radius: metaball_radius.value,
-        tolerance: metaball_tolerance.value
-      }, window.location.origin);
-    });
+    document.querySelectorAll('iframe').forEach(postMessageToFrame);
     pending_update = null;
   }, 300);
+}
+
+function onPropertyChanged(name) {
+  scheduleUpdate();
 }
 </script>
 
@@ -50,25 +74,12 @@ function scheduleUpdate() {
           :date="date"
           :lastmod="lastmod"
           :frame="frame"
-          :paused="false" />
+          :paused="false"
+          @load="onPlayerLoaded" />
   <Column>
     <Divider>Controls</Divider>
-    <div class="framed controls">
-      <label for="radius">Radius</label>
-      <button class="undo" @click="metaball_radius = kDefaultRadius">
-        <font-awesome-icon v-if="metaball_radius != kDefaultRadius" :icon="['fas', 'arrow-rotate-left']" />
-      </button>
-      <input name="radius" type="range"
-             min="0.01" max="0.2" step="0.01"
-             v-model="metaball_radius" />
-      <label for="tolerance">Tolerance</label>
-      <button class="undo" @click="metaball_tolerance = kDefaultTolerance">
-        <font-awesome-icon v-if="metaball_tolerance != kDefaultTolerance" :icon="['fas', 'arrow-rotate-left']" />
-      </button>
-      <input name="tolerance" type="range"
-             min="0.01" max="1.0" step="0.01"
-             v-model="metaball_tolerance" />
-    </div>
+    <PropertyEditor :properties="editorProperties"
+                    @property-changed="onPropertyChanged" />
     <br />
 
     <Divider>
@@ -98,7 +109,7 @@ function scheduleUpdate() {
               (2) Base Texture,
               (3) Each; Diffuse Metaball, Diffuse + Outline, Hue + Outline" />
 
-    <Divider><font-awesome-icon :icon="['fas', 'dragon']" /> Here be Dragons <font-awesome-icon class="flip-horizontal" :icon="['fas', 'dragon']" /></Divider>
+    <Divider><font-awesome-icon :icon="['fas', 'dragon']" /> Here be Dragons <font-awesome-icon class="fa-flip-horizontal" :icon="['fas', 'dragon']" /></Divider>
     <p>
       Be warned, this project was one of my first shader experiments.
       I really wouldn't recommend this approach, there's certainly better ways to achieve this effect with the latest OpenGL / WebGL APIs or more robust maths.
@@ -160,7 +171,9 @@ function scheduleUpdate() {
     <Player title="Base Texture"
             :date="date"
             :lastmod="lastmod"
-            :frame="frame + '?mode=WebFigureBaseTexture'" />
+            :frame="frame + '?mode=WebFigureBaseTexture'"
+            @load="onPlayerLoaded" />
+    <PropertyEditor :properties="editorProperties" @property-changed="onPropertyChanged" />
 
     <Divider>Apply: Diffuse Metaball</Divider>
     <p>
@@ -173,7 +186,9 @@ function scheduleUpdate() {
     <Player title="Diffuse Metaball"
             :date="date"
             :lastmod="lastmod"
-            :frame="frame + '?mode=WebFigureDiffuse'" />
+            :frame="frame + '?mode=WebFigureDiffuse'"
+            @load="onPlayerLoaded" />
+    <PropertyEditor :properties="editorProperties" @property-changed="onPropertyChanged" />
 
     <Divider>Apply: Diffuse Metaball + Outline</Divider>
     <p>
@@ -185,7 +200,9 @@ function scheduleUpdate() {
     <Player title="Diffuse Metaball + Outline"
             :date="date"
             :lastmod="lastmod"
-            :frame="frame + '?mode=WebFigureDiffuseOutline'" />
+            :frame="frame + '?mode=WebFigureDiffuseOutline'"
+            @load="onPlayerLoaded" />
+    <PropertyEditor :properties="editorProperties" @property-changed="onPropertyChanged" />
 
     <Divider>Apply: Outline + Hue</Divider>
     <p>
@@ -197,7 +214,9 @@ function scheduleUpdate() {
     <Player title="Outline + Hue"
             :date="date"
             :lastmod="lastmod"
-            :frame="frame + '?mode=WebFigureHueOutline'" />
+            :frame="frame + '?mode=WebFigureHueOutline'"
+            @load="onPlayerLoaded" />
+    <PropertyEditor :properties="editorProperties" @property-changed="onPropertyChanged" />
 
     <Divider>Limitations</Divider>
     <ul>
@@ -227,43 +246,3 @@ function scheduleUpdate() {
 
   </Column>
 </template>
-
-<style scoped>
-.flip-horizontal {
-  transform: scale(-1, 1);
-}
-
-.controls {
-  display: grid;
-  grid-template-columns: min-content min-content minmax(0, auto);
-  place-self: center;
-  width: 100%;
-  max-width: calc(var(--size-column-width) / 2);
-  padding: var(--size-padding-hard);
-
-  & > button.undo {
-    height: 100%;
-    aspect-ratio: 1;
-    margin: 0 var(--size-padding-hard);
-    border-radius: var(--size-border-radius);
-
-    transition-property: background-color, color, font-size;
-    transition-duration: var(--anim-transition-duration);
-    transition-timing-function: var(--anim-transition-timing-function);
-
-    background-color: transparent;
-    color: var(--color-link);
-    font-size: 1rem;
-
-    &:has(:is(img, svg)):hover {
-      font-size: 1.2rem;
-      background-color: var(--color-background-button-hover);
-      color: var(--color-link-hover);
-    }
-    &:has(:is(img, svg)):active {
-      background-color: var(--color-background-button-active);
-      color: var(--color-link-active);
-    }
-  }
-}
-</style>
