@@ -1,6 +1,6 @@
 <script setup>
 /**
- * Emits `name: String`
+ * Emits `name: String, new_value: Number`
  */
 const emit = defineEmits(['property-changed']);
 
@@ -15,8 +15,9 @@ const model = defineModel({
   type: Number,
   required: true,
   set(value) {
-    emit('property-changed', props.name);
-    return Number(value);
+    var new_value = Number(value);
+    emit('property-changed', props.name, new_value);
+    return new_value;
   },
 });
 </script>

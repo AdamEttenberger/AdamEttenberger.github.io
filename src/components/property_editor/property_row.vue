@@ -1,9 +1,10 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import NumberRange from './number_range.vue'
+import ComboBox from './combo_box.vue'
 
 /**
- * Emits `name: String`
+ * Emits `name: String, new_value: any`
  */
 const emit = defineEmits(['property-changed']);
 
@@ -17,9 +18,10 @@ const props = defineProps({
 const model = defineModel({
   required: true,
   set(value) {
-    emit('property-changed', props.name);
+    emit('property-changed', props.name, value);
     return value;
-  } });
+  }
+});
 
 const initial_value = model.value;
 
@@ -37,6 +39,10 @@ const initial_value = model.value;
                  :max_value="options.max_value"
                  :step_value="options.step_value"
                  v-model="model" />
+    <ComboBox v-if="type === 'combobox'"
+              :name="name"
+              :options="options.values"
+              v-model="model" />
   </div>
 </template>
 
@@ -51,22 +57,26 @@ const initial_value = model.value;
   margin: 0 var(--size-padding-hard);
   border-radius: var(--size-border-radius);
 
-  transition-property: background-color, color, font-size;
-  transition-duration: var(--anim-transition-duration);
-  transition-timing-function: var(--anim-transition-timing-function);
-
-  background-color: transparent;
-  color: var(--color-link);
   font-size: 1rem;
+  background-color: transparent;
+  color: var(--color-text-button);
 
-  &:has(:is(img, svg)):hover {
-    font-size: 1.2rem;
-    background-color: var(--color-background-button-hover);
-    color: var(--color-link-hover);
-  }
-  &:has(:is(img, svg)):active {
-    background-color: var(--color-background-button-active);
-    color: var(--color-link-active);
+  &:has(:is(img, svg)) {
+    transition-property: background-color, color, font-size;
+    transition-duration: var(--anim-transition-duration);
+    transition-timing-function: var(--anim-transition-timing-function);
+    font-size: 1rem;
+    background-color: var(--color-background-button);
+    color: var(--color-text-button);
+    &:hover {
+      font-size: 1.2rem;
+      background-color: var(--color-background-button-hover);
+      color: var(--color-text-button-hover);
+    }
+    &:active {
+      background-color: var(--color-background-button-active);
+      color: var(--color-text-button-active);
+    }
   }
 }
 </style>
