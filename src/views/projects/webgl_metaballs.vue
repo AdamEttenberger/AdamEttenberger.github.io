@@ -22,32 +22,59 @@ const editorProperties = ref({
   count: {
     label: "Count",
     type: "range",
+    model: 40,
     options: {
       min_value: 1,
       max_value: 100,
       step_value: 1,
     },
-    model: 40,
   },
   radius: {
     label: "Radius",
     type: "range",
+    model: 0.1,
     options: {
       min_value: 0.01,
       max_value: 0.2,
       step_value: 0.01,
     },
-    model: 0.1,
   },
   tolerance: {
     label: "Min-Mass",
     type: "range",
+    model: 0.5,
     options: {
       min_value: 0.01,
       max_value: 0.99,
       step_value: 0.01,
     },
-    model: 0.5,
+  },
+  preset: {
+    label: "Preset",
+    type: "combobox",
+    model: "default",
+    options: {
+      values: {
+        "default": {
+          label: "Default",
+          count: 40,
+          radius: 0.1,
+          tolerance: 0.5,
+        },
+        "extra-gloopy": {
+          label: "Extra Gloopy",
+          count: 40,
+          radius: 0.13,
+          tolerance: 0.75,
+        },
+        "explosive-growth": {
+          label: "Explosive Growth",
+          count: 40,
+          radius: 0.15,
+          tolerance: 0.9,
+        },
+      },
+    },
   },
 });
 
@@ -75,7 +102,23 @@ function scheduleUpdate() {
   }, 300);
 }
 
-function onPropertyChanged(name) {
+function onPresetSelected(new_value) {
+  var new_options = editorProperties.value.preset.options.values[new_value];
+  if (!new_options) {
+    return;
+  }
+  for (var key of ['count', 'radius', 'tolerance']) {
+    if (!new_options[key] || !editorProperties.value[key]) {
+      continue;
+    }
+    editorProperties.value[key].model = new_options[key];
+  }
+}
+
+function onPropertyChanged(name, new_value) {
+  if (name === 'preset') {
+    onPresetSelected(new_value);
+  }
   scheduleUpdate();
 }
 </script>
