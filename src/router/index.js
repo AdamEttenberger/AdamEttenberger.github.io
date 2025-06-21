@@ -8,6 +8,9 @@ import webgl_flocking from '/src/views/projects/webgl_flocking.vue'
 import webgl_example from '/src/views/projects/webgl_example.vue'
 import website from '/src/views/projects/website.vue'
 import { createWebHashHistory } from 'vue-router';
+// Pinia Stores
+import { storeToRefs } from 'pinia'
+import { scrollAffectingContentWaiterStore } from '@/stores/scroll_affecting_content_waiter'
 
 const routes = [
   {
@@ -80,8 +83,28 @@ const routes = [
 const router = createRouter({
   history: createWebHashHistory(),
   routes,
-  scrollBehavior (to, from, savedPosition) {
-    return savedPosition ?? { top: 0 }
+  scrollBehavior(to, from, savedPosition) {
+    if (!savedPosition) {
+      return { top: 0 };
+    }
+    const store = scrollAffectingContentWaiterStore();
+    const { wait: scrollAffectingContentWaiter } = storeToRefs(store);
+    document.querySelectorAll("iframe,img").forEach((ele) => {
+      if (ele instanceof HTMLIFrameElement) {
+        if (ele.src && ele.readyState === 'loading') {
+          store.add(new Promise((resolve) => ele.addEventListener('load', resolve, { once: true})));
+        }
+      } else if (ele instanceof HTMLImageElement) {
+        if (ele.src && !ele.complete) {
+          store.add(new Promise((resolve) => ele.addEventListener('load', resolve, { once: true})));
+        }
+      }
+    });
+    var handler = async (resolve) => {
+      await scrollAffectingContentWaiter.value;
+      resolve(savedPosition);
+    }
+    return new Promise(handler);
   },
 })
 export default router

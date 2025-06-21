@@ -13,6 +13,10 @@ import { rust } from "@codemirror/lang-rust"
 import { vue } from "@codemirror/lang-vue"
 import { yaml } from "@codemirror/lang-yaml"
 import { oneDark } from "@codemirror/theme-one-dark"
+// Pinia Stores
+import { scrollAffectingContentWaiterStore } from '@/stores/scroll_affecting_content_waiter'
+
+const scrollAffectingContentWaiter = scrollAffectingContentWaiterStore();
 
 const props = defineProps({
   text: { type: String, default: null },
@@ -88,7 +92,7 @@ function getLanguageExtension() {
 }
 
 onMounted(() => {
-  getTextAsync().then((text) => {
+  var task = getTextAsync().then((text) => {
     let extensions = [
         basicSetup,
         EditorState.readOnly.of(true),
@@ -108,7 +112,8 @@ onMounted(() => {
   }).catch(() => {
     console.log("failed")
     init_failed.value = true
-  })
+  });
+  scrollAffectingContentWaiter.add(task);
 });
 </script>
 
