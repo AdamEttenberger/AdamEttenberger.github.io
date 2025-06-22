@@ -50,15 +50,12 @@ select {
 
   color: var(--color-text-button);
   background-color: var(--color-background-button);
-  background: var(--color-background-button);
   &:hover,
   &:focus {
     background-color: var(--color-background-button-hover);
-    color: var(--color-text-button-hover);
   }
   &:active {
     background-color: var(--color-background-button-active);
-    color: var(--color-text-button-active);
   }
 }
 
@@ -74,11 +71,9 @@ option {
   &:hover,
   &:focus {
     background-color: var(--color-background-button-hover);
-    color: var(--color-text-button-hover);
   }
   &:checked {
     background-color: var(--color-background-button-selected);
-    color: var(--color-text-button-selected);
   }
 }
 </style>
