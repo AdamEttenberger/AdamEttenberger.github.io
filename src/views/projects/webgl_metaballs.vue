@@ -112,6 +112,7 @@ function onPresetSelected(new_value) {
       continue;
     }
     editorProperties.value[key].model = new_options[key];
+    editorProperties.value[key].options.initial_value = new_options[key];
   }
 }
 
