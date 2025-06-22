@@ -62,7 +62,7 @@ const initial_value = ref(model.value);
   color: var(--color-text-button);
 
   &:has(:is(img, svg)) {
-    transition-property: background-color, color, font-size;
+    transition-property: background-color, font-size;
     transition-duration: var(--anim-transition-duration);
     transition-timing-function: var(--anim-transition-timing-function);
     font-size: 1rem;
@@ -71,11 +71,9 @@ const initial_value = ref(model.value);
     &:hover {
       font-size: 1.2rem;
       background-color: var(--color-background-button-hover);
-      color: var(--color-text-button-hover);
     }
     &:active {
       background-color: var(--color-background-button-active);
-      color: var(--color-text-button-active);
     }
   }
 }
