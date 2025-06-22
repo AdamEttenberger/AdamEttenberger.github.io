@@ -72,8 +72,7 @@
   --size-padding-round: var(--size-border-radius);
   --size-padding-hard: calc(var(--size-padding-round) / 2);
   --size-list-indentation: 1.5rem;
-  --size-column-gutter: 1em;
-  --size-column-padding: 0rem var(--size-column-gutter);
+  --size-column-padding: 1rem 1.5rem;
 }
 
 /* animation variables */
@@ -98,6 +97,10 @@
 }
 
 body {
+  display: flex;
+  flex-direction: column;
+  place-items: start;
+  align-items: stretch;
   min-height: 100vh;
   color: var(--color-text);
   background: var(--color-background);

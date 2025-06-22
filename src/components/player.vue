@@ -5,7 +5,7 @@ import ProjectLabel from './project_label.vue'
 /**
  * Emits `target_frame: HTMLIFrameElement`
  */
-const emits = defineEmits(['load']);
+defineEmits(['load']);
 
 const props = defineProps({
   title: { type: String, required: true },
