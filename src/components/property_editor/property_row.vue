@@ -23,15 +23,15 @@ const model = defineModel({
   }
 });
 
-const initial_value = model.value;
+const initial_value = ref(model.value);
 
 </script>
 
 <template>
   <div class="property-row">
     <label :for="name">{{ label }}</label>
-    <button class="undo" @click="model = initial_value">
-      <font-awesome-icon v-if="model != initial_value" :icon="['fas', 'arrow-rotate-left']" />
+    <button class="undo" @click="model = (options.initial_value ?? initial_value)">
+      <font-awesome-icon v-if="model != (options.initial_value ?? initial_value)" :icon="['fas', 'arrow-rotate-left']" />
     </button>
     <NumberRange v-if="type === 'range'"
                  :name="name"
