@@ -44,47 +44,24 @@
 
 /* semantic color variables for this project */
 :root {
-  --color-background: var(--theme-background-light-1);
-  --color-background-soft: var(--theme-background-light-2);
-  --color-background-button: var(--theme-background-button-light-1);
-  --color-background-button-hover: var(--theme-background-button-light-2);
-  --color-background-button-active: var(--theme-background-button-light-3);
-  --color-background-button-selected: var(--theme-background-button-light-4);
-  --color-background-warn: var(--theme-background-warn-light);
-  --color-background-error: var(--theme-background-error-light);
-  --color-text: var(--theme-text-light-1);
-  --color-text-button: var(--theme-text-button-light);
-  --color-text-heading: var(--theme-text-light-2);
-  --color-text-warn: var(--theme-text-warn-light);
-  --color-text-error: var(--theme-text-error-light);
-  --color-link: var(--theme-link-light-1);
-  --color-link-hover: var(--theme-link-light-2);
-  --color-link-active: var(--theme-link-light-3);
-  --color-divider: var(--theme-divider-light);
-  --color-scrollbar: var(--theme-divider-light);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-background: var(--theme-background-dark-1);
-    --color-background-soft: var(--theme-background-dark-2);
-    --color-background-button: var(--theme-background-button-dark-1);
-    --color-background-button-hover: var(--theme-background-button-dark-2);
-    --color-background-button-active: var(--theme-background-button-dark-3);
-    --color-background-button-selected: var(--theme-background-button-dark-4);
-    --color-background-warn: var(--theme-background-warn-dark);
-    --color-background-error: var(--theme-background-error-dark);
-    --color-text: var(--theme-text-dark-1);
-    --color-text-button: var(--theme-text-button-dark);
-    --color-text-heading: var(--theme-text-dark-2);
-    --color-text-warn: var(--theme-text-warn-dark);
-    --color-text-error: var(--theme-text-error-dark);
-    --color-link: var(--theme-link-dark-1);
-    --color-link-hover: var(--theme-link-dark-2);
-    --color-link-active: var(--theme-link-dark-3);
-    --color-divider: var(--theme-divider-dark);
-    --color-scrollbar: var(--theme-divider-dark);
-  }
+  --color-background:                 light-dark(var(--theme-background-light-1),         var(--theme-background-dark-1));
+  --color-background-soft:            light-dark(var(--theme-background-light-2),         var(--theme-background-dark-2));
+  --color-background-button:          light-dark(var(--theme-background-button-light-1),  var(--theme-background-button-dark-1));
+  --color-background-button-hover:    light-dark(var(--theme-background-button-light-2),  var(--theme-background-button-dark-2));
+  --color-background-button-active:   light-dark(var(--theme-background-button-light-3),  var(--theme-background-button-dark-3));
+  --color-background-button-selected: light-dark(var(--theme-background-button-light-4),  var(--theme-background-button-dark-4));
+  --color-background-warn:            light-dark(var(--theme-background-warn-light),      var(--theme-background-warn-dark));
+  --color-background-error:           light-dark(var(--theme-background-error-light),     var(--theme-background-error-dark));
+  --color-text:                       light-dark(var(--theme-text-light-1),               var(--theme-text-dark-1));
+  --color-text-button:                light-dark(var(--theme-text-button-light),          var(--theme-text-button-dark));
+  --color-text-heading:               light-dark(var(--theme-text-light-2),               var(--theme-text-dark-2));
+  --color-text-warn:                  light-dark(var(--theme-text-warn-light),            var(--theme-text-warn-dark));
+  --color-text-error:                 light-dark(var(--theme-text-error-light),           var(--theme-text-error-dark));
+  --color-link:                       light-dark(var(--theme-link-light-1),               var(--theme-link-dark-1));
+  --color-link-hover:                 light-dark(var(--theme-link-light-2),               var(--theme-link-dark-2));
+  --color-link-active:                light-dark(var(--theme-link-light-3),               var(--theme-link-dark-3));
+  --color-divider:                    light-dark(var(--theme-divider-light),              var(--theme-divider-dark));
+  --color-scrollbar:                  light-dark(var(--theme-divider-light),              var(--theme-divider-dark));
 }
 
 /* sizing variables */
