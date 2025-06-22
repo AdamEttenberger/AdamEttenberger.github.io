@@ -33,6 +33,13 @@ const model = defineModel({
 <style scoped>
 input[type=range] {
   transition: accent-color var(--anim-transition);
-  accent-color: var(--color-link);
+  accent-color: var(--color-background-button);
+  &:hover,
+  &:focus {
+    accent-color: var(--color-background-button-hover);
+  }
+  &:active {
+    accent-color: var(--color-background-button-active);
+  }
 }
 </style>

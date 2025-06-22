@@ -11,9 +11,11 @@ import { library } from '@fortawesome/fontawesome-svg-core'
 // import { fab } from '@fortawesome/free-brands-svg-icons'
 import {
   faArrowRotateLeft,
-  faFileCircleXmark,
   faCirclePlay,
   faDragon,
+  faFileCircleXmark,
+  faMoon,
+  faSun,
   faUpRightFromSquare,
 } from '@fortawesome/free-solid-svg-icons'
 import {
@@ -29,9 +31,11 @@ app.use(pinia);
 // FontAwesome Config
 library.add(
   faArrowRotateLeft,
-  faFileCircleXmark,
   faCirclePlay,
   faDragon,
+  faFileCircleXmark,
+  faMoon,
+  faSun,
   faUpRightFromSquare,
 );
 library.add(

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref } from 'vue'
 import Code from '../../components/code.vue'
 import Column from '../../components/column.vue'
 import Divider from '../../components/divider.vue'

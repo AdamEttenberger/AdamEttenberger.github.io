@@ -9,7 +9,6 @@ import webgl_example from '/src/views/projects/webgl_example.vue'
 import website from '/src/views/projects/website.vue'
 import { createWebHashHistory } from 'vue-router';
 // Pinia Stores
-import { storeToRefs } from 'pinia'
 import { scrollAffectingContentWaiterStore } from '@/stores/scroll_affecting_content_waiter'
 
 const routes = [
@@ -88,7 +87,6 @@ const router = createRouter({
       return { top: 0 };
     }
     const store = scrollAffectingContentWaiterStore();
-    const { wait: scrollAffectingContentWaiter } = storeToRefs(store);
     document.querySelectorAll("iframe,img").forEach((ele) => {
       if (ele instanceof HTMLIFrameElement) {
         if (ele.src && ele.readyState === 'loading') {
@@ -100,11 +98,7 @@ const router = createRouter({
         }
       }
     });
-    var handler = async (resolve) => {
-      await scrollAffectingContentWaiter.value;
-      resolve(savedPosition);
-    }
-    return new Promise(handler);
+    return store.wait.then(() => savedPosition);
   },
 })
 export default router
