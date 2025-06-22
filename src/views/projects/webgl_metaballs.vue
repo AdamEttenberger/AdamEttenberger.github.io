@@ -135,7 +135,6 @@ function onPropertyChanged(name, new_value) {
     <Divider>Controls</Divider>
     <PropertyEditor :properties="editorProperties"
                     @property-changed="onPropertyChanged" />
-    <br />
 
     <Divider>
       <Quote name="you, probably">What am I looking at?</Quote>
