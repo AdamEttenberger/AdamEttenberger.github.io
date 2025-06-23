@@ -16,9 +16,9 @@ const props = defineProps({
     <Divider>Welcome!</Divider>
     <p>
       This website is my personal portfolio containing some of the interesting or interactive projects I've built or worked on.
-    </p>
-    <p>
-      The source for this website is available on my GitHub at <ExternalLink to="https://github.com/AdamEttenberger/AdamEttenberger.github.io">AdamEttenberger/AdamEttenberger.github.io</ExternalLink>.
+      The source for this website is available on my GitHub at:
+      <br />
+      <ExternalLink to="https://github.com/AdamEttenberger/AdamEttenberger.github.io">AdamEttenberger/AdamEttenberger.github.io</ExternalLink>.
     </p>
 
     <Divider>Beginnings</Divider>
