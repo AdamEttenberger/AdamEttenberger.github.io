@@ -64,15 +64,21 @@ const editorProperties = ref({
         "extra-gloopy": {
           label: "Extra Gloopy",
           count: 40,
-          radius: 0.13,
+          radius: 0.1,
           tolerance: 0.75,
         },
         "explosive-growth": {
           label: "Explosive Growth",
-          count: 40,
-          radius: 0.15,
+          count: 20,
+          radius: 0.2,
           tolerance: 0.9,
         },
+        "many-mini": {
+          label: "Many Mini",
+          count: 100,
+          radius: 0.05,
+          tolerance: 0.5,
+        }
       },
     },
   },
