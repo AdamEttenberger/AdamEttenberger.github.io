@@ -62,7 +62,7 @@ onMounted(() => {
 <style scoped>
 .math {
   text-align: center;
-  font-size: xx-large;
+  font-size: x-large;
   padding: var(--size-padding-round);
   overflow-x: auto;
 }
