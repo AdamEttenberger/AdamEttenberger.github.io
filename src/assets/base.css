@@ -151,7 +151,7 @@ merror {
   display: inline-block;
   text-decoration: none;
   color: var(--color-link);
-  padding: var(--size-padding-hard);
+  padding: 0 var(--size-padding-hard);
   transition: color var(--anim-transition);
   &:hover {
     color: var(--color-link-hover);
