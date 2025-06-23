@@ -6,9 +6,13 @@ defineProps({
 });
 
 /**
- * Emits `name: String`
+ * Emits `name: String, new_value: any`
  */
 const emit = defineEmits(['property-changed']);
+
+function onPropertyChanged(name, new_value) {
+  emit('property-changed', name, new_value);
+}
 </script>
 
 <template>
@@ -19,7 +23,7 @@ const emit = defineEmits(['property-changed']);
                  :type="value.type"
                  :options="value.options"
                  v-model="value.model"
-                 @property-changed="$emit('property-changed', key)" />
+                 @property-changed="onPropertyChanged" />
   </div>
 </template>
 
@@ -30,6 +34,7 @@ const emit = defineEmits(['property-changed']);
    * Columns: Label, Undo, Editor
    */
   grid-template-columns: max-content max-content minmax(0, auto);
+  gap: var(--size-property-grid-gap);
   place-self: center;
   width: 100%;
   max-width: calc(var(--size-column-width) / 2);

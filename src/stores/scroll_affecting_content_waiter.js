@@ -12,16 +12,14 @@ export const scrollAffectingContentWaiterStore = defineStore('scrollAffectingCon
      * @param {*} state
      * @returns Promise that waits until all pending loaders are resolved.
      */
-    wait(state) {
-      return new Promise(async (resolve) => {
-        while (this.pending.size > 0) {
-          var snapshot = this.pending;
-          this.pending = new Set([]);
-          await Promise.all(snapshot);
-        }
-        resolve();
-      });
-    },
+    wait: (state) => new Promise(async (resolve) => {
+      while (state.pending.size > 0) {
+        var snapshot = state.pending;
+        state.pending = new Set([]);
+        await Promise.all(snapshot);
+      }
+      resolve();
+    }),
   },
   actions: {
     add(promise) {

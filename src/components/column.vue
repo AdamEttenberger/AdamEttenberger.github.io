@@ -15,7 +15,7 @@
   margin: var(--size-padding-round) 0;
 
   & > :slotted(:is(img, svg, .framed, .column-inset)) {
-    margin: var(--size-padding-round) var(--size-column-gutter);
+    margin: var(--size-padding-round) 0;
     @media only screen and (max-width: 45rem) {
       margin: var(--size-padding-round) 0;
     }
