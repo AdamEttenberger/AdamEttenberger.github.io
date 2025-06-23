@@ -34,6 +34,7 @@ function onPropertyChanged(name, new_value) {
    * Columns: Label, Undo, Editor
    */
   grid-template-columns: max-content max-content minmax(0, auto);
+  gap: 2px;
   place-self: center;
   width: 100%;
   max-width: calc(var(--size-column-width) / 2);
