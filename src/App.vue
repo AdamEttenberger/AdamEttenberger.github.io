@@ -40,6 +40,10 @@ header .controls {
   align-items: center;
 }
 
+header .links {
+  padding-right: var(--size-padding-round);
+}
+
 header .controls {
   margin-left: auto;
 }
