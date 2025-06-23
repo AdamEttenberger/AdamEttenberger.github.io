@@ -35,6 +35,7 @@ onMounted(() => {
 
 <style scoped>
 .button {
-  background-color: transparent;
+  height: 100%;
+  aspect-ratio: 1;
 }
 </style>

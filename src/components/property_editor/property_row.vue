@@ -1,7 +1,8 @@
 <script setup>
 import { ref } from 'vue'
-import NumberRange from './number_range.vue'
 import ComboBox from './combo_box.vue'
+import ImageButton from '../image_button.vue'
+import NumberRange from './number_range.vue'
 
 /**
  * Emits `name: String, new_value: any`
@@ -30,9 +31,11 @@ const initial_value = ref(model.value);
 <template>
   <div class="property-row">
     <label :for="name">{{ label }}</label>
-    <button class="undo" @click="model = (options.initial_value ?? initial_value)">
-      <font-awesome-icon v-if="model != (options.initial_value ?? initial_value)" :icon="['fas', 'arrow-rotate-left']" />
-    </button>
+    <div class="undo">
+      <ImageButton v-if="model != (options.initial_value ?? initial_value)" @click="model = (options.initial_value ?? initial_value)">
+        <font-awesome-icon :icon="['fas', 'arrow-rotate-left']" />
+      </ImageButton>
+    </div>
     <NumberRange v-if="type === 'range'"
                  :name="name"
                  :min_value="options.min_value"
@@ -49,32 +52,11 @@ const initial_value = ref(model.value);
 <style scoped>
 .property-row {
   display: contents;
+  gap: var(--size-property-grid-gap);
 }
 
 .undo {
   height: 100%;
   aspect-ratio: 1;
-  margin: 0 var(--size-padding-hard);
-  border-radius: var(--size-border-radius);
-
-  font-size: 1rem;
-  background-color: transparent;
-  color: var(--color-text-button);
-
-  &:has(:is(img, svg)) {
-    transition-property: background-color, font-size;
-    transition-duration: var(--anim-transition-duration);
-    transition-timing-function: var(--anim-transition-timing-function);
-    font-size: 1rem;
-    background-color: var(--color-background-button);
-    color: var(--color-text-button);
-    &:hover {
-      font-size: 1.2rem;
-      background-color: var(--color-background-button-hover);
-    }
-    &:active {
-      background-color: var(--color-background-button-active);
-    }
-  }
 }
 </style>
