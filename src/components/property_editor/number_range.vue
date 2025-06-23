@@ -42,6 +42,7 @@ const model = defineModel({
 .number-range {
   display: flex;
   flex-direction: row;
+  gap: var(--size-property-grid-gap);
 }
 input[type=number] {
   font-family: Consolas, Monaco, 'Lucida Console', 'Courier New', Courier, monospace;
