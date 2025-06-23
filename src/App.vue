@@ -8,7 +8,7 @@ import LogoIcon from '@/assets/logo.svg'
 <template>
   <div class="app">
     <header>
-      <ImageButton class="logo" route="/" :src="LogoIcon" alt="Logo" />
+      <ImageButton class="logo" route="/" :src="LogoIcon" alt="Logo" :transparent="true" />
       <div class="title">
         <RouterLink to="/"><h1>Adam Ettenberger</h1></RouterLink>
         <div class="links">
@@ -41,7 +41,11 @@ header .controls {
 }
 
 header .links {
+  height: 2em;
   padding-right: var(--size-padding-round);
+  & > * {
+    height: 100%;
+  }
 }
 
 header .controls {
