@@ -46,10 +46,10 @@ const model = defineModel({
 input[type=number] {
   font-family: Consolas, Monaco, 'Lucida Console', 'Courier New', Courier, monospace;
   border-radius: var(--size-border-radius);
-  padding-left: var(--size-padding-round);
+  padding: 0 var(--size-padding-hard) 0 var(--size-padding-round);
 
   display: block;
-  min-width: 4.5em;
+  width: 4.5em;
   transition: background-color var(--anim-transition);
   background-color: var(--color-background-button);
   &:hover,
@@ -58,6 +58,14 @@ input[type=number] {
   }
   &:active {
     background-color: var(--color-background-button-active);
+  }
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    background: transparent url("@/assets/property_editor/number_spinner.svg") no-repeat center center;
+    width: 1.5em;
+    height: 1.5em;
+    cursor: pointer;
   }
 }
 input[type=range] {
