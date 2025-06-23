@@ -52,7 +52,6 @@ const initial_value = ref(model.value);
 <style scoped>
 .property-row {
   display: contents;
-  gap: var(--size-property-grid-gap);
 }
 
 .undo {
