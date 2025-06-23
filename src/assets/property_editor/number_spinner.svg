@@ -1,0 +1,10 @@
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="arrow-up" viewBox="0 0 24 24">
+    <polygon points="7,9 12,3 17,9"
+             stroke-linejoin="round"
+             stroke-width="2" />
+  </symbol>
+
+  <use href="#arrow-up" x="0" y="0" />
+  <use href="#arrow-up" x="0" y="0" transform="rotate(180, 12, 12)" />
+</svg>
