@@ -63,7 +63,8 @@ input[type=number] {
   &::-webkit-outer-spin-button,
   &::-webkit-inner-spin-button {
     -webkit-appearance: none;
-    background: transparent url("@/assets/property_editor/number_spinner.svg") no-repeat center center;
+    mask: url("@/assets/property_editor/number_spinner.svg");
+    background-color: var(--color-text);
     width: 1.5em;
     height: 1.5em;
     cursor: pointer;
