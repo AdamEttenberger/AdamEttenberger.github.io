@@ -13,7 +13,7 @@ const props = defineProps({
 
 <template>
   <article class="container">
-    <ImageButton class="icon" :src="image" :alt="title" :route="route" />
+    <ImageButton class="icon" :src="image" :alt="title" :route="route" :transparent="true" />
     <ProjectLabel class="label" :title="title" :date="date" :route="route" />
     <section class="summary">
       <div class="scroller">
