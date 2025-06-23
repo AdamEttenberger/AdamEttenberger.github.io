@@ -2,7 +2,9 @@
   <symbol id="arrow-up" viewBox="0 0 24 24">
     <polygon points="7,9 12,3 17,9"
              stroke-linejoin="round"
-             stroke-width="2" />
+             stroke-width="2"
+             stroke="black"
+             fill="black" />
   </symbol>
 
   <use href="#arrow-up" x="0" y="0" />
