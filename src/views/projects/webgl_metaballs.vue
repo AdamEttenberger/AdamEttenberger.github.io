@@ -6,10 +6,8 @@ import Divider from '../../components/divider.vue'
 import ExternalLink from '../../components/external_link.vue'
 import Math from '../../components/math.vue'
 import Player from '../../components/player.vue'
-import ProjectLabel from '../../components/project_label.vue'
 import PropertyEditor from '../../components/property_editor/property_editor.vue'
 import Quote from '../../components/quote.vue'
-import UnderConstruction from '../../components/under_construction.vue'
 
 const props = defineProps({
   title: { type: String, required: true },
