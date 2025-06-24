@@ -57,7 +57,7 @@ import ProjectCard from '@/components/project_card.vue'
     </p>
   </ProjectCard>
 
-  <ProjectCard title="WebGL Example"
+  <ProjectCard title="WebGL Proto-Engine"
                image="/images/projects/webgl-example.png"
                route="/projects/webgl_example"
                :date="new Date('2012/09/01')"
