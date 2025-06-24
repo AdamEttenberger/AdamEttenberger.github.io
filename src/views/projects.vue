@@ -1,6 +1,6 @@
 <script setup>
-import ExternalLink from '/src/components/external_link.vue'
-import ProjectCard from '/src/components/project_card.vue'
+import ExternalLink from '@/components/external_link.vue'
+import ProjectCard from '@/components/project_card.vue'
 </script>
 
 <template>

@@ -1,14 +1,14 @@
 <script setup>
 import { ref } from 'vue'
-import Code from '../../components/code.vue'
-import Column from '../../components/column.vue'
-import ExternalLink from '../../components/external_link.vue'
-import Figure from '../../components/figure.vue'
-import Math from '../../components/math.vue'
-import Player from '../../components/player.vue'
-import PropertyEditor from '../../components/property_editor/property_editor.vue'
-import Quote from '../../components/quote.vue'
-import Section from '../../components/section.vue'
+import Code from '@/components/code.vue'
+import Column from '@/components/column.vue'
+import ExternalLink from '@/components/external_link.vue'
+import Figure from '@/components/figure.vue'
+import Math from '@/components/math.vue'
+import Player from '@/components/player.vue'
+import PropertyEditor from '@/components/property_editor/property_editor.vue'
+import Quote from '@/components/quote.vue'
+import Section from '@/components/section.vue'
 
 const props = defineProps({
   title: { type: String, required: true },

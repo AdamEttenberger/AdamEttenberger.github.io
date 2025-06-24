@@ -1,6 +1,6 @@
 <script setup>
-import Player from '../../components/player.vue'
-import UnderConstruction from '/src/components/under_construction.vue'
+import Player from '@/components/player.vue'
+import UnderConstruction from '@/components/under_construction.vue'
 const props = defineProps({
   title: { type: String, required: true },
   date: { type: Date, required: true },

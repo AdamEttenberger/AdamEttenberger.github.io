@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, useSlots } from 'vue'
-import Figure from '/src/components/figure.vue'
+import Figure from '@/components/figure.vue'
 
 const slots = useSlots();
 const mathml_parent = ref();
