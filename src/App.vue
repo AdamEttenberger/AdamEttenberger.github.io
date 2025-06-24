@@ -1,7 +1,8 @@
 <script setup>
-import ExternalLink from '/src/components/external_link.vue'
-import ImageButton from '/src/components/image_button.vue'
-import ThemeToggle from '/src/components/theme_toggle.vue'
+import ExternalLink from '@/components/external_link.vue'
+import ImageButton from '@/components/image_button.vue'
+import ThemeToggle from '@/components/theme_toggle.vue'
+
 import LogoIcon from '@/assets/logo.svg'
 </script>
 

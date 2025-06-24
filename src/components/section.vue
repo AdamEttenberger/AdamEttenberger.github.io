@@ -1,5 +1,5 @@
 <script setup>
-import Divider from './divider.vue'
+import Divider from '@/components/divider.vue'
 
 defineProps({
   heading: { type: String, default: null },

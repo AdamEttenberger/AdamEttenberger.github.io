@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, watch } from 'vue'
-import ImageButton from './image_button.vue'
+import ImageButton from '@/components/image_button.vue'
 // Pinia Stores
 import { colorSchemeStore } from '@/stores/color_scheme'
 const store = colorSchemeStore();

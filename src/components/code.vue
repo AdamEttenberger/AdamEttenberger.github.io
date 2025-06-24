@@ -3,7 +3,7 @@ import { ref, onMounted } from 'vue'
 import {basicSetup} from "codemirror"
 import {EditorState} from "@codemirror/state"
 import {EditorView} from "@codemirror/view"
-import Figure from '/src/components/figure.vue'
+import Figure from '@/components/figure.vue'
 import { cpp } from "@codemirror/lang-cpp"
 import { css } from "@codemirror/lang-css"
 import { go } from "@codemirror/lang-go"

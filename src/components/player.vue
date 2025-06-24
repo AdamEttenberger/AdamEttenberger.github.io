@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue';
-import Figure from './figure.vue'
-import ProjectLabel from './project_label.vue'
+import Figure from '@/components/figure.vue'
+import ProjectLabel from '@/components/project_label.vue'
 
 /**
  * Emits `target_frame: HTMLIFrameElement`

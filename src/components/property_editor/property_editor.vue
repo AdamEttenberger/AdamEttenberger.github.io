@@ -1,5 +1,5 @@
 <script setup>
-import PropertyRow from './property_row.vue'
+import PropertyRow from '@/components/property_editor/property_row.vue'
 
 defineProps({
   properties: { type: Object, required: true },

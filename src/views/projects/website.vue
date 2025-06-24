@@ -1,9 +1,9 @@
 <script setup>
-import Column from '/src/components/column.vue'
-import ExternalLink from '/src/components/external_link.vue'
-import ProjectLabel from '/src/components/project_label.vue'
-import UnderConstruction from '/src/components/under_construction.vue'
-import Section from '/src/components/section.vue'
+import Column from '@/components/column.vue'
+import ExternalLink from '@/components/external_link.vue'
+import ProjectLabel from '@/components/project_label.vue'
+import Section from '@/components/section.vue'
+import UnderConstruction from '@/components/under_construction.vue'
 const props = defineProps({
   title: { type: String, required: true },
 })

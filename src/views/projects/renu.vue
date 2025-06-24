@@ -1,9 +1,9 @@
 <script setup>
-import Column from '../../components/column.vue'
-import ExternalLink from '/src/components/external_link.vue'
-import Figure from '/src/components/figure.vue'
-import Player from '../../components/player.vue'
-import Section from '../../components/section.vue'
+import Column from '@/components/column.vue'
+import ExternalLink from '@/components/external_link.vue'
+import Figure from '@/components/figure.vue'
+import Player from '@/components/player.vue'
+import Section from '@/components/section.vue'
 const props = defineProps({
   title: { type: String, required: true },
   date: { type: Date, required: true },

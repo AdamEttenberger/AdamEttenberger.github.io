@@ -1,8 +1,8 @@
 <script setup>
 import { ref } from 'vue'
-import ComboBox from './combo_box.vue'
-import ImageButton from '../image_button.vue'
-import NumberRange from './number_range.vue'
+import ComboBox from '@/components/property_editor/combo_box.vue'
+import ImageButton from '@/components/image_button.vue'
+import NumberRange from '@/components/property_editor/number_range.vue'
 
 /**
  * Emits `name: String, new_value: any`
