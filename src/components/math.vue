@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted, useSlots } from 'vue'
+import Figure from '/src/components/figure.vue'
 
 const slots = useSlots();
 const mathml_parent = ref();
@@ -51,12 +52,14 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-if="init_failed" class="error framed">
-    <font-awesome-icon :icon="['fas', 'file-circle-xmark']" />
-    <br />
-    <div>Error loading math view</div>
-  </div>
-  <div v-else ref="mathml_parent" class="math framed"></div>
+  <Figure caption="Equation for the blendFuncSeparate above, computing the color `R` given colors source `S` and destination `D`.">
+    <div v-if="init_failed" class="error">
+      <font-awesome-icon :icon="['fas', 'file-circle-xmark']" />
+      <br />
+      <div>Error loading math view</div>
+    </div>
+    <div v-else ref="mathml_parent" class="math"></div>
+  </Figure>
 </template>
 
 <style scoped>

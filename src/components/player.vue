@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue';
+import Figure from './figure.vue'
 import ProjectLabel from './project_label.vue'
 
 /**
@@ -21,17 +22,15 @@ const requested_play = ref(false);
 </script>
 
 <template>
-  <figure class="column-inset player">
-    <div class="framed">
-      <div class="responsive-frame">
-        <button v-if="!requested_play && paused" class="play-button" @click.once="requested_play = true"><font-awesome-icon :icon="['fas', 'circle-play']" /></button>
-        <iframe v-else ref="player_frame" class="renderer" :title="title" :src="frame" @load="$emit('load', player_frame)"></iframe>
-      </div>
+  <Figure class="player">
+    <div class="responsive-frame">
+      <button v-if="!requested_play && paused" class="play-button" @click.once="requested_play = true"><font-awesome-icon :icon="['fas', 'circle-play']" /></button>
+      <iframe v-else ref="player_frame" class="renderer" :title="title" :src="frame" @load="$emit('load', player_frame)"></iframe>
     </div>
-    <figcaption>
+    <template v-slot:caption>
       <ProjectLabel :title="title" :date="date" :lastmod="lastmod" />
-    </figcaption>
-  </figure>
+    </template>
+  </Figure>
 </template>
 
 <style scoped>
@@ -39,10 +38,6 @@ const requested_play = ref(false);
   display: flex;
   flex-direction: column;
   user-select: none;
-}
-
-.framed {
-  background-color: var(--color-divider);
 }
 
 .responsive-frame {

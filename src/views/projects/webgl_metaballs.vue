@@ -4,6 +4,7 @@ import Code from '../../components/code.vue'
 import Column from '../../components/column.vue'
 import Divider from '../../components/divider.vue'
 import ExternalLink from '../../components/external_link.vue'
+import Figure from '../../components/figure.vue'
 import Math from '../../components/math.vue'
 import Player from '../../components/player.vue'
 import PropertyEditor from '../../components/property_editor/property_editor.vue'
@@ -154,18 +155,19 @@ function onPropertyChanged(name, new_value) {
       Afterwards the base texture is used as input for the remaining 3 quadrants, each applying a slightly different pixel shader.
     </p>
     <br />
-    <img src="/images/projects/metaballs/viewport_explanation.png"
-         alt="image describing the quadrants in the live demo at the top of the page.
-              (1) upper-left: base texture,
-              (2) upper-right: diffuse metaball,
-              (3) lower-left: diffuse metaball + outline,
-              (4) lower-right: hue + outline" />
 
-    <img src="/images/projects/metaballs/hierarchy.png"
-         alt="image describing the the scene hierarchy.
-              (1) VertexPositionColor[] data,
-              (2) Base Texture,
-              (3) Each; Diffuse Metaball, Diffuse + Outline, Hue + Outline" />
+    <Figure src="/images/projects/metaballs/viewport_explanation.png"
+            alt="Image describing the quadrants in the live demo at the top of the page.
+                 (1) upper-left: base texture,
+                 (2) upper-right: diffuse metaball,
+                 (3) lower-left: diffuse metaball + outline,
+                 (4) lower-right: hue + outline." />
+
+    <Figure src="/images/projects/metaballs/hierarchy.png"
+            alt="Image describing the the scene hierarchy.
+                 (1) VertexPositionColor[] data,
+                 (2) Base Texture,
+                 (3) Each; Diffuse Metaball, Diffuse + Outline, Hue + Outline." />
 
     <Divider><font-awesome-icon :icon="['fas', 'dragon']" /> Here be Dragons <font-awesome-icon class="fa-flip-horizontal" :icon="['fas', 'dragon']" /></Divider>
     <p>
@@ -180,7 +182,9 @@ function onPropertyChanged(name, new_value) {
       It's important that the background is transparent black, the later shaders will use the alpha channel as a "mass" or "influence" value, deciding whether to discard or paint a pixel.
     </p>
     <br />
-    <Code lang="javascript" text="
+    <Code lang="javascript"
+          caption="Configure WebGL for alpha blending."
+          text="
       gl.clearColor(0.0, 0.0, 0.0, 0.0);
       gl.blendEquation(gl.FUNC_ADD);
       gl.blendFuncSeparate(/*srcRGB=*/ gl.SRC_ALPHA,
@@ -222,7 +226,9 @@ function onPropertyChanged(name, new_value) {
       Finally blending modes are reset before passing the composited texture to one of the following shaders.
     </p>
     <br />
-    <Code lang="javascript" text="
+    <Code lang="javascript"
+          caption="Disable WebGL blend and re-enables depth test."
+          text="
       gl.disable(gl.BLEND);
       gl.enable(gl.DEPTH_TEST);
     "></Code>
