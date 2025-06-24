@@ -2,7 +2,6 @@
 import Column from '../../components/column.vue'
 import ExternalLink from '/src/components/external_link.vue'
 import Player from '../../components/player.vue'
-import ProjectLabel from '../../components/project_label.vue'
 import Divider from '../../components/divider.vue'
 const props = defineProps({
   title: { type: String, required: true },
