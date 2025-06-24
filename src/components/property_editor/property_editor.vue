@@ -33,7 +33,7 @@ function onPropertyChanged(name, new_value) {
   /**
    * Columns: Label, Undo, Editor
    */
-  grid-template-columns: max-content max-content minmax(0, auto);
+  grid-template-columns: max-content var(--size-property-grid-button) minmax(0, auto);
   gap: var(--size-property-grid-gap);
   place-self: center;
   width: 100%;
