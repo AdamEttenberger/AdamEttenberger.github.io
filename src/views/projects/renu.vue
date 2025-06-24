@@ -1,6 +1,7 @@
 <script setup>
 import Column from '../../components/column.vue'
 import ExternalLink from '/src/components/external_link.vue'
+import Figure from '/src/components/figure.vue'
 import Player from '../../components/player.vue'
 import Divider from '../../components/divider.vue'
 const props = defineProps({
@@ -32,46 +33,48 @@ const props = defineProps({
     <p>
       Our team consisted of Amanda Rivet, Nate Lemoi, Le Josh Davis, and myself. Amanda created all of the art and animations for the game, Nate created all of the music and sound effects, and Josh mostly helped design the game mechanics and experience as well as some programming. As for myself, I did nearly all of the programming and I designed each of the levels.
     </p>
-    <div class="framed team">
-      <img src="/images/projects/renu/team.jpg"
-           alt="profile pictures of the team members" />
-      <ol>
-        <li>Adam Ettenberger</li>
-        <li>Amanda Rivet</li>
-        <li>Nate Lemoi</li>
-        <li>Le Josh Davis</li>
-      </ol>
-    </div>
+    <Figure class="team"
+            src="/images/projects/renu/team.jpg"
+            alt="Profile pictures of the team members.">
+      <template v-slot:caption>
+        <ol class="authors" aria-label="team members">
+          <li>Adam Ettenberger</li>
+          <li>Amanda Rivet</li>
+          <li>Nate Lemoi</li>
+          <li>Le Josh Davis</li>
+        </ol>
+      </template>
+    </Figure>
     <Divider>Levels</Divider>
     <p>
       One feature I implemented was Bitmap levels. By this I mean, representing an entire level using certain colors to represent different tiles, enemies, and your spawn point. In the below example, Green is the spawn point, Red are enemies, and Black are impassable tiles. This allowed us to quickly create, modify, and transition between maps without having to write out each individual location or learning a new tool. We were able to create maps using MS-Paint.
     </p>
-    <img src="/images/projects/renu/levelSample.png"
-         alt="Example of the bitmap level file used in the previous game screen image" />
-    <img src="/images/projects/renu/gameplay.png"
-         alt="image of a player shooting at an enemy, showing the full game screen" />
+    <Figure src="/images/projects/renu/levelSample.png"
+            alt="Example of the bitmap level file used in the previous game screen image." />
+    <Figure src="/images/projects/renu/gameplay.png"
+            alt="Player shooting at an enemy, showing the full game screen." />
     <Divider>Animations</Divider>
     <p>
       One design decision we made was rather than making an additional animation for death, we would instead reuse the particles and make is appear as if the player had exploded when in contact with an enemy unit. Additionally, we decided that instead of having health or lives, we would allow the player to continue from the beginning of the level as many times as they would like. This not only reduced some development time, but also in my opinion made the game less frustrating if you ended up dying a lot on a certain level.
     </p>
-    <img src="/images/projects/renu/death_animation.gif"
-         alt="animation illustrating the physics-based player death animation" />
+    <Figure src="/images/projects/renu/death_animation.gif"
+            alt="Animation illustrating the physics-based player death animation." />
     <Divider>Physics</Divider>
     <p>
       One detail you may have noticed thought these screenshots is that some of the tiles don't seem to fit the rest of the map. This is a feature we added about an hour before the Imagine Cup was over. The dark, gross mossy looking tiles are very common in the world, representing grime and sludge on the ground, while the grassy patches are a result of your cleansing squirt gun. One thing the player will notice immediately about walking on the cleaned patches versus the grimy patches is that friction is much higher on the clean paths. This causes the player to slow down much faster when they are not trying to move in any direction, which in turn makes some jumps easier to make.
     </p>
-    <img src="/images/projects/renu/slippery_tiles.gif"
-         alt="animation demonstrating how one tile type is slippery" />
-    <img src="/images/projects/renu/sticky_tiles.gif"
-         alt="animation demonstrating how one tile type is sticky" />
-    <img src="/images/projects/renu/tile_difference.gif"
-         alt="animation demonstrating the difference in friction between the two terrain tile types" />
+    <Figure src="/images/projects/renu/slippery_tiles.gif"
+            alt="Animation demonstrating how one tile type has lass friction, slippery movement." />
+    <Figure src="/images/projects/renu/sticky_tiles.gif"
+            alt="Animation demonstrating how one tile type has more friction, sticky movement." />
+    <Figure src="/images/projects/renu/tile_difference.gif"
+            alt="Animation demonstrating the difference in friction between the two terrain tile types." />
     <Divider>Boss Fight</Divider>
     <p>
       The boss level was designed as an empty map with only you and a behemoth slime that bounced across the map. This was not only a fun challenge, but was easily the most difficult part of the game. As I mentioned before, when your squirt gun pellets hit a tile, it cleans it as well as increases friction for that tile. This produced an interesting challenge where you needed to dodge this giant bouncing slime, as well as make sure you don't miss because that reduces your ability to dodge the boss.
     </p>
-    <img src="/images/projects/renu/boss.png"
-         alt="image of the player (on the left) standing next to the boss (on the right)" />
+    <Figure src="/images/projects/renu/boss.png"
+            alt="Player (on the left) standing next to the enemy boss (on the right)." />
   </Column>
 </template>
 
@@ -82,20 +85,20 @@ const props = defineProps({
   & > img {
     width: 100%;
   }
+}
 
-  & > ol {
-    display: flex;
-    flex-direction: row;
-    list-style: none;
-    padding: 0;
+ol.authors {
+  display: flex;
+  flex-direction: row;
+  list-style: none;
+  padding: 0;
 
-    & > * {
-      flex: 1;
-      font-size: large;
-      text-align: center;
-      min-width: 25%;
-      color: var(--color-text-heading);
-    }
+  & > * {
+    flex: 1;
+    font-size: large;
+    text-align: center;
+    min-width: 25%;
+    color: var(--color-text-heading);
   }
 }
 </style>

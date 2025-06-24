@@ -13,17 +13,5 @@
   background-color: var(--color-background-soft);
   border-radius: var(--size-border-radius);
   margin: var(--size-padding-round) 0;
-
-  & > :slotted(:is(img, svg, .framed, .column-inset)) {
-    margin: var(--size-padding-round) 0;
-    @media only screen and (max-width: 45rem) {
-      margin: var(--size-padding-round) 0;
-    }
-  }
-
-  & > :slotted(:is(img, svg, .framed)) {
-    border: var(--size-border-frame) solid var(--color-divider);
-  }
 }
-
 </style>

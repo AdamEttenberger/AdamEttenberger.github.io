@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import {basicSetup} from "codemirror"
 import {EditorState} from "@codemirror/state"
 import {EditorView} from "@codemirror/view"
+import Figure from '/src/components/figure.vue'
 import { cpp } from "@codemirror/lang-cpp"
 import { css } from "@codemirror/lang-css"
 import { go } from "@codemirror/lang-go"
@@ -22,6 +23,7 @@ const props = defineProps({
   text: { type: String, default: null },
   file: { type: String, default: null },
   lang: { type: String, default: "cpp" },
+  caption: { type: String, default: null },
 })
 
 const editor = ref();
@@ -75,6 +77,17 @@ function getTextAsync() {
   });
 }
 
+function getCaption() {
+  if (props.caption) {
+    return props.caption;
+  }
+  if (props.file) {
+    // Extract the filename from the path as fallback.
+    return props.file.substring(props.file.lastIndexOf('/') + 1);
+  }
+  return null;
+}
+
 function getLanguageExtension() {
   switch (props.lang) {
     case "cpp": return cpp();
@@ -118,12 +131,14 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-if="init_failed" class="error framed">
-    <font-awesome-icon :icon="['fas', 'file-circle-xmark']" />
-    <br />
-    <div>Error loading code view</div>
-  </div>
-  <div v-else ref="editor" class="editor framed"></div>
+  <Figure :caption="getCaption()">
+    <div v-if="init_failed" class="error">
+      <font-awesome-icon :icon="['fas', 'file-circle-xmark']" />
+      <br />
+      <div>Error loading code view</div>
+    </div>
+    <div v-else ref="editor" class="editor"></div>
+  </Figure>
 </template>
 
 <style scoped>

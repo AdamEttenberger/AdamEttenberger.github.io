@@ -74,8 +74,9 @@
   --size-property-grid-gap: 2px;
   --size-property-grid-button: 1.5rem;
   --size-column-width: 50rem;
-  --size-border-frame: 4px;
+  --size-border-size: 4px;
   --size-border-radius: 0.5rem;
+  --size-border: var(--size-border-size) solid var(--color-divider);
   --size-padding-round: var(--size-border-radius);
   --size-padding-hard: calc(var(--size-padding-round) / 2);
   --size-list-indentation: 1.5rem;
@@ -133,7 +134,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1, h2, h3, h4, h5, h6, figcaption {
   color: var(--color-text-heading);
 }
 
@@ -168,5 +169,5 @@ merror {
 }
 
 .framed {
-  border: var(--size-border-frame) solid var(--color-divider);
+  border: var(--size-border);
 }
