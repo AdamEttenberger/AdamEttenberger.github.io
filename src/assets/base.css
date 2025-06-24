@@ -1,3 +1,8 @@
+
+:root, html, body {
+  font-size: 14px;
+}
+
 /* color themes */
 :root {
   --theme-white: #F8FAFC;
@@ -67,7 +72,7 @@
 /* sizing variables */
 :root {
   --size-property-grid-gap: 2px;
-  --size-column-width: 45rem;
+  --size-column-width: 50rem;
   --size-border-frame: 4px;
   --size-border-radius: 0.5rem;
   --size-padding-round: var(--size-border-radius);
@@ -122,7 +127,6 @@ body {
     'Droid Sans',
     'Helvetica Neue',
     sans-serif;
-  font-size: 15px;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

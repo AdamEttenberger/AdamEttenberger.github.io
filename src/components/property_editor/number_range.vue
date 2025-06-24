@@ -47,10 +47,11 @@ const model = defineModel({
 input[type=number] {
   font-family: Consolas, Monaco, 'Lucida Console', 'Courier New', Courier, monospace;
   border-radius: var(--size-border-radius);
-  padding: 0 var(--size-padding-hard) 0 var(--size-padding-round);
+  padding-left: var(--size-padding-round);
+  font-size: 0.9rem;
 
   display: block;
-  width: 4.5em;
+  width: 4.5rem;
   transition: background-color var(--anim-transition);
   background-color: var(--color-background-button);
   &:hover,
@@ -65,13 +66,15 @@ input[type=number] {
     -webkit-appearance: none;
     mask: url("@/assets/property_editor/number_spinner.svg");
     background-color: var(--color-text);
-    width: 1.5em;
-    height: 1.5em;
+    width: 1rem;
+    height: 1rem;
+    padding-right: var(--size-padding-hard);
     cursor: pointer;
   }
 }
 input[type=range] {
   flex: 1;
+  width: 100%;
 
   transition: accent-color var(--anim-transition);
   accent-color: var(--color-background-button);
