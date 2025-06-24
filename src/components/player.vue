@@ -21,15 +21,17 @@ const requested_play = ref(false);
 </script>
 
 <template>
-  <div class="column-inset player">
+  <figure class="column-inset player">
     <div class="framed">
       <div class="responsive-frame">
         <button v-if="!requested_play && paused" class="play-button" @click.once="requested_play = true"><font-awesome-icon :icon="['fas', 'circle-play']" /></button>
         <iframe v-else ref="player_frame" class="renderer" :title="title" :src="frame" @load="$emit('load', player_frame)"></iframe>
       </div>
     </div>
-    <ProjectLabel class="label" :title="title" :date="date" :lastmod="lastmod" />
-  </div>
+    <figcaption>
+      <ProjectLabel :title="title" :date="date" :lastmod="lastmod" />
+    </figcaption>
+  </figure>
 </template>
 
 <style scoped>
@@ -57,7 +59,8 @@ const requested_play = ref(false);
    */
   padding-bottom: round(up, calc(100% / v-bind(aspect)), 1px);
 }
-.responsive-frame > * {
+.responsive-frame > button.play-button,
+.responsive-frame > iframe.renderer {
   position: absolute;
   top: 0;
   left: 0;
