@@ -12,7 +12,7 @@ const props = defineProps({
   date: { type: Date, default: null },
   lastmod: { type: Date, default: null },
   frame: { type: String, required: true },
-  aspect: { type: String, default: "4 / 3" },
+  aspect: { type: Number, default: Number(4 / 3) },
   paused: { type: Boolean, default: true },
 })
 
@@ -23,8 +23,10 @@ const requested_play = ref(false);
 <template>
   <div class="column-inset player">
     <div class="framed">
-      <button v-if="!requested_play && paused" class="play-button" @click.once="requested_play = true"><font-awesome-icon :icon="['fas', 'circle-play']" /></button>
-      <iframe v-else ref="player_frame" class="renderer" :title="title" :src="frame" @load="$emit('load', player_frame)"></iframe>
+      <div class="responsive-frame">
+        <button v-if="!requested_play && paused" class="play-button" @click.once="requested_play = true"><font-awesome-icon :icon="['fas', 'circle-play']" /></button>
+        <iframe v-else ref="player_frame" class="renderer" :title="title" :src="frame" @load="$emit('load', player_frame)"></iframe>
+      </div>
     </div>
     <ProjectLabel class="label" :title="title" :date="date" :lastmod="lastmod" />
   </div>
@@ -35,46 +37,58 @@ const requested_play = ref(false);
   display: flex;
   flex-direction: column;
   user-select: none;
+}
 
+.framed {
+  background-color: var(--color-divider);
+}
+
+.responsive-frame {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 0;
   /**
-   * Mostly mitigates an issue where there's a small inexplicable gap between
-   * the lower edge of the iframe and the lower border.
+   * It's important that the `height` is rounded-up to the next-nearest whole pixel
+   * to avoid unexpected overflow with responsive layout. Here `padding-bottom`
+   * is acting similar to `aspect-ratio`, indirectly defining `height` relative to `width`.
+   * Unlike `aspect-ratio`, `padding-bottom` allows pixel rounding operations.
+   * e.g., The equivalent `aspect-ratio: 4 / 3` is the inverse (4 / 3) => (3 / 4) ~ 0.75 ~ 75%.
    */
-  & > .framed {
-    display: flex;
-  }
+  padding-bottom: round(up, calc(100% / v-bind(aspect)), 1px);
+}
+.responsive-frame > * {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
 
-  & .play-button,
-  & .renderer {
-    aspect-ratio: v-bind(aspect);
-    width: 100%;
+button.play-button {
+  font-size: 4rem;
+  color: var(--color-link);
+  transition-property: background-color, color;
+  transition-duration: var(--anim-transition-duration);
+  transition-timing-function: var(--anim-transition-timing-function);
+  background-color: #000;
+  cursor: pointer;
+  &:hover {
+    color: var(--color-link-hover);
+    background-color: #151515;
   }
+  &:active {
+    color: var(--color-link-active);
+    background-color: #232323;
+  }
+}
 
-  & .play-button {
-    font-size: 4rem;
-    color: var(--color-link);
-    transition-property: background-color, color;
-    transition-duration: var(--anim-transition-duration);
-    transition-timing-function: var(--anim-transition-timing-function);
-    background-color: #000;
-    cursor: pointer;
-    &:hover {
-      color: var(--color-link-hover);
-      background-color: #151515;
-    }
-    &:active {
-      color: var(--color-link-active);
-      background-color: #232323;
-    }
-  }
-
-  & .renderer {
-    /**
-     * The background needs to be black for some of the WebGL projects
-     * which involve blending but either expect the canvas to have a
-     * black background, or weren't setup correctly.
-     */
-    background-color: black;
-  }
+iframe.renderer {
+  /**
+   * The background needs to be black for some of the WebGL projects
+   * which involve blending but either expect the canvas to have a
+   * black background, or weren't setup correctly.
+   */
+  background-color: black;
 }
 </style>
