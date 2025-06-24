@@ -71,6 +71,12 @@ input[type=number] {
     padding-right: var(--size-padding-hard);
     cursor: pointer;
   }
+  /**
+   * Firefox doesn't appear to have a mechanism similar to
+   * webkit-{inner|outer}-spin-button for styling the native
+   * controls. Hide the spin button instead.
+   */
+  -moz-appearance: textfield;
 }
 input[type=range] {
   flex: 1;
