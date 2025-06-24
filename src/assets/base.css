@@ -72,6 +72,7 @@
 /* sizing variables */
 :root {
   --size-property-grid-gap: 2px;
+  --size-property-grid-button: 1.5rem;
   --size-column-width: 50rem;
   --size-border-frame: 4px;
   --size-border-radius: 0.5rem;
