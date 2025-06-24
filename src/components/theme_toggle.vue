@@ -28,8 +28,8 @@ onMounted(() => {
 
 <template>
   <ImageButton class="button" @click="onToggle()">
-    <font-awesome-icon v-if="store.isDarkMode" :icon="['fas', 'sun']" />
-    <font-awesome-icon v-else :icon="['fas', 'moon']" />
+    <font-awesome-icon v-if="store.isDarkMode" :icon="['fas', 'sun']" aria-label="toggle light mode" />
+    <font-awesome-icon v-else :icon="['fas', 'moon']" aria-label="toggle dark mode" />
   </ImageButton>
 </template>
 
