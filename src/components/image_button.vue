@@ -34,6 +34,13 @@ const props = defineProps({
   background-color: transparent;
 }
 
+.animator {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
 .image_button,
 .animator,
 .animator > img {
