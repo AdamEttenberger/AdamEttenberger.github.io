@@ -37,6 +37,14 @@ const props = defineProps({
       </p>
     </Section>
 
+    <Section heading="Goals">
+      <ul>
+        <li>Implement a basic 3D scene without importing a game engine or rendering framework.</li>
+        <li>Interchangeable model rendering types (color, texture, color + texture).</li>
+        <li>Easy to quickly prototype new behaviors.</li>
+      </ul>
+    </Section>
+
     <Section heading="Overview">
       <p>
         This program was designed to be a simple and minimal prototyping environment, and a quick way to migrate my Flocking demo away from a dying web technology. It consists of a few key objects:
@@ -45,7 +53,7 @@ const props = defineProps({
       <ul class="list-none">
         <li>
           <Details summary="Game">
-            <p>The core of the application which handles the main loop and owns the scene tree composed of GameObject instances, and schedules component updates.</p>
+            <p>The core of the application which handles the main loop, resource loading, and owns the scene tree composed of GameObjects and their GameObjectComponents.</p>
           </Details>
         </li>
         <li>
@@ -95,6 +103,89 @@ const props = defineProps({
       <br />
       <Figure src="/images/projects/webgl_example/architecture.png"
               alt="UML-like class relationship diagram." />
+      <Figure src="/images/projects/webgl_example/scene.png"
+              alt="Scene hierarchy, the Game has 2 children, a triangular prism model and invisible pivot. The invisible pivot has 3 children, the colored, skinned, and colored + skinned cube models. All GameObject instances have a Transform and RotateComponent." />
+    </Section>
+
+    <Section heading="WebGL Tutorial?">
+      <p>
+        This isn't a WebGL tutorial, instead for a deeper dive I encourage checking out the excellent MDN <ExternalLink to="https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API">WebGL API documentation</ExternalLink> and <ExternalLink to="https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial">WebGL tutorial</ExternalLink> for modern best practices.
+        Also check out <ExternalLink to="https://learnopengl.com/">https://learnopengl.com/</ExternalLink> which is a great primer for OpenGL and rendering concepts.
+        Keep in mind that this project is fairly old at this point, and <ExternalLink to="https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/getContext">HTMLCanvasElement.getContext</ExternalLink> now supports more modern OpenGL APIs like "webgl2" and "webgpu", this project targets "webgl" and "experimental-webgl".
+      </p>
+    </Section>
+
+    <Section heading="Building a Scene">
+      <p>
+        First the Game object is initialized:
+      </p>
+      <br />
+      <Code lang="javascript"
+            caption="Creates a new `Game` object."
+            text="
+        var canvas = document.querySelector('canvas');
+        game = new Game(canvas);
+      " />
+      <br />
+      <p>
+        Then Model data is loaded:
+      </p>
+      <br />
+      <Code lang="javascript"
+            caption="Load vertex and index buffers for a cube into WebGL."
+            text="
+        var cubeVertexPositionData = [ ... ];
+        var cubeVertexColorData = [ ... ];
+        var cubeVertexIndices = [ ... ];
+
+        var colorCubeVertexBuffers = [
+          new Buffer( gl, Buffer.POSITION, gl.ARRAY_BUFFER, cubeVertexPositionData, 3 ),
+          new Buffer( gl, Buffer.COLOR, gl.ARRAY_BUFFER, cubeVertexColorData, 4 ),
+        ];
+        var cubeIndexBuffer = new Buffer( gl, null, gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndices, 1 );
+      " />
+      <br />
+      <p>
+        Then the scene is populated:
+      </p>
+      <br />
+      <Code lang="javascript"
+            caption="Creates a new parent and child GameObject then adds the parent to the scene root."
+            text="
+        var cube = new GameObject();
+        cube.addComponent( new ModelComponent( colorCubeVertexBuffers, cubeIndexBuffer ) );
+        cube.addComponent( new RotateComponent( quat.setAxisAngle( quat.create(), vec3.fromValues( 1, 0, 0 ), 0.05 ) ) );
+
+        var container_node = new GameObject();
+        container_node.addChildGameObject( cube );
+
+        game.m_root.addChildGameObject( container_node );
+      " />
+      <br />
+      <p>
+        Then any globals like the camera position are set, which will later be provided as shader uniform values.
+        Finally, the core game loop is started and following this point game updates should mostly be driven by GameObjectComponent logic.
+      </p>
+      <br />
+      <Code lang="javascript"
+            caption="Setup the camera and begin the core game loop."
+            text="
+        mat4.perspective(Game.pMatrix, 45, gl.viewportWidth / gl.viewportHeight, 1.0, 1000.0);
+        mat4.fromTranslation(Game.mMatrix, vec3.fromValues(0.0, 0.0, -5.0));
+        game.start();
+      " />
+    </Section>
+
+    <Section heading="Component Examples">
+      <p>
+        All components implement the same interface, GameObjectComponent, which contains an update and draw method which are called by the Game instance.
+      </p>
+      <br />
+      <Code lang="javascript" file="/library/webgl/GameObjectComponent.js" />
+      <br />
+      <Code lang="javascript" file="/library/webgl/ModelComponent.js" />
+      <br />
+      <Code lang="javascript" file="/library/webgl/RotateComponent.js" />
     </Section>
   </Column>
 </template>
