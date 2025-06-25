@@ -1,12 +1,10 @@
 ColoredSkinnedModelComponent.prototype = new GameObjectComponent();
 ColoredSkinnedModelComponent.prototype.constructor = ColoredSkinnedModelComponent;
 
-function ColoredSkinnedModelComponent( texture, vertexBuffers, indexBuffer )
+function ColoredSkinnedModelComponent( )
 {
-  // Initialize Default Vertex Texture shader
-  if ( gl != null )
-  if (ColoredSkinnedModelComponent.TextureColorShader == null)
-  {
+  // Initialize Default Vertex and Fragment shaders.
+  if ( gl != null && ColoredSkinnedModelComponent.TextureColorShader == null) {
     ColoredSkinnedModelComponent.TextureColorShader = new ShaderProgram( );
     Promise.all([
       ColoredSkinnedModelComponent.TextureColorShader.attachShader( "/library/webgl/shaders/color-texture-vs.c", gl.VERTEX_SHADER ),
@@ -28,65 +26,79 @@ function ColoredSkinnedModelComponent( texture, vertexBuffers, indexBuffer )
       ColoredSkinnedModelComponent.TextureColorShader.pMatrix = gl.getUniformLocation(ColoredSkinnedModelComponent.TextureColorShader, "pMatrix");
 
       gl.uniform1f(ColoredSkinnedModelComponent.TextureColorShader.alphaUniform, 1.0);
-        })
-        .catch( e => Game.ExceptionHandler(e) );
+    })
+    .catch( e => Game.ExceptionHandler(e) );
   }
 
-  this.texture = texture;
-  this.buffers = vertexBuffers;
-  this.indexBuffer = indexBuffer;
+  this.texture = null;
+  this.vertexBuffers = null;
+  this.indexBuffer = null;
+
+  this.setTexture = function(texture) {
+    this.texture = texture;
+    return this;
+  }
+
+  this.setBuffers = function(vertexBuffers, indexBuffer) {
+    this.vertexBuffers = vertexBuffers;
+    this.indexBuffer = indexBuffer;
+    return this;
+  }
 
   this.draw = function(gl)
   {
-    if (this.texture.loaded
-      && ColoredSkinnedModelComponent.TextureColorShader.apply( )
-      )
-    {
-      for(i in this.buffers)
-      {
-        this.buffers[i].bindBuffer();
-        switch( this.buffers[i].BufferType )
-        {
-          case Buffer.POSITION:
-            {
-              gl.enableVertexAttribArray(ColoredSkinnedModelComponent.TextureColorShader.vertexPositionAttribute);
-              gl.vertexAttribPointer(ColoredSkinnedModelComponent.TextureColorShader.vertexPositionAttribute, this.buffers[i].itemSize, gl.FLOAT, false, 0, 0);
-              break;
-            }
-          case Buffer.COLOR:
-            {
-              gl.enableVertexAttribArray(ColoredSkinnedModelComponent.TextureColorShader.vertexColorAttribute);
-              gl.vertexAttribPointer(ColoredSkinnedModelComponent.TextureColorShader.vertexColorAttribute, this.buffers[i].itemSize, gl.FLOAT, false, 0, 0);
-              break;
-            }
-          case Buffer.TEXTURE:
-            {
-              gl.enableVertexAttribArray(ColoredSkinnedModelComponent.TextureColorShader.vertexTextureAttribute);
-              gl.vertexAttribPointer(ColoredSkinnedModelComponent.TextureColorShader.vertexTextureAttribute, this.buffers[i].itemSize, gl.FLOAT, false, 0, 0);
-              break;
-            }
-        }
-      }
-
-      gl.activeTexture(gl.TEXTURE0);
-      gl.bindTexture(gl.TEXTURE_2D, this.texture);
-
-      this.indexBuffer.bindBuffer();
-
-      gl.uniformMatrix4fv(ColoredSkinnedModelComponent.TextureColorShader.mMatrix, false, Game.mMatrix);
-      gl.uniformMatrix4fv(ColoredSkinnedModelComponent.TextureColorShader.vMatrix, false, Game.vMatrix);
-      gl.uniformMatrix4fv(ColoredSkinnedModelComponent.TextureColorShader.pMatrix, false, Game.pMatrix);
-
-      gl.drawElements(gl.TRIANGLES, this.indexBuffer.numItems, gl.UNSIGNED_BYTE, 0);
-
-      gl.disableVertexAttribArray(ColoredSkinnedModelComponent.TextureColorShader.vertexPositionAttribute);
-      gl.disableVertexAttribArray(ColoredSkinnedModelComponent.TextureColorShader.vertexTextureAttribute);
-
-      for(i in this.buffers)
-        this.buffers[i].unbindBuffer();
-      gl.bindTexture(gl.TEXTURE_2D, null);
-      this.indexBuffer.unbindBuffer();
+    if (!(this.texture && this.texture.loaded) ||
+        !this.vertexBuffers ||
+        !this.indexBuffer ||
+        !ColoredSkinnedModelComponent.TextureColorShader.apply()) {
+      return;
     }
+
+    for(i in this.vertexBuffers)
+    {
+      this.vertexBuffers[i].bindBuffer();
+      switch( this.vertexBuffers[i].BufferType )
+      {
+        case Buffer.POSITION:
+          {
+            gl.enableVertexAttribArray(ColoredSkinnedModelComponent.TextureColorShader.vertexPositionAttribute);
+            gl.vertexAttribPointer(ColoredSkinnedModelComponent.TextureColorShader.vertexPositionAttribute, this.vertexBuffers[i].itemSize, gl.FLOAT, false, 0, 0);
+            break;
+          }
+        case Buffer.COLOR:
+          {
+            gl.enableVertexAttribArray(ColoredSkinnedModelComponent.TextureColorShader.vertexColorAttribute);
+            gl.vertexAttribPointer(ColoredSkinnedModelComponent.TextureColorShader.vertexColorAttribute, this.vertexBuffers[i].itemSize, gl.FLOAT, false, 0, 0);
+            break;
+          }
+        case Buffer.TEXTURE:
+          {
+            gl.enableVertexAttribArray(ColoredSkinnedModelComponent.TextureColorShader.vertexTextureAttribute);
+            gl.vertexAttribPointer(ColoredSkinnedModelComponent.TextureColorShader.vertexTextureAttribute, this.vertexBuffers[i].itemSize, gl.FLOAT, false, 0, 0);
+            break;
+          }
+      }
+    }
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, this.texture);
+
+    this.indexBuffer.bindBuffer();
+
+    gl.uniformMatrix4fv(ColoredSkinnedModelComponent.TextureColorShader.mMatrix, false, Game.mMatrix);
+    gl.uniformMatrix4fv(ColoredSkinnedModelComponent.TextureColorShader.vMatrix, false, Game.vMatrix);
+    gl.uniformMatrix4fv(ColoredSkinnedModelComponent.TextureColorShader.pMatrix, false, Game.pMatrix);
+
+    gl.drawElements(gl.TRIANGLES, this.indexBuffer.numItems, gl.UNSIGNED_BYTE, 0);
+
+    gl.disableVertexAttribArray(ColoredSkinnedModelComponent.TextureColorShader.vertexPositionAttribute);
+    gl.disableVertexAttribArray(ColoredSkinnedModelComponent.TextureColorShader.vertexTextureAttribute);
+
+    for(i in this.vertexBuffers) {
+      this.vertexBuffers[i].unbindBuffer();
+    }
+    gl.bindTexture(gl.TEXTURE_2D, null);
+    this.indexBuffer.unbindBuffer();
   }
 }
 

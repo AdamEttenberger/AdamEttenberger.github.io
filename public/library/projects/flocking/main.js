@@ -179,7 +179,7 @@ function initScene()
   var cube = new GameObject();
   vec3.multiply( cube.m_transform.scale, cube.m_transform.scale, vec3.fromValues( 50, 50, 50 ) )
   vec3.add( cube.m_transform.position, cube.m_transform.position, [ 0, 0, 0 ] );
-  cube.addComponent( new SkinnedModelComponent( game.loadTexture("/library/projects/flocking/images/glass.png"), cubeBuffers, cubeIBuff ) );
+  cube.addComponent( new SkinnedModelComponent().setTexture(game.loadTexture("/library/projects/flocking/images/glass.png")).setBuffers(cubeBuffers, cubeIBuff) );
 
   for(var i = 0; i < 150; i++)
   {
@@ -188,7 +188,7 @@ function initScene()
     var v = vec3.normalize( v, v );
     vec3.scale( v, v, 25 );
     vec3.add( tri.m_transform.position, tri.m_transform.position, v );
-    tri.addComponent( new SkinnedModelComponent( game.loadTexture("/library/projects/flocking/images/ship.png"), triBuffers, triIBuff ) );
+    tri.addComponent( new SkinnedModelComponent().setTexture(game.loadTexture("/library/projects/flocking/images/ship.png")).setBuffers(triBuffers, triIBuff) );
     tri.addComponent( new FlockerComponent( ) );
     FlockManager.Instance().m_members.push( tri );
     game.m_root.addChildGameObject( tri );
