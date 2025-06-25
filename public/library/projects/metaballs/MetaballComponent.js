@@ -15,6 +15,19 @@ MetaballComponent.Placement = {
   kLowerRight: "LowerRight",
   kStretch: "Stretch",
 };
+MetaballComponent.UniformType = {
+  alpha: 0,
+  sampler: 1,
+  mMatrix: 2,
+  vMatrix: 3,
+  pMatrix: 4,
+  renderbufferSize: 5,
+  lightPosition: 6,
+  lightRadius: 7,
+  lightColor: 8,
+  threshold: 9,
+  hue: 10,
+};
 MetaballComponent.TextureShader = null;
 
 function MetaballComponent( run_mode )
@@ -38,19 +51,23 @@ function MetaballComponent( run_mode )
           MetaballComponent.TextureShader.linkProgram( );
           MetaballComponent.TextureShader.apply( );
 
-          MetaballComponent.TextureShader.vertexPositionAttribute = gl.getAttribLocation(MetaballComponent.TextureShader, "aVertexPosition");
-          MetaballComponent.TextureShader.vertexTextureAttribute = gl.getAttribLocation(MetaballComponent.TextureShader, "aTextureCoord");
-          MetaballComponent.TextureShader.alphaUniform = gl.getUniformLocation(MetaballComponent.TextureShader, "uAlpha");
-          MetaballComponent.TextureShader.samplerUniform = gl.getUniformLocation(MetaballComponent.TextureShader, "uSampler");
-          MetaballComponent.TextureShader.mMatrix = gl.getUniformLocation(MetaballComponent.TextureShader, "mMatrix");
-          MetaballComponent.TextureShader.vMatrix = gl.getUniformLocation(MetaballComponent.TextureShader, "vMatrix");
-          MetaballComponent.TextureShader.pMatrix = gl.getUniformLocation(MetaballComponent.TextureShader, "pMatrix");
+          MetaballComponent.TextureShader.registerVertexAttributes(new Map([
+            [Buffer.POSITION, "aVertexPosition"],
+            [Buffer.TEXTURE, "aTextureCoord"],
+          ]));
+          MetaballComponent.TextureShader.registerUniformLocations(new Map([
+              [MetaballComponent.UniformType.alpha, "uAlpha"],
+              [MetaballComponent.UniformType.sampler, "uSampler"],
+              [MetaballComponent.UniformType.mMatrix, "mMatrix"],
+              [MetaballComponent.UniformType.vMatrix, "vMatrix"],
+              [MetaballComponent.UniformType.pMatrix, "pMatrix"],
+          ]));
 
-          gl.uniform1f(MetaballComponent.TextureShader.alphaUniform, 1.0);
-              })
-              .catch(e => {
-                  throw e;
-              });
+          MetaballComponent.TextureShader.setUniform1f(MetaballComponent.UniformType.alpha, 1.0);
+        })
+        .catch(e => {
+            throw e;
+        });
         pending_shaders.push(loader);
       }
 
@@ -66,16 +83,20 @@ function MetaballComponent( run_mode )
           MetaballComponent.MetaballPointsShader.linkProgram( );
           MetaballComponent.MetaballPointsShader.apply( );
 
-          MetaballComponent.MetaballPointsShader.vertexPositionAttribute = gl.getAttribLocation(MetaballComponent.MetaballPointsShader, "aVertexPosition");
-          MetaballComponent.MetaballPointsShader.vertexColorAttribute = gl.getAttribLocation(MetaballComponent.MetaballPointsShader, "aVertexColor");
-          MetaballComponent.MetaballPointsShader.alphaUniform = gl.getUniformLocation(MetaballComponent.MetaballPointsShader, "uAlpha");
-          MetaballComponent.MetaballPointsShader.renderbufferSize = gl.getUniformLocation(MetaballComponent.MetaballPointsShader, "uRenderbufferSize");
-          MetaballComponent.MetaballPointsShader.lightPosition = gl.getUniformLocation(MetaballComponent.MetaballPointsShader, "uLightPosition");
-          MetaballComponent.MetaballPointsShader.lightRadius = gl.getUniformLocation(MetaballComponent.MetaballPointsShader, "uLightRadius");
-          MetaballComponent.MetaballPointsShader.lightColor = gl.getUniformLocation(MetaballComponent.MetaballPointsShader, "uLightColor");
+          MetaballComponent.MetaballPointsShader.registerVertexAttributes(new Map([
+            [Buffer.POSITION, "aVertexPosition"],
+            [Buffer.COLOR, "aVertexColor"],
+          ]));
+          MetaballComponent.MetaballPointsShader.registerUniformLocations(new Map([
+              [MetaballComponent.UniformType.alpha, "uAlpha"],
+              [MetaballComponent.UniformType.renderbufferSize, "uRenderbufferSize"],
+              [MetaballComponent.UniformType.lightPosition, "uLightPosition"],
+              [MetaballComponent.UniformType.lightRadius, "uLightRadius"],
+              [MetaballComponent.UniformType.lightColor, "uLightColor"],
+          ]));
 
-          gl.uniform1f(MetaballComponent.MetaballPointsShader.alphaUniform, 1.0);
-          gl.uniform2f(MetaballComponent.MetaballPointsShader.renderbufferSize, kRenderTargetResolution, kRenderTargetResolution);
+          MetaballComponent.MetaballPointsShader.setUniform1f(MetaballComponent.UniformType.alpha, 1.0);
+          MetaballComponent.MetaballPointsShader.setUniform2f(MetaballComponent.UniformType.renderbufferSize, kRenderTargetResolution, kRenderTargetResolution);
         });
         pending_shaders.push(loader);
       }
@@ -92,16 +113,20 @@ function MetaballComponent( run_mode )
           MetaballComponent.MetaballShader.linkProgram( );
           MetaballComponent.MetaballShader.apply( );
 
-          MetaballComponent.MetaballShader.vertexPositionAttribute = gl.getAttribLocation(MetaballComponent.MetaballShader, "aVertexPosition");
-          MetaballComponent.MetaballShader.vertexTextureAttribute = gl.getAttribLocation(MetaballComponent.MetaballShader, "aTextureCoord");
-          MetaballComponent.MetaballShader.alphaUniform = gl.getUniformLocation(MetaballComponent.MetaballShader, "uAlpha");
-          MetaballComponent.MetaballShader.alphaThreshold = gl.getUniformLocation(MetaballComponent.MetaballShader, "uThreshold");
-          MetaballComponent.MetaballShader.samplerUniform = gl.getUniformLocation(MetaballComponent.MetaballShader, "uSampler");
-          MetaballComponent.MetaballShader.mMatrix = gl.getUniformLocation(MetaballComponent.MetaballShader, "mMatrix");
-          MetaballComponent.MetaballShader.vMatrix = gl.getUniformLocation(MetaballComponent.MetaballShader, "vMatrix");
-          MetaballComponent.MetaballShader.pMatrix = gl.getUniformLocation(MetaballComponent.MetaballShader, "pMatrix");
+          MetaballComponent.MetaballShader.registerVertexAttributes(new Map([
+            [Buffer.POSITION, "aVertexPosition"],
+            [Buffer.TEXTURE, "aTextureCoord"],
+          ]));
+          MetaballComponent.MetaballShader.registerUniformLocations(new Map([
+              [MetaballComponent.UniformType.alpha, "uAlpha"],
+              [MetaballComponent.UniformType.threshold, "uThreshold"],
+              [MetaballComponent.UniformType.sampler, "uSampler"],
+              [MetaballComponent.UniformType.mMatrix, "mMatrix"],
+              [MetaballComponent.UniformType.vMatrix, "vMatrix"],
+              [MetaballComponent.UniformType.pMatrix, "pMatrix"],
+          ]));
 
-          gl.uniform1f(MetaballComponent.MetaballShader.alphaUniform, 1.0);
+          MetaballComponent.MetaballShader.setUniform1f(MetaballComponent.UniformType.alpha, 1.0);
         });
         pending_shaders.push(loader);
       }
@@ -118,16 +143,20 @@ function MetaballComponent( run_mode )
           MetaballComponent.OutlineMetaballShader.linkProgram( );
           MetaballComponent.OutlineMetaballShader.apply( );
 
-          MetaballComponent.OutlineMetaballShader.vertexPositionAttribute = gl.getAttribLocation(MetaballComponent.OutlineMetaballShader, "aVertexPosition");
-          MetaballComponent.OutlineMetaballShader.vertexTextureAttribute = gl.getAttribLocation(MetaballComponent.OutlineMetaballShader, "aTextureCoord");
-          MetaballComponent.OutlineMetaballShader.alphaUniform = gl.getUniformLocation(MetaballComponent.OutlineMetaballShader, "uAlpha");
-          MetaballComponent.OutlineMetaballShader.alphaThreshold = gl.getUniformLocation(MetaballComponent.OutlineMetaballShader, "uThreshold");
-          MetaballComponent.OutlineMetaballShader.samplerUniform = gl.getUniformLocation(MetaballComponent.OutlineMetaballShader, "uSampler");
-          MetaballComponent.OutlineMetaballShader.mMatrix = gl.getUniformLocation(MetaballComponent.OutlineMetaballShader, "mMatrix");
-          MetaballComponent.OutlineMetaballShader.vMatrix = gl.getUniformLocation(MetaballComponent.OutlineMetaballShader, "vMatrix");
-          MetaballComponent.OutlineMetaballShader.pMatrix = gl.getUniformLocation(MetaballComponent.OutlineMetaballShader, "pMatrix");
+          MetaballComponent.OutlineMetaballShader.registerVertexAttributes(new Map([
+            [Buffer.POSITION, "aVertexPosition"],
+            [Buffer.TEXTURE, "aTextureCoord"],
+          ]));
+          MetaballComponent.OutlineMetaballShader.registerUniformLocations(new Map([
+              [MetaballComponent.UniformType.alpha, "uAlpha"],
+              [MetaballComponent.UniformType.threshold, "uThreshold"],
+              [MetaballComponent.UniformType.sampler, "uSampler"],
+              [MetaballComponent.UniformType.mMatrix, "mMatrix"],
+              [MetaballComponent.UniformType.vMatrix, "vMatrix"],
+              [MetaballComponent.UniformType.pMatrix, "pMatrix"],
+          ]));
 
-          gl.uniform1f(MetaballComponent.OutlineMetaballShader.alphaUniform, 1.0);
+          MetaballComponent.OutlineMetaballShader.setUniform1f(MetaballComponent.UniformType.alpha, 1.0);
         });
         pending_shaders.push(loader);
       }
@@ -144,18 +173,22 @@ function MetaballComponent( run_mode )
           MetaballComponent.HueMetaballShader.linkProgram( );
           MetaballComponent.HueMetaballShader.apply( );
 
-          MetaballComponent.HueMetaballShader.vertexPositionAttribute = gl.getAttribLocation(MetaballComponent.HueMetaballShader, "aVertexPosition");
-          MetaballComponent.HueMetaballShader.vertexTextureAttribute = gl.getAttribLocation(MetaballComponent.HueMetaballShader, "aTextureCoord");
-          MetaballComponent.HueMetaballShader.alphaUniform = gl.getUniformLocation(MetaballComponent.HueMetaballShader, "uAlpha");
-          MetaballComponent.HueMetaballShader.alphaThreshold = gl.getUniformLocation(MetaballComponent.HueMetaballShader, "uThreshold");
-          MetaballComponent.HueMetaballShader.hue = gl.getUniformLocation(MetaballComponent.HueMetaballShader, "uHue");
-          MetaballComponent.HueMetaballShader.samplerUniform = gl.getUniformLocation(MetaballComponent.HueMetaballShader, "uSampler");
-          MetaballComponent.HueMetaballShader.mMatrix = gl.getUniformLocation(MetaballComponent.HueMetaballShader, "mMatrix");
-          MetaballComponent.HueMetaballShader.vMatrix = gl.getUniformLocation(MetaballComponent.HueMetaballShader, "vMatrix");
-          MetaballComponent.HueMetaballShader.pMatrix = gl.getUniformLocation(MetaballComponent.HueMetaballShader, "pMatrix");
+          MetaballComponent.HueMetaballShader.registerVertexAttributes(new Map([
+            [Buffer.POSITION, "aVertexPosition"],
+            [Buffer.TEXTURE, "aTextureCoord"],
+          ]));
+          MetaballComponent.HueMetaballShader.registerUniformLocations(new Map([
+              [MetaballComponent.UniformType.alpha, "uAlpha"],
+              [MetaballComponent.UniformType.threshold, "uThreshold"],
+              [MetaballComponent.UniformType.hue, "uHue"],
+              [MetaballComponent.UniformType.sampler, "uSampler"],
+              [MetaballComponent.UniformType.mMatrix, "mMatrix"],
+              [MetaballComponent.UniformType.vMatrix, "vMatrix"],
+              [MetaballComponent.UniformType.pMatrix, "pMatrix"],
+          ]));
 
-          gl.uniform1f(MetaballComponent.HueMetaballShader.alphaUniform, 1.0);
-          gl.uniform1f(MetaballComponent.HueMetaballShader.hue, 0.0);
+          MetaballComponent.HueMetaballShader.setUniform1f(MetaballComponent.UniformType.alpha, 1.0);
+          MetaballComponent.HueMetaballShader.setUniform1f(MetaballComponent.UniformType.hue, 0.0);
         });
         pending_shaders.push(loader);
       }
@@ -175,10 +208,10 @@ function MetaballComponent( run_mode )
 
   this.mode = run_mode ?? MetaballComponent.Mode.kVersion2025;
   this.g_radius = 0.1;
-  this.g_tolerance = 0.5;
+  this.g_threshold = 0.5;
   this.vertexPositionBuffer = new Buffer( gl, Buffer.POSITION, gl.ARRAY_BUFFER, planarVertices, 3 );
   this.vertexTextureBuffer = new Buffer( gl, Buffer.TEXTURE, gl.ARRAY_BUFFER, planarUV, 2 );
-  this.indexBuffer = new Buffer( gl, null, gl.ELEMENT_ARRAY_BUFFER, planarIndices, 1 );
+  this.indexBuffer = new Buffer( gl, Buffer.INDEX, gl.ELEMENT_ARRAY_BUFFER, planarIndices, 1 );
   this.startTime = Date.now();
 
   this.runLatest = function() {
@@ -214,26 +247,23 @@ function MetaballComponent( run_mode )
     }
   }
 
-  this.setAlphaTolerance = function(tolerance) {
-    var changed = (this.g_tolerance != tolerance);
-    this.g_tolerance = tolerance;
+  this.setAlphaThreshold = function(threshold) {
+    var changed = (this.g_threshold != threshold);
+    this.g_threshold = threshold;
     if (changed) {
       this.applyAlphaThresholdValues();
     }
   }
 
   this.applyAlphaThresholdValues = function() {
-    if (MetaballComponent.MetaballShader && MetaballComponent.MetaballShader.alphaThreshold) {
-      MetaballComponent.MetaballShader.apply( );
-      gl.uniform1f(MetaballComponent.MetaballShader.alphaThreshold, this.g_tolerance);
+    if (MetaballComponent.MetaballShader?.apply()) {
+      MetaballComponent.MetaballShader.setUniform1f(MetaballComponent.UniformType.threshold, this.g_threshold);
     }
-    if (MetaballComponent.OutlineMetaballShader && MetaballComponent.OutlineMetaballShader.alphaThreshold) {
-      MetaballComponent.OutlineMetaballShader.apply( );
-      gl.uniform1f(MetaballComponent.OutlineMetaballShader.alphaThreshold, this.g_tolerance);
+    if (MetaballComponent.OutlineMetaballShader?.apply()) {
+      MetaballComponent.OutlineMetaballShader.setUniform1f(MetaballComponent.UniformType.threshold, this.g_threshold);
     }
-    if (MetaballComponent.HueMetaballShader && MetaballComponent.HueMetaballShader.alphaThreshold) {
-      MetaballComponent.HueMetaballShader.apply( );
-      gl.uniform1f(MetaballComponent.HueMetaballShader.alphaThreshold, this.g_tolerance);
+    if (MetaballComponent.HueMetaballShader?.apply()) {
+      MetaballComponent.HueMetaballShader.setUniform1f(MetaballComponent.UniformType.threshold, this.g_threshold);
     }
   }
 
@@ -271,29 +301,26 @@ function MetaballComponent( run_mode )
     }
     if (shader.apply( ))
     {
-      this.vertexPositionBuffer.bindBuffer();
-      gl.enableVertexAttribArray(shader.vertexPositionAttribute);
-      gl.vertexAttribPointer(shader.vertexPositionAttribute, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-      this.vertexTextureBuffer.bindBuffer();
-      gl.enableVertexAttribArray(shader.vertexTextureAttribute);
-      gl.vertexAttribPointer(shader.vertexTextureAttribute, this.vertexTextureBuffer.itemSize, gl.FLOAT, false, 0, 0);
-      this.indexBuffer.bindBuffer();
+      shader.bindBuffers([
+        this.vertexPositionBuffer,
+        this.vertexTextureBuffer,
+        this.indexBuffer,
+      ]);
 
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, target.texture);
 
-      this.indexBuffer.bindBuffer();
-      gl.uniformMatrix4fv(shader.mMatrix, false, Game.mMatrix);
-      gl.uniformMatrix4fv(shader.vMatrix, false, Game.vMatrix);
-      gl.uniformMatrix4fv(shader.pMatrix, false, Game.pMatrix);
+      shader.setUniformMat4(MetaballComponent.UniformType.mMatrix, Game.mMatrix);
+      shader.setUniformMat4(MetaballComponent.UniformType.vMatrix, Game.vMatrix);
+      shader.setUniformMat4(MetaballComponent.UniformType.pMatrix, Game.pMatrix);
 
       gl.drawElements(gl.TRIANGLES, this.indexBuffer.numItems, gl.UNSIGNED_BYTE, 0);
 
-      gl.disableVertexAttribArray(shader.vertexPositionAttribute);
-      gl.disableVertexAttribArray(shader.vertexTextureAttribute);
-      this.vertexPositionBuffer.unbindBuffer();
-      this.vertexTextureBuffer.unbindBuffer();
-      this.indexBuffer.unbindBuffer();
+      shader.unbindBuffers([
+        this.vertexPositionBuffer,
+        this.vertexTextureBuffer,
+        this.indexBuffer,
+      ]);
       gl.bindTexture(gl.TEXTURE_2D, null);
     }
     Game.popMatrix( );
@@ -314,14 +341,14 @@ function MetaballComponent( run_mode )
 
     const kCycleTimeMs = 30000.0;
     MetaballComponent.HueMetaballShader.apply( );
-    gl.uniform1f(MetaballComponent.HueMetaballShader.hue, (((Date.now() - this.startTime) % kCycleTimeMs) / kCycleTimeMs));
+    MetaballComponent.HueMetaballShader.setUniform1f(MetaballComponent.UniformType.hue, (((Date.now() - this.startTime) % kCycleTimeMs) / kCycleTimeMs));
 
     if (MetaballComponent.MetaballPointsShader.apply( ))
     {
-      this.vertexPositionBuffer.bindBuffer();
-      gl.enableVertexAttribArray(MetaballComponent.MetaballPointsShader.vertexPositionAttribute);
-      gl.vertexAttribPointer(MetaballComponent.MetaballPointsShader.vertexPositionAttribute, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-      this.indexBuffer.bindBuffer();
+      MetaballComponent.MetaballPointsShader.bindBuffers([
+        this.vertexPositionBuffer,
+        this.indexBuffer,
+      ]);
 
       var viewport = [ 0.0, 0.0, 1.0, 1.0 ];
 
@@ -337,15 +364,17 @@ function MetaballComponent( run_mode )
             p.velocity[1] *= -1.0;
         /* */
 
-        gl.uniform3f(MetaballComponent.MetaballPointsShader.lightPosition, p.position[0], p.position[1], 0.0);
-        gl.uniform4f(MetaballComponent.MetaballPointsShader.lightColor, p.color[0], p.color[1], p.color[2], p.color[3]);
-        gl.uniform1f(MetaballComponent.MetaballPointsShader.lightRadius, this.g_radius);
+        MetaballComponent.MetaballPointsShader.setUniform3f(MetaballComponent.UniformType.lightPosition, p.position[0], p.position[1], 0.0);
+        MetaballComponent.MetaballPointsShader.setUniform4f(MetaballComponent.UniformType.lightColor, p.color[0], p.color[1], p.color[2], p.color[3]);
+        MetaballComponent.MetaballPointsShader.setUniform1f(MetaballComponent.UniformType.lightRadius, this.g_radius);
+
         gl.drawElements(gl.TRIANGLES, this.indexBuffer.numItems, gl.UNSIGNED_BYTE, 0);
       }
 
-      gl.disableVertexAttribArray(MetaballComponent.MetaballPointsShader.vertexPositionAttribute);
-      this.indexBuffer.unbindBuffer();
-      this.vertexPositionBuffer.unbindBuffer();
+      MetaballComponent.MetaballPointsShader.unbindBuffers([
+        this.vertexPositionBuffer,
+        this.indexBuffer,
+      ]);
     }
     target.end( );
     /* */
@@ -379,7 +408,7 @@ function MetaballComponent( run_mode )
 
   this.handleMessage = function( message ) {
     this.g_radius = message.radius;
-    this.setAlphaTolerance(message.tolerance);
+    this.setAlphaThreshold(message.threshold);
     this.setParticleCount(message.count);
   }
 

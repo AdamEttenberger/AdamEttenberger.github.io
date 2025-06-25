@@ -1,105 +1,85 @@
 ColoredSkinnedModelComponent.prototype = new GameObjectComponent();
 ColoredSkinnedModelComponent.prototype.constructor = ColoredSkinnedModelComponent;
+ColoredSkinnedModelComponent.UniformType = {
+  alpha: 0,
+  sampler: 1,
+  mMatrix: 2,
+  vMatrix: 3,
+  pMatrix: 4,
+};
+ColoredSkinnedModelComponent.Shader = null;
 
-function ColoredSkinnedModelComponent( )
-{
+function ColoredSkinnedModelComponent() {
+  this.texture = null;
+  this.buffers = null;
+
   // Initialize Default Vertex and Fragment shaders.
-  if ( gl != null && ColoredSkinnedModelComponent.TextureColorShader == null) {
-    ColoredSkinnedModelComponent.TextureColorShader = new ShaderProgram( );
+  if (gl && !ColoredSkinnedModelComponent.Shader) {
+    ColoredSkinnedModelComponent.Shader = new ShaderProgram( );
     Promise.all([
-      ColoredSkinnedModelComponent.TextureColorShader.attachShader( "/library/webgl/shaders/color-texture-vs.c", gl.VERTEX_SHADER ),
-      ColoredSkinnedModelComponent.TextureColorShader.attachShader( "/library/webgl/shaders/color-texture-fs.c", gl.FRAGMENT_SHADER ),
+      ColoredSkinnedModelComponent.Shader.attachShader( "/library/webgl/shaders/color-texture-vs.c", gl.VERTEX_SHADER ),
+      ColoredSkinnedModelComponent.Shader.attachShader( "/library/webgl/shaders/color-texture-fs.c", gl.FRAGMENT_SHADER ),
     ])
     .then(() => {
-      ColoredSkinnedModelComponent.TextureColorShader.linkProgram( );
-      if ( !ColoredSkinnedModelComponent.TextureColorShader.apply() ) {
+      ColoredSkinnedModelComponent.Shader.linkProgram( );
+      if ( !ColoredSkinnedModelComponent.Shader.apply() ) {
         throw "GL_SHADER_ERROR";
       }
 
-      ColoredSkinnedModelComponent.TextureColorShader.vertexPositionAttribute = gl.getAttribLocation(ColoredSkinnedModelComponent.TextureColorShader, "aVertexPosition");
-      ColoredSkinnedModelComponent.TextureColorShader.vertexColorAttribute = gl.getAttribLocation(ColoredSkinnedModelComponent.TextureColorShader, "aVertexColor");
-      ColoredSkinnedModelComponent.TextureColorShader.vertexTextureAttribute = gl.getAttribLocation(ColoredSkinnedModelComponent.TextureColorShader, "aTextureCoord");
-      ColoredSkinnedModelComponent.TextureColorShader.alphaUniform = gl.getUniformLocation(ColoredSkinnedModelComponent.TextureColorShader, "uAlpha");
-      ColoredSkinnedModelComponent.TextureColorShader.samplerUniform = gl.getUniformLocation(ColoredSkinnedModelComponent.TextureColorShader, "uSampler");
-      ColoredSkinnedModelComponent.TextureColorShader.mMatrix = gl.getUniformLocation(ColoredSkinnedModelComponent.TextureColorShader, "mMatrix");
-      ColoredSkinnedModelComponent.TextureColorShader.vMatrix = gl.getUniformLocation(ColoredSkinnedModelComponent.TextureColorShader, "vMatrix");
-      ColoredSkinnedModelComponent.TextureColorShader.pMatrix = gl.getUniformLocation(ColoredSkinnedModelComponent.TextureColorShader, "pMatrix");
+      ColoredSkinnedModelComponent.Shader.registerVertexAttributes(new Map([
+        [Buffer.POSITION, "aVertexPosition"],
+        [Buffer.COLOR, "aVertexColor"],
+        [Buffer.TEXTURE, "aTextureCoord"],
+      ]));
+      ColoredSkinnedModelComponent.Shader.registerUniformLocations(new Map([
+          [ColoredSkinnedModelComponent.UniformType.alpha, "uAlpha"],
+          [ColoredSkinnedModelComponent.UniformType.sampler, "uSampler"],
+          [ColoredSkinnedModelComponent.UniformType.mMatrix, "mMatrix"],
+          [ColoredSkinnedModelComponent.UniformType.vMatrix, "vMatrix"],
+          [ColoredSkinnedModelComponent.UniformType.pMatrix, "pMatrix"],
+      ]));
 
-      gl.uniform1f(ColoredSkinnedModelComponent.TextureColorShader.alphaUniform, 1.0);
+      ColoredSkinnedModelComponent.Shader.setUniform1f(ColoredSkinnedModelComponent.UniformType.alpha, 1.0);
     })
     .catch( e => Game.ExceptionHandler(e) );
   }
-
-  this.texture = null;
-  this.vertexBuffers = null;
-  this.indexBuffer = null;
 
   this.setTexture = function(texture) {
     this.texture = texture;
     return this;
   }
 
-  this.setBuffers = function(vertexBuffers, indexBuffer) {
-    this.vertexBuffers = vertexBuffers;
-    this.indexBuffer = indexBuffer;
+  this.setBuffers = function(buffers) {
+    this.buffers = buffers;
     return this;
   }
 
   this.draw = function(gl)
   {
     if (!(this.texture && this.texture.loaded) ||
-        !this.vertexBuffers ||
-        !this.indexBuffer ||
-        !ColoredSkinnedModelComponent.TextureColorShader.apply()) {
+        !this.buffers ||
+        !ColoredSkinnedModelComponent.Shader?.apply()) {
       return;
     }
 
-    for(i in this.vertexBuffers)
-    {
-      this.vertexBuffers[i].bindBuffer();
-      switch( this.vertexBuffers[i].BufferType )
-      {
-        case Buffer.POSITION:
-          {
-            gl.enableVertexAttribArray(ColoredSkinnedModelComponent.TextureColorShader.vertexPositionAttribute);
-            gl.vertexAttribPointer(ColoredSkinnedModelComponent.TextureColorShader.vertexPositionAttribute, this.vertexBuffers[i].itemSize, gl.FLOAT, false, 0, 0);
-            break;
-          }
-        case Buffer.COLOR:
-          {
-            gl.enableVertexAttribArray(ColoredSkinnedModelComponent.TextureColorShader.vertexColorAttribute);
-            gl.vertexAttribPointer(ColoredSkinnedModelComponent.TextureColorShader.vertexColorAttribute, this.vertexBuffers[i].itemSize, gl.FLOAT, false, 0, 0);
-            break;
-          }
-        case Buffer.TEXTURE:
-          {
-            gl.enableVertexAttribArray(ColoredSkinnedModelComponent.TextureColorShader.vertexTextureAttribute);
-            gl.vertexAttribPointer(ColoredSkinnedModelComponent.TextureColorShader.vertexTextureAttribute, this.vertexBuffers[i].itemSize, gl.FLOAT, false, 0, 0);
-            break;
-          }
+    var numItems = 0;
+    this.buffers.forEach(element => {
+      ColoredSkinnedModelComponent.Shader.bindBuffer(element)
+      if (element.BufferType === Buffer.INDEX) {
+        numItems = element.numItems;
       }
-    }
+    });
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this.texture);
 
-    this.indexBuffer.bindBuffer();
+    ColoredSkinnedModelComponent.Shader.setUniformMat4(ColoredSkinnedModelComponent.UniformType.mMatrix, Game.mMatrix);
+    ColoredSkinnedModelComponent.Shader.setUniformMat4(ColoredSkinnedModelComponent.UniformType.vMatrix, Game.vMatrix);
+    ColoredSkinnedModelComponent.Shader.setUniformMat4(ColoredSkinnedModelComponent.UniformType.pMatrix, Game.pMatrix);
 
-    gl.uniformMatrix4fv(ColoredSkinnedModelComponent.TextureColorShader.mMatrix, false, Game.mMatrix);
-    gl.uniformMatrix4fv(ColoredSkinnedModelComponent.TextureColorShader.vMatrix, false, Game.vMatrix);
-    gl.uniformMatrix4fv(ColoredSkinnedModelComponent.TextureColorShader.pMatrix, false, Game.pMatrix);
+    gl.drawElements(gl.TRIANGLES, numItems, gl.UNSIGNED_BYTE, 0);
 
-    gl.drawElements(gl.TRIANGLES, this.indexBuffer.numItems, gl.UNSIGNED_BYTE, 0);
-
-    gl.disableVertexAttribArray(ColoredSkinnedModelComponent.TextureColorShader.vertexPositionAttribute);
-    gl.disableVertexAttribArray(ColoredSkinnedModelComponent.TextureColorShader.vertexTextureAttribute);
-
-    for(i in this.vertexBuffers) {
-      this.vertexBuffers[i].unbindBuffer();
-    }
+    this.buffers.forEach(element => ColoredSkinnedModelComponent.Shader.unbindBuffer(element));
     gl.bindTexture(gl.TEXTURE_2D, null);
-    this.indexBuffer.unbindBuffer();
   }
 }
-
-ColoredSkinnedModelComponent.TextureColorShader = null;

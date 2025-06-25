@@ -1,83 +1,68 @@
 ModelComponent.prototype = new GameObjectComponent();
 ModelComponent.prototype.constructor = ModelComponent;
+ModelComponent.Shader = null;
+ModelComponent.UniformType = {
+  alpha: 0,
+  mMatrix: 1,
+  vMatrix: 2,
+  pMatrix: 3,
+};
 
-function ModelComponent( )
-{
+function ModelComponent() {
+  this.buffers = null;
+
   // Initialize Default Vertex and Fragment shaders.
-  if ( gl != null && ModelComponent.ColorShader == null) {
-    ModelComponent.ColorShader = new ShaderProgram( );
+  if (gl && !ModelComponent.Shader) {
+    ModelComponent.Shader = new ShaderProgram( );
     Promise.all([
-      ModelComponent.ColorShader.attachShader( "/library/webgl/shaders/color-vs.c", gl.VERTEX_SHADER ),
-      ModelComponent.ColorShader.attachShader( "/library/webgl/shaders/color-fs.c", gl.FRAGMENT_SHADER ),
+      ModelComponent.Shader.attachShader( "/library/webgl/shaders/color-vs.c", gl.VERTEX_SHADER ),
+      ModelComponent.Shader.attachShader( "/library/webgl/shaders/color-fs.c", gl.FRAGMENT_SHADER ),
     ])
     .then(() => {
-      ModelComponent.ColorShader.linkProgram( );
-      ModelComponent.ColorShader.apply( );
+      ModelComponent.Shader.linkProgram( );
+      ModelComponent.Shader.apply( );
 
-      ModelComponent.ColorShader.vertexPositionAttribute = gl.getAttribLocation(ModelComponent.ColorShader, "aVertexPosition");
-      ModelComponent.ColorShader.vertexColorAttribute = gl.getAttribLocation(ModelComponent.ColorShader, "aVertexColor");
-      ModelComponent.ColorShader.alphaUniform = gl.getUniformLocation(ModelComponent.ColorShader, "uAlpha");
-      ModelComponent.ColorShader.mMatrix = gl.getUniformLocation(ModelComponent.ColorShader, "mMatrix");
-      ModelComponent.ColorShader.vMatrix = gl.getUniformLocation(ModelComponent.ColorShader, "vMatrix");
-      ModelComponent.ColorShader.pMatrix = gl.getUniformLocation(ModelComponent.ColorShader, "pMatrix");
+      ModelComponent.Shader.registerVertexAttributes(new Map([
+        [Buffer.POSITION, "aVertexPosition"],
+        [Buffer.COLOR, "aVertexColor"],
+      ]));
+      ModelComponent.Shader.registerUniformLocations(new Map([
+          [ModelComponent.UniformType.alpha, "uAlpha"],
+          [ModelComponent.UniformType.mMatrix, "mMatrix"],
+          [ModelComponent.UniformType.vMatrix, "vMatrix"],
+          [ModelComponent.UniformType.pMatrix, "pMatrix"],
+      ]));
 
-      gl.uniform1f(ModelComponent.ColorShader.alphaUniform, 1.0);
-        })
-        .catch( e => Game.ExceptionHandler(e) );
+      ModelComponent.Shader.setUniform1f(ModelComponent.UniformType.alpha, 1.0);
+    })
+    .catch( e => Game.ExceptionHandler(e) );
   }
 
-  this.vertexBuffers = null;
-  this.indexBuffer = null;
-
-  this.setBuffers = function(vertexBuffers, indexBuffer) {
-    this.vertexBuffers = vertexBuffers;
-    this.indexBuffer = indexBuffer;
+  this.setBuffers = function(buffers) {
+    this.buffers = buffers;
     return this;
   }
 
-  this.draw = function(gl)
-  {
-    if (!this.vertexBuffers ||
-        !this.indexBuffer ||
-        !ModelComponent.ColorShader.apply()) {
+  this.draw = function(gl) {
+    if (!this.buffers ||
+        !ModelComponent.Shader?.apply()) {
       return;
     }
 
-    for(i in this.vertexBuffers)
-    {
-      this.vertexBuffers[i].bindBuffer();
-      switch( this.vertexBuffers[i].BufferType )
-      {
-        case Buffer.POSITION:
-          {
-            gl.enableVertexAttribArray(ModelComponent.ColorShader.vertexPositionAttribute);
-            gl.vertexAttribPointer(ModelComponent.ColorShader.vertexPositionAttribute, this.vertexBuffers[i].itemSize, gl.FLOAT, false, 0, 0);
-            break;
-          }
-        case Buffer.COLOR:
-          {
-            gl.enableVertexAttribArray(ModelComponent.ColorShader.vertexColorAttribute);
-            gl.vertexAttribPointer(ModelComponent.ColorShader.vertexColorAttribute, this.vertexBuffers[i].itemSize, gl.FLOAT, false, 0, 0);
-            break;
-          }
+    var numItems = 0;
+    this.buffers.forEach(element => {
+      ModelComponent.Shader.bindBuffer(element);
+      if (element.BufferType === Buffer.INDEX) {
+        numItems = element.numItems;
       }
-    }
-    this.indexBuffer.bindBuffer();
+    });
 
-    gl.uniformMatrix4fv(ModelComponent.ColorShader.mMatrix, false, Game.mMatrix);
-    gl.uniformMatrix4fv(ModelComponent.ColorShader.vMatrix, false, Game.vMatrix);
-    gl.uniformMatrix4fv(ModelComponent.ColorShader.pMatrix, false, Game.pMatrix);
+    ModelComponent.Shader.setUniformMat4(ModelComponent.UniformType.mMatrix, Game.mMatrix);
+    ModelComponent.Shader.setUniformMat4(ModelComponent.UniformType.vMatrix, Game.vMatrix);
+    ModelComponent.Shader.setUniformMat4(ModelComponent.UniformType.pMatrix, Game.pMatrix);
 
-    gl.drawElements(gl.TRIANGLES, this.indexBuffer.numItems, gl.UNSIGNED_BYTE, 0);
+    gl.drawElements(gl.TRIANGLES, numItems, gl.UNSIGNED_BYTE, 0);
 
-    gl.disableVertexAttribArray(ModelComponent.ColorShader.vertexPositionAttribute);
-    gl.disableVertexAttribArray(ModelComponent.ColorShader.vertexColorAttribute);
-
-    for(i in this.vertexBuffers) {
-      this.vertexBuffers[i].unbindBuffer();
-    }
-    this.indexBuffer.unbindBuffer();
+    this.buffers.forEach(element => ModelComponent.Shader.unbindBuffer(element));
   }
 }
-
-ModelComponent.ColorShader = null;

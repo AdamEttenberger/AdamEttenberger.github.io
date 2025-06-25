@@ -138,11 +138,11 @@ const props = defineProps({
         var cubeVertexColorData = [ ... ];
         var cubeVertexIndices = [ ... ];
 
-        var colorCubeVertexBuffers = [
+        var colorCubeBuffers = [
           new Buffer( gl, Buffer.POSITION, gl.ARRAY_BUFFER, cubeVertexPositionData, 3 ),
           new Buffer( gl, Buffer.COLOR, gl.ARRAY_BUFFER, cubeVertexColorData, 4 ),
+          new Buffer( gl, Buffer.INDEX, gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndices, 1 )
         ];
-        var cubeIndexBuffer = new Buffer( gl, null, gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndices, 1 );
       " />
       <br />
       <p>
@@ -153,8 +153,8 @@ const props = defineProps({
             caption="Creates a new parent and child GameObject then adds the parent to the scene root."
             text="
         var cube = new GameObject();
-        cube.addComponent( new ModelComponent().setBuffers( colorCubeVertexBuffers, cubeIndexBuffer ) );
-        cube.addComponent( new RotateComponent( quat.setAxisAngle( quat.create(), vec3.fromValues( 1, 0, 0 ), 0.05 ) ) );
+        cube.addComponent( new ModelComponent().setBuffers( colorCubeBuffers ) );
+        cube.addComponent( new RotateComponent().fromEuler(0.05, 0, 0) );
 
         var container_node = new GameObject();
         container_node.addChildGameObject( cube );
