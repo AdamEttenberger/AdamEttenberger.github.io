@@ -38,7 +38,7 @@ const props = defineProps({
         Some of the IT software and tools I've used along my journey have been (in no particular order, and not exhaustive):
       </p>
       <br />
-      <ul class="software-list">
+      <ul class="software-list list-none">
         <li><ExternalLink to="https://github.com/ansible/ansible">Ansible</ExternalLink></li>
         <li><ExternalLink to="https://httpd.apache.org/">Apache HTTPD</ExternalLink></li>
         <li><ExternalLink to="https://getbootstrap.com/">Bootstrap</ExternalLink></li>
@@ -77,9 +77,6 @@ const props = defineProps({
 .software-list {
   columns: 3;
   white-space: nowrap;
-  & > li {
-    list-style: none;
-  }
 }
 
 @media only screen and (max-width: 45rem) {

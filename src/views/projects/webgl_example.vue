@@ -42,7 +42,7 @@ const props = defineProps({
         This program was designed to be a simple and minimal prototyping environment, and a quick way to migrate my Flocking demo away from a dying web technology. It consists of a few key objects:
       </p>
       <br />
-      <ul>
+      <ul class="list-none">
         <li>
           <Details summary="Game">
             <p>The core of the application which handles the main loop and owns the scene tree composed of GameObject instances, and schedules component updates.</p>
@@ -65,7 +65,7 @@ const props = defineProps({
         This demo utilizes the following set of components:
       </p>
       <br />
-      <ul>
+      <ul class="list-none">
         <li>
           <Details summary="Transform">
             <p>Owns the local transformation matrix, and intermediary values to provide a GameObject with local position, rotation, and scale information.</p>
@@ -98,9 +98,3 @@ const props = defineProps({
     </Section>
   </Column>
 </template>
-
-<style scoped>
-ul > li {
-  list-style: none;
-}
-</style>
