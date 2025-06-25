@@ -158,17 +158,17 @@ function initScene()
   cubes.addComponent( new RotateComponent( quat.setAxisAngle( quat.create(), vec3.fromValues( 0, 0, 1 ), 0.02 ) ) );
 
   var colorCube = new GameObject();
-  colorCube.addComponent( new ModelComponent(colorCubeBuffers, cubeIBuff ) );
+  colorCube.addComponent( new ModelComponent().setBuffers(colorCubeBuffers, cubeIBuff) );
   colorCube.addComponent( new RotateComponent( quat.setAxisAngle( quat.create(), vec3.fromValues( 1, 0, 0 ), 0.04 ) ) );
   colorCube.addComponent( new RotateComponent( quat.setAxisAngle( quat.create(), vec3.fromValues( 0, 1, 0 ), -0.03 ) ) );
 
   var textureCube = new GameObject();
-  textureCube.addComponent( new SkinnedModelComponent( game.loadTexture("/library/projects/webgl/images/metalcrate.png"), textureCubeBuffers, cubeIBuff ) );
+  textureCube.addComponent( new SkinnedModelComponent().setTexture(game.loadTexture("/library/projects/webgl/images/metalcrate.png")).setBuffers(textureCubeBuffers, cubeIBuff) );
   textureCube.addComponent( new RotateComponent( quat.setAxisAngle( quat.create(), vec3.fromValues( 1, 0, 0 ), -0.04, ) ) );
   textureCube.addComponent( new RotateComponent( quat.setAxisAngle( quat.create(), vec3.fromValues( 0, 1, 0 ), -0.03, ) ) );
 
   var colorTextureCube = new GameObject();
-  colorTextureCube.addComponent( new ColoredSkinnedModelComponent( game.loadTexture("/library/projects/webgl/images/metalcrate.png"), colorTextureCubeBuffers, cubeIBuff ) );
+  colorTextureCube.addComponent( new ColoredSkinnedModelComponent().setTexture(game.loadTexture("/library/projects/webgl/images/metalcrate.png")).setBuffers(colorTextureCubeBuffers, cubeIBuff) );
   colorTextureCube.addComponent( new RotateComponent( quat.setAxisAngle( quat.create(), vec3.fromValues( 1, 0, 0 ), 0.04 ) ) );
   colorTextureCube.addComponent( new RotateComponent( quat.setAxisAngle( quat.create(), vec3.fromValues( 0, 1, 0 ), -0.03 ) ) );
 
@@ -188,7 +188,7 @@ function initScene()
   var tri = new GameObject();
   vec3.add( tri.m_transform.position, tri.m_transform.position , vec3.fromValues( -1.5, 0, 0 ) )
   quat.multiply( tri.m_transform.rotation, tri.m_transform.rotation, quat.setAxisAngle( quat.create(),vec3.fromValues( 1, 0, 0 ), Math.PI / 4.0 ) );
-  tri.addComponent( new ModelComponent( triBuffers, triIBuff ) );
+  tri.addComponent( new ModelComponent().setBuffers( triBuffers, triIBuff ) );
   tri.addComponent( new RotateComponent( quat.setAxisAngle( quat.create(), vec3.fromValues( 0, 1, 0 ), 0.1 ) ) );
 
   game.m_root.addChildGameObject( cubes );

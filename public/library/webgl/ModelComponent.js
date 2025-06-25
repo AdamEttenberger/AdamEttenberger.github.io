@@ -1,12 +1,10 @@
 ModelComponent.prototype = new GameObjectComponent();
 ModelComponent.prototype.constructor = ModelComponent;
 
-function ModelComponent( vertexBuffers, indexBuffer )
+function ModelComponent( )
 {
-  // Initialize Default Vertex Texture shader
-  if ( gl != null )
-  if (ModelComponent.ColorShader == null)
-  {
+  // Initialize Default Vertex and Fragment shaders.
+  if ( gl != null && ModelComponent.ColorShader == null) {
     ModelComponent.ColorShader = new ShaderProgram( );
     Promise.all([
       ModelComponent.ColorShader.attachShader( "/library/webgl/shaders/color-vs.c", gl.VERTEX_SHADER ),
@@ -28,50 +26,57 @@ function ModelComponent( vertexBuffers, indexBuffer )
         .catch( e => Game.ExceptionHandler(e) );
   }
 
-  this.buffers = vertexBuffers;
-  this.indexBuffer = indexBuffer;
+  this.vertexBuffers = null;
+  this.indexBuffer = null;
+
+  this.setBuffers = function(vertexBuffers, indexBuffer) {
+    this.vertexBuffers = vertexBuffers;
+    this.indexBuffer = indexBuffer;
+    return this;
+  }
 
   this.draw = function(gl)
   {
-    if (ModelComponent.ColorShader.apply())
-    {
-      for(i in this.buffers)
-      {
-        this.buffers[i].bindBuffer();
-        switch( this.buffers[i].BufferType )
-        {
-          case Buffer.POSITION:
-            {
-              gl.enableVertexAttribArray(ModelComponent.ColorShader.vertexPositionAttribute);
-              gl.vertexAttribPointer(ModelComponent.ColorShader.vertexPositionAttribute, this.buffers[i].itemSize, gl.FLOAT, false, 0, 0);
-              break;
-            }
-          case Buffer.COLOR:
-            {
-              gl.enableVertexAttribArray(ModelComponent.ColorShader.vertexColorAttribute);
-              gl.vertexAttribPointer(ModelComponent.ColorShader.vertexColorAttribute, this.buffers[i].itemSize, gl.FLOAT, false, 0, 0);
-              break;
-            }
-        }
-      }
-
-      //for(i in this.buffers)
-      //  this.buffers[i].bindBuffer();
-      this.indexBuffer.bindBuffer();
-
-      gl.uniformMatrix4fv(ModelComponent.ColorShader.mMatrix, false, Game.mMatrix);
-      gl.uniformMatrix4fv(ModelComponent.ColorShader.vMatrix, false, Game.vMatrix);
-      gl.uniformMatrix4fv(ModelComponent.ColorShader.pMatrix, false, Game.pMatrix);
-
-      gl.drawElements(gl.TRIANGLES, this.indexBuffer.numItems, gl.UNSIGNED_BYTE, 0);
-
-      gl.disableVertexAttribArray(ModelComponent.ColorShader.vertexPositionAttribute);
-      gl.disableVertexAttribArray(ModelComponent.ColorShader.vertexColorAttribute);
-
-      for(i in this.buffers)
-        this.buffers[i].unbindBuffer();
-      this.indexBuffer.unbindBuffer();
+    if (!this.vertexBuffers ||
+        !this.indexBuffer ||
+        !ModelComponent.ColorShader.apply()) {
+      return;
     }
+
+    for(i in this.vertexBuffers)
+    {
+      this.vertexBuffers[i].bindBuffer();
+      switch( this.vertexBuffers[i].BufferType )
+      {
+        case Buffer.POSITION:
+          {
+            gl.enableVertexAttribArray(ModelComponent.ColorShader.vertexPositionAttribute);
+            gl.vertexAttribPointer(ModelComponent.ColorShader.vertexPositionAttribute, this.vertexBuffers[i].itemSize, gl.FLOAT, false, 0, 0);
+            break;
+          }
+        case Buffer.COLOR:
+          {
+            gl.enableVertexAttribArray(ModelComponent.ColorShader.vertexColorAttribute);
+            gl.vertexAttribPointer(ModelComponent.ColorShader.vertexColorAttribute, this.vertexBuffers[i].itemSize, gl.FLOAT, false, 0, 0);
+            break;
+          }
+      }
+    }
+    this.indexBuffer.bindBuffer();
+
+    gl.uniformMatrix4fv(ModelComponent.ColorShader.mMatrix, false, Game.mMatrix);
+    gl.uniformMatrix4fv(ModelComponent.ColorShader.vMatrix, false, Game.vMatrix);
+    gl.uniformMatrix4fv(ModelComponent.ColorShader.pMatrix, false, Game.pMatrix);
+
+    gl.drawElements(gl.TRIANGLES, this.indexBuffer.numItems, gl.UNSIGNED_BYTE, 0);
+
+    gl.disableVertexAttribArray(ModelComponent.ColorShader.vertexPositionAttribute);
+    gl.disableVertexAttribArray(ModelComponent.ColorShader.vertexColorAttribute);
+
+    for(i in this.vertexBuffers) {
+      this.vertexBuffers[i].unbindBuffer();
+    }
+    this.indexBuffer.unbindBuffer();
   }
 }
 

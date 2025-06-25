@@ -151,30 +151,6 @@ function Game(canvas)
         .catch( e => Game.ExceptionHandler(e) );;
   }
 
-  this.loadPrefab = function(prefab)
-  {
-    var xmlhttp = new XMLHttpRequest();
-    xmlhttp.open("GET", prefab, false);
-    xmlhttp.send();
-    var xmlDoc = xmlhttp.responseXML;
-    for(var i in xmlDoc.childNodes)
-    {
-      if ( xmlDoc.childNodes[i].tagName != undefined )
-      {
-        if ( xmlDoc.childNodes[i].tagName == "GameObject" )
-        {
-          var obj = Game.stringToFunction( xmlDoc.childNodes[i].tagName );
-          obj.deserialize( xmlDoc.childNodes[i] );
-          //obj.m_transform.position.x = context.width / 2;
-          //obj.m_transform.position.y = context.height * 0.25;
-          this.m_root.addChildGameObject(obj);
-        }
-        else
-          throw new Error("Only GameObject's are supported in Prefabs right now");
-      }
-    }
-  }
-
   this.exit = function()
   {
     if (this.running)

@@ -153,7 +153,7 @@ const props = defineProps({
             caption="Creates a new parent and child GameObject then adds the parent to the scene root."
             text="
         var cube = new GameObject();
-        cube.addComponent( new ModelComponent( colorCubeVertexBuffers, cubeIndexBuffer ) );
+        cube.addComponent( new ModelComponent().setBuffers( colorCubeVertexBuffers, cubeIndexBuffer ) );
         cube.addComponent( new RotateComponent( quat.setAxisAngle( quat.create(), vec3.fromValues( 1, 0, 0 ), 0.05 ) ) );
 
         var container_node = new GameObject();
