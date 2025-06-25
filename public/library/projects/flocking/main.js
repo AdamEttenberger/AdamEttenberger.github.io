@@ -133,10 +133,9 @@ function initScene()
 
   var cubeBuffers = [
     new Buffer( gl, Buffer.POSITION, gl.ARRAY_BUFFER, cubeVertices, 3 ),
-    new Buffer( gl, Buffer.TEXTURE, gl.ARRAY_BUFFER, cubeUV, 2 )
+    new Buffer( gl, Buffer.TEXTURE, gl.ARRAY_BUFFER, cubeUV, 2 ),
+    new Buffer( gl, Buffer.INDEX, gl.ELEMENT_ARRAY_BUFFER, cubeIndices, 1 ),
   ];
-
-  var cubeIBuff = new Buffer( gl, null, gl.ELEMENT_ARRAY_BUFFER, cubeIndices, 1 );
 
   //
 
@@ -167,19 +166,19 @@ function initScene()
 
   var triBuffers = [
     new Buffer( gl, Buffer.POSITION, gl.ARRAY_BUFFER, triVertices, 3 ),
-    new Buffer( gl, Buffer.TEXTURE, gl.ARRAY_BUFFER, triUV, 2 )
+    new Buffer( gl, Buffer.TEXTURE, gl.ARRAY_BUFFER, triUV, 2 ),
+    new Buffer( gl, Buffer.INDEX, gl.ELEMENT_ARRAY_BUFFER, triIndices, 1 ),
   ];
-  var triIBuff = new Buffer( gl, null, gl.ELEMENT_ARRAY_BUFFER, triIndices, 1 );
 
   //
   game.m_managers.push( FlockManager.Instance() );
 
-  game.m_root.addComponent( new RotateComponent( quat.setAxisAngle( quat.create(), vec3.fromValues( 0, 1, 0 ), 0.005 ) ) );
+  game.m_root.addComponent( new RotateComponent().fromEuler(0, 0.005, 0 ) );
 
   var cube = new GameObject();
   vec3.multiply( cube.m_transform.scale, cube.m_transform.scale, vec3.fromValues( 50, 50, 50 ) )
   vec3.add( cube.m_transform.position, cube.m_transform.position, [ 0, 0, 0 ] );
-  cube.addComponent( new SkinnedModelComponent().setTexture(game.loadTexture("/library/projects/flocking/images/glass.png")).setBuffers(cubeBuffers, cubeIBuff) );
+  cube.addComponent( new SkinnedModelComponent().setTexture(game.loadTexture("/library/projects/flocking/images/glass.png")).setBuffers(cubeBuffers) );
 
   for(var i = 0; i < 150; i++)
   {
@@ -188,7 +187,7 @@ function initScene()
     var v = vec3.normalize( v, v );
     vec3.scale( v, v, 25 );
     vec3.add( tri.m_transform.position, tri.m_transform.position, v );
-    tri.addComponent( new SkinnedModelComponent().setTexture(game.loadTexture("/library/projects/flocking/images/ship.png")).setBuffers(triBuffers, triIBuff) );
+    tri.addComponent( new SkinnedModelComponent().setTexture(game.loadTexture("/library/projects/flocking/images/ship.png")).setBuffers(triBuffers) );
     tri.addComponent( new FlockerComponent( ) );
     FlockManager.Instance().m_members.push( tri );
     game.m_root.addChildGameObject( tri );
