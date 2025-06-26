@@ -46,7 +46,7 @@ const routes = [
     props: {
       title: "WebGL Proto-Engine",
       date: new Date('2012/09/01'),
-      lastmod: new Date('2012/09/01'),
+      lastmod: new Date('2025/06/25'),
       frame: "/library/projects/webgl/main.html",
     },
   },
