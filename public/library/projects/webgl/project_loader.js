@@ -30,6 +30,6 @@ function handleMessage( event ) {
   if (event.data.file) {
     LoadFileAsync('GET', event.data.file)
           .then(xhr => game.deserialize(JSON.parse(xhr.responseText)))
-          .catch( e => Game.ExceptionHandler(e) )
+          .catch(e => Game.ExceptionHandler(e))
   }
 }
