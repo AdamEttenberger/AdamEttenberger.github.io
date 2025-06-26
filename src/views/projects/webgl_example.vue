@@ -217,16 +217,16 @@ function postMessageToFrame(target_frame, filepath) {
       <br />
       <Code lang="javascript" file="/library/projects/webgl/project_loader.js" />
       <br />
-      <p>
-        The JSON scene file for this demo can be found here:
-        <ExternalLink to="/library/webgl/scenes/deserialization_example.json">deserialization_example.json</ExternalLink>
-      </p>
-      <br />
       <Player title="JSON Deserialization"
               :date="new Date('2025/06/25')"
               :lastmod="new Date('2025/06/25')"
               frame="/library/projects/webgl/project_loader.html"
               @load="(e) => onPlayerLoaded(e, '/library/webgl/scenes/deserialization_example.json')" />
+      <br />
+      <p>
+        The JSON scene file for this demo above can be found here:
+        <ExternalLink to="/library/webgl/scenes/deserialization_example.json">deserialization_example.json</ExternalLink>
+      </p>
       <br />
       <p>
         While JSON isn't the most space efficient file format for this type of content, it is very flexible for prototyping and very easy to work with in JavaScript.
