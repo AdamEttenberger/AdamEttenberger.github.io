@@ -162,4 +162,21 @@ function FlockerComponent( )
     vec3.add( this.m_gameObject.m_transform.position, this.m_gameObject.m_transform.position, this.velocity );
     this.adjustForward( );
   }
+
+  this.serialize = async function() {
+    return {
+      "type": "FlockerComponent",
+      "speed": this.speed,
+      "velocity": Array.from(this.velocity),
+    };
+  }
+
+  this.deserialize = async function(jsonObject) {
+    if (jsonObject.type !== "FlockerComponent") {
+      return;
+    }
+    this.speed = jsonObject.speed ?? 0;
+    vec3.copy(this.velocity, jsonObject.velocity ?? vec3.create());
+    return this;
+  }
 }

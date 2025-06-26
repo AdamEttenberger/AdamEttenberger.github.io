@@ -9,16 +9,13 @@ function FlockManager()
 
   this.m_members = new Array();
   this.draw = function(gl) { /* Draw Code */ }
+  this.update = function() { /* Update Code */ }
 
-  this.update = function()
-  {
-    /*
-    for(i in this.m_members)
-    {
-      var f = this.m_members[i].getComponent( FlockerComponent ).calcSteeringForce();
-    }
-    */
+  this.serialize = async function() {
+    return {"type": "FlockManager"};
   }
+
+  this.deserialize = function(jsonObject) { return this; }
 }
 
 FlockManager.Instance = function()

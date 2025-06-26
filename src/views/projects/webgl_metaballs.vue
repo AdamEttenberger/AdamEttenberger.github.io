@@ -38,7 +38,7 @@ const editorProperties = ref({
       step_value: 0.01,
     },
   },
-  tolerance: {
+  threshold: {
     label: "Min-Mass",
     type: "range",
     model: 0.5,
@@ -58,25 +58,25 @@ const editorProperties = ref({
           label: "Default",
           count: 40,
           radius: 0.1,
-          tolerance: 0.5,
+          threshold: 0.5,
         },
         "extra-gloopy": {
           label: "Extra Gloopy",
           count: 40,
           radius: 0.1,
-          tolerance: 0.75,
+          threshold: 0.75,
         },
         "explosive-growth": {
           label: "Explosive Growth",
           count: 20,
           radius: 0.2,
-          tolerance: 0.9,
+          threshold: 0.9,
         },
         "many-mini": {
           label: "Many Mini",
           count: 100,
           radius: 0.05,
-          tolerance: 0.5,
+          threshold: 0.5,
         }
       },
     },
@@ -91,7 +91,7 @@ function postMessageToFrame(target_frame) {
   target_frame.contentWindow.postMessage({
     count: editorProperties.value.count.model,
     radius: editorProperties.value.radius.model,
-    tolerance: editorProperties.value.tolerance.model,
+    threshold: editorProperties.value.threshold.model,
   }, window.location.origin);
 }
 
@@ -112,7 +112,7 @@ function onPresetSelected(new_value) {
   if (!new_options) {
     return;
   }
-  for (var key of ['count', 'radius', 'tolerance']) {
+  for (var key of ['count', 'radius', 'threshold']) {
     if (!new_options[key] || !editorProperties.value[key]) {
       continue;
     }

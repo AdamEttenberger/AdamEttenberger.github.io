@@ -5,6 +5,8 @@ function GameObject()
   this.components = new Array();
   this.children = new Array();
 
+  this.components.push(this.m_transform);
+
   this.absolutePosition = function()
   {
     if (this.parent != null)
@@ -71,6 +73,12 @@ function GameObject()
 
   this.addComponent = function(component)
   {
+    // Transform is a special case since there must always be
+    // exactly one instance per GameObject.
+    if (component instanceof Transform) {
+      this.m_transform.copy(component);
+      return;
+    }
     if (this.components.indexOf(component) == -1)
     {
       component.m_gameObject = this;
@@ -94,47 +102,6 @@ function GameObject()
     {
       component.m_gameObject = null;
       this.components.splice(i, 1);
-    }
-  }
-
-  this.deserialize = function(xml)
-  {
-    if (xml.hasChildNodes())
-    {
-      for(var i in xml.childNodes)
-      {
-        if (xml.childNodes[i].tagName != undefined)
-        {
-          if (xml.childNodes[i].tagName == "components")
-          {
-            for(var j in xml.childNodes[i].childNodes)
-            {
-              if ( xml.childNodes[i].childNodes[j].tagName != undefined )
-              {
-                var component = Game.stringToFunction( xml.childNodes[i].childNodes[j].tagName );
-                component.deserialize( xml.childNodes[i].childNodes[j] );
-                this.addComponent( component );
-              }
-            }
-          }
-          else if (xml.childNodes[i].tagName == "children")
-          {
-            for(var j in xml.childNodes[i].childNodes)
-            {
-              if ( xml.childNodes[i].childNodes[j].tagName != undefined )
-              {
-                var child = Game.stringToFunction( xml.childNodes[i].childNodes[j].tagName );
-                child.deserialize( xml.childNodes[i].childNodes[j] );
-                this.addChildGameObject( child );
-              }
-            }
-          }
-          else
-          {
-            throw new Error("GameObject prefab can only have <children> and <components> : Attempted " + xml.childNodes[i].tagName);
-          }
-        }
-      }
     }
   }
 }
