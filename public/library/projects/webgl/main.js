@@ -10,15 +10,11 @@ function main()
   canvas.style.minHeight = 500;
 
   game = new Game(canvas);
-
-  gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
-  //gl.enable(gl.BLEND);
-  gl.enable(gl.DEPTH_TEST);
-
   Game.clearColor = vec4.fromValues( 0.0, 0.0, 0.0, 1.0 );
 
   initScene();
 
+  // Setup the camera (move the world forward 5 units).
   mat4.perspective(Game.pMatrix, 45, gl.viewportWidth / gl.viewportHeight, 1.0, 1000.0);
   mat4.fromTranslation(Game.mMatrix, vec3.fromValues(0.0, 0.0, -5.0));
 

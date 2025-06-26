@@ -28,6 +28,7 @@ function Game(canvas)
     gl.viewportWidth = canvas.width;
     gl.viewportHeight = canvas.height;
 
+    gl.disable(gl.BLEND);
     gl.enable(gl.DEPTH_TEST);
     gl.enable(gl.CULL_FACE);
     gl.frontFace(gl.CCW);
