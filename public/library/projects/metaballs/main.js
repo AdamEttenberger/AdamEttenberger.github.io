@@ -2,8 +2,6 @@ window.addEventListener("load", main, true);
 window.addEventListener("message", handleMessage);
 
 var game;
-var shaderProgram;
-var buffers = new Array();
 var metaball_component;
 
 function main()
