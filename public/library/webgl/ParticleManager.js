@@ -57,6 +57,22 @@ function ParticleManager()
   this.length = function() {
     return this.m_members.length;
   }
+
+  this.serialize = async function() {
+    var result = {
+      "type": "ParticleManager",
+      "particles": this.m_members,
+    };
+    return result;
+  }
+
+  this.deserialize = function(jsonObject) {
+    if (jsonObject.type !== "ColorTextureModelComponent") {
+      return;
+    }
+    this.m_members = jsonObject.particles ?? new Array();
+    return this;
+  }
 }
 
 ParticleManager.Instance = function()

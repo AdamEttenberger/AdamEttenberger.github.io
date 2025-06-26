@@ -1,78 +1,89 @@
 ModelComponent.prototype = new GameObjectComponent();
 ModelComponent.prototype.constructor = ModelComponent;
+ModelComponent.Shader = null;
+ModelComponent.UniformType = {
+  alpha: 0,
+  mMatrix: 1,
+  vMatrix: 2,
+  pMatrix: 3,
+};
 
-function ModelComponent( vertexBuffers, indexBuffer )
-{
-  // Initialize Default Vertex Texture shader
-  if ( gl != null )
-  if (ModelComponent.ColorShader == null)
-  {
-    ModelComponent.ColorShader = new ShaderProgram( );
+function ModelComponent() {
+  this.buffers = null;
+
+  // Initialize Default Vertex and Fragment shaders.
+  if (gl && !ModelComponent.Shader) {
+    ModelComponent.Shader = new ShaderProgram( );
     Promise.all([
-      ModelComponent.ColorShader.attachShader( "/library/webgl/shaders/color-vs.c", gl.VERTEX_SHADER ),
-      ModelComponent.ColorShader.attachShader( "/library/webgl/shaders/color-fs.c", gl.FRAGMENT_SHADER ),
+      ModelComponent.Shader.attachShader( "/library/webgl/shaders/color-vs.c", gl.VERTEX_SHADER ),
+      ModelComponent.Shader.attachShader( "/library/webgl/shaders/color-fs.c", gl.FRAGMENT_SHADER ),
     ])
     .then(() => {
-      ModelComponent.ColorShader.linkProgram( );
-      ModelComponent.ColorShader.apply( );
+      ModelComponent.Shader.linkProgram( );
+      ModelComponent.Shader.apply( );
 
-      ModelComponent.ColorShader.vertexPositionAttribute = gl.getAttribLocation(ModelComponent.ColorShader, "aVertexPosition");
-      ModelComponent.ColorShader.vertexColorAttribute = gl.getAttribLocation(ModelComponent.ColorShader, "aVertexColor");
-      ModelComponent.ColorShader.alphaUniform = gl.getUniformLocation(ModelComponent.ColorShader, "uAlpha");
-      ModelComponent.ColorShader.mMatrix = gl.getUniformLocation(ModelComponent.ColorShader, "mMatrix");
-      ModelComponent.ColorShader.vMatrix = gl.getUniformLocation(ModelComponent.ColorShader, "vMatrix");
-      ModelComponent.ColorShader.pMatrix = gl.getUniformLocation(ModelComponent.ColorShader, "pMatrix");
+      ModelComponent.Shader.registerVertexAttributes(new Map([
+        [Buffer.POSITION, "aVertexPosition"],
+        [Buffer.COLOR, "aVertexColor"],
+      ]));
+      ModelComponent.Shader.registerUniformLocations(new Map([
+          [ModelComponent.UniformType.alpha, "uAlpha"],
+          [ModelComponent.UniformType.mMatrix, "mMatrix"],
+          [ModelComponent.UniformType.vMatrix, "vMatrix"],
+          [ModelComponent.UniformType.pMatrix, "pMatrix"],
+      ]));
 
-      gl.uniform1f(ModelComponent.ColorShader.alphaUniform, 1.0);
-        })
-        .catch( e => Game.ExceptionHandler(e) );
+      ModelComponent.Shader.setUniform1f(ModelComponent.UniformType.alpha, 1.0);
+    })
+    .catch( e => Game.ExceptionHandler(e) );
   }
 
-  this.buffers = vertexBuffers;
-  this.indexBuffer = indexBuffer;
+  this.setBuffers = function(buffers) {
+    this.buffers = buffers;
+    return this;
+  }
 
-  this.draw = function(gl)
-  {
-    if (ModelComponent.ColorShader.apply())
-    {
-      for(i in this.buffers)
-      {
-        this.buffers[i].bindBuffer();
-        switch( this.buffers[i].BufferType )
-        {
-          case Buffer.POSITION:
-            {
-              gl.enableVertexAttribArray(ModelComponent.ColorShader.vertexPositionAttribute);
-              gl.vertexAttribPointer(ModelComponent.ColorShader.vertexPositionAttribute, this.buffers[i].itemSize, gl.FLOAT, false, 0, 0);
-              break;
-            }
-          case Buffer.COLOR:
-            {
-              gl.enableVertexAttribArray(ModelComponent.ColorShader.vertexColorAttribute);
-              gl.vertexAttribPointer(ModelComponent.ColorShader.vertexColorAttribute, this.buffers[i].itemSize, gl.FLOAT, false, 0, 0);
-              break;
-            }
-        }
-      }
-
-      //for(i in this.buffers)
-      //  this.buffers[i].bindBuffer();
-      this.indexBuffer.bindBuffer();
-
-      gl.uniformMatrix4fv(ModelComponent.ColorShader.mMatrix, false, Game.mMatrix);
-      gl.uniformMatrix4fv(ModelComponent.ColorShader.vMatrix, false, Game.vMatrix);
-      gl.uniformMatrix4fv(ModelComponent.ColorShader.pMatrix, false, Game.pMatrix);
-
-      gl.drawElements(gl.TRIANGLES, this.indexBuffer.numItems, gl.UNSIGNED_BYTE, 0);
-
-      gl.disableVertexAttribArray(ModelComponent.ColorShader.vertexPositionAttribute);
-      gl.disableVertexAttribArray(ModelComponent.ColorShader.vertexColorAttribute);
-
-      for(i in this.buffers)
-        this.buffers[i].unbindBuffer();
-      this.indexBuffer.unbindBuffer();
+  this.draw = function(gl) {
+    if (!this.buffers ||
+        !ModelComponent.Shader?.apply()) {
+      return;
     }
+
+    var numItems = 0;
+    this.buffers.forEach(element => {
+      ModelComponent.Shader.bindBuffer(element);
+      if (element.BufferType === Buffer.INDEX) {
+        numItems = element.numItems;
+      }
+    });
+
+    ModelComponent.Shader.setUniformMat4(ModelComponent.UniformType.mMatrix, Game.mMatrix);
+    ModelComponent.Shader.setUniformMat4(ModelComponent.UniformType.vMatrix, Game.vMatrix);
+    ModelComponent.Shader.setUniformMat4(ModelComponent.UniformType.pMatrix, Game.pMatrix);
+
+    gl.drawElements(gl.TRIANGLES, numItems, gl.UNSIGNED_BYTE, 0);
+
+    this.buffers.forEach(element => ModelComponent.Shader.unbindBuffer(element));
+  }
+
+  this.serialize = async function() {
+    return {
+      "type": "ModelComponent",
+      "buffers": await Promise.all(this.buffers.map(element => element.serialize())),
+    };
+  }
+
+  this.deserialize = function(jsonObject) {
+    if (jsonObject.type !== "ModelComponent") {
+      return;
+    }
+
+    return new Promise((resolve, reject) => {
+      if (!jsonObject.buffers) {
+        reject();
+      }
+      this.setBuffers(jsonObject.buffers.map(element => new Buffer(gl, element.buffer_type, element.gl_array_type, element.buff, element.item_size)));
+      resolve(this);
+    });
   }
 }
-
-ModelComponent.ColorShader = null;

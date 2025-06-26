@@ -47,7 +47,7 @@ const props = defineProps({
               src="/images/projects/renu/team.jpg"
               alt="Profile pictures of the team members.">
         <template v-slot:caption>
-          <ol class="authors" aria-label="team members">
+          <ol class="authors list-none" aria-label="team members">
             <li>Adam Ettenberger</li>
             <li>Amanda Rivet</li>
             <li>Nate Lemoi</li>
@@ -122,7 +122,6 @@ const props = defineProps({
 ol.authors {
   display: flex;
   flex-direction: row;
-  list-style: none;
   padding: 0;
 
   & > * {

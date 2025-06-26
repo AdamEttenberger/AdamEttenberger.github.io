@@ -1,8 +1,6 @@
 window.addEventListener("load", main, true);
 
 var game;
-var shaderProgram;
-var buffers = new Array();
 
 function main()
 {
@@ -11,11 +9,11 @@ function main()
   canvas.style.minWidth = 800;
   canvas.style.minHeight = 500;
 
-    game = new Game(canvas);
+  game = new Game(canvas);
 
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
-    //gl.enable(gl.BLEND);
-    gl.enable(gl.DEPTH_TEST);
+  gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+  //gl.enable(gl.BLEND);
+  gl.enable(gl.DEPTH_TEST);
 
   Game.clearColor = vec4.fromValues( 0.0, 0.0, 0.0, 1.0 );
 
@@ -97,24 +95,26 @@ function initScene()
   var cubePosition = new Buffer( gl, Buffer.POSITION, gl.ARRAY_BUFFER, cubeVertices, 3 );
   var cubeColor = new Buffer( gl, Buffer.COLOR, gl.ARRAY_BUFFER, cubeColors, 4 );
   var cubeTexture = new Buffer( gl, Buffer.TEXTURE, gl.ARRAY_BUFFER, cubeUV, 2 );
+  var cubeIBuff = new Buffer( gl, Buffer.INDEX, gl.ELEMENT_ARRAY_BUFFER, cubeIndices, 1 );
 
   var colorCubeBuffers = [
     cubePosition,
-    cubeColor
+    cubeColor,
+    cubeIBuff,
   ];
 
   var textureCubeBuffers = [
     cubePosition,
-    cubeTexture
+    cubeTexture,
+    cubeIBuff,
   ];
 
   var colorTextureCubeBuffers = [
     cubePosition,
     cubeColor,
-    cubeTexture
+    cubeTexture,
+    cubeIBuff,
   ];
-
-  var cubeIBuff = new Buffer( gl, null, gl.ELEMENT_ARRAY_BUFFER, cubeIndices, 1 );
 
   //
 
@@ -127,12 +127,12 @@ function initScene()
   ];
 
   var triColors = [
-        1.0, 0.0, 0.0, 1.0,
-        0.0, 1.0, 0.0, 1.0,
-        0.0, 0.0, 1.0, 1.0,
+    1.0, 0.0, 0.0, 1.0,
+    0.0, 1.0, 0.0, 1.0,
+    0.0, 0.0, 1.0, 1.0,
     1.0, 1.0, 1.0, 1.0,
     0.0, 0.0, 0.0, 1.0
-    ];
+  ];
 
   var triIndices = [
     0, 1, 2,
@@ -145,32 +145,32 @@ function initScene()
 
   var triBuffers = [
     new Buffer( gl, Buffer.POSITION, gl.ARRAY_BUFFER, triVertices, 3 ),
-    new Buffer( gl, Buffer.COLOR, gl.ARRAY_BUFFER, triColors, 4 )
+    new Buffer( gl, Buffer.COLOR, gl.ARRAY_BUFFER, triColors, 4 ),
+    new Buffer( gl, Buffer.INDEX, gl.ELEMENT_ARRAY_BUFFER, triIndices, 1 ),
   ];
-  var triIBuff = new Buffer( gl, null, gl.ELEMENT_ARRAY_BUFFER, triIndices, 1 );
 
   //
 
-  game.m_root.addComponent( new RotateComponent( quat.setAxisAngle( quat.create(), vec3.fromValues( 1, 0, 0 ), -0.01 ) ) );
+  game.m_root.addComponent( new RotateComponent().fromEuler(-0.01, 0, 0 ) );
 
   var cubes = new GameObject();
   vec3.add( cubes.m_transform.position, cubes.m_transform.position, vec3.fromValues( 1.5, 0, 0 ) )
-  cubes.addComponent( new RotateComponent( quat.setAxisAngle( quat.create(), vec3.fromValues( 0, 0, 1 ), 0.02 ) ) );
+  cubes.addComponent( new RotateComponent().fromEuler(0, 0, 0.02) );
 
   var colorCube = new GameObject();
-  colorCube.addComponent( new ModelComponent(colorCubeBuffers, cubeIBuff ) );
-  colorCube.addComponent( new RotateComponent( quat.setAxisAngle( quat.create(), vec3.fromValues( 1, 0, 0 ), 0.04 ) ) );
-  colorCube.addComponent( new RotateComponent( quat.setAxisAngle( quat.create(), vec3.fromValues( 0, 1, 0 ), -0.03 ) ) );
+  colorCube.addComponent( new ModelComponent().setBuffers(colorCubeBuffers) );
+  colorCube.addComponent( new RotateComponent().fromEuler(0.04, 0, 0) );
+  colorCube.addComponent( new RotateComponent().fromEuler(0, -0.03, 0) );
 
   var textureCube = new GameObject();
-  textureCube.addComponent( new SkinnedModelComponent( game.loadTexture("/library/projects/webgl/images/metalcrate.png"), textureCubeBuffers, cubeIBuff ) );
-  textureCube.addComponent( new RotateComponent( quat.setAxisAngle( quat.create(), vec3.fromValues( 1, 0, 0 ), -0.04, ) ) );
-  textureCube.addComponent( new RotateComponent( quat.setAxisAngle( quat.create(), vec3.fromValues( 0, 1, 0 ), -0.03, ) ) );
+  textureCube.addComponent( new TextureModelComponent().setTexture(Game.loadTexture("/library/projects/webgl/images/metalcrate.png")).setBuffers(textureCubeBuffers) );
+  textureCube.addComponent( new RotateComponent().fromEuler(-0.04, 0, 0) );
+  textureCube.addComponent( new RotateComponent().fromEuler(0, -0.03, 0) );
 
   var colorTextureCube = new GameObject();
-  colorTextureCube.addComponent( new ColoredSkinnedModelComponent( game.loadTexture("/library/projects/webgl/images/metalcrate.png"), colorTextureCubeBuffers, cubeIBuff ) );
-  colorTextureCube.addComponent( new RotateComponent( quat.setAxisAngle( quat.create(), vec3.fromValues( 1, 0, 0 ), 0.04 ) ) );
-  colorTextureCube.addComponent( new RotateComponent( quat.setAxisAngle( quat.create(), vec3.fromValues( 0, 1, 0 ), -0.03 ) ) );
+  colorTextureCube.addComponent( new ColorTextureModelComponent().setTexture(Game.loadTexture("/library/projects/webgl/images/metalcrate.png")).setBuffers(colorTextureCubeBuffers) );
+  colorTextureCube.addComponent( new RotateComponent().fromEuler(0.04, 0, 0) );
+  colorTextureCube.addComponent( new RotateComponent().fromEuler(0, -0.03, 0) );
 
   cubes.addChildGameObject( colorCube );
   cubes.addChildGameObject( textureCube );
@@ -188,8 +188,8 @@ function initScene()
   var tri = new GameObject();
   vec3.add( tri.m_transform.position, tri.m_transform.position , vec3.fromValues( -1.5, 0, 0 ) )
   quat.multiply( tri.m_transform.rotation, tri.m_transform.rotation, quat.setAxisAngle( quat.create(),vec3.fromValues( 1, 0, 0 ), Math.PI / 4.0 ) );
-  tri.addComponent( new ModelComponent( triBuffers, triIBuff ) );
-  tri.addComponent( new RotateComponent( quat.setAxisAngle( quat.create(), vec3.fromValues( 0, 1, 0 ), 0.1 ) ) );
+  tri.addComponent( new ModelComponent().setBuffers( triBuffers ) );
+  tri.addComponent( new RotateComponent().fromEuler(0, 0.1, 0) );
 
   game.m_root.addChildGameObject( cubes );
   game.m_root.addChildGameObject( tri );

@@ -44,9 +44,9 @@ const routes = [
     path: "/projects/webgl_example/",
     component: webgl_example,
     props: {
-      title: "WebGL Example",
+      title: "WebGL Proto-Engine",
       date: new Date('2012/09/01'),
-      lastmod: new Date('2012/09/01'),
+      lastmod: new Date('2025/06/25'),
       frame: "/library/projects/webgl/main.html",
     },
   },
