@@ -215,7 +215,7 @@ function postMessageToFrame(target_frame, filepath) {
         I took the export from this page and copied the giant aquarium box from the flocking demo into it.
       </p>
       <br />
-      <Code lang="javascript" file="/library/projects/webgl/deserialization_demo.js" />
+      <Code lang="javascript" file="/library/projects/webgl/project_loader.js" />
       <br />
       <p>
         The JSON scene file for this demo can be found here:
