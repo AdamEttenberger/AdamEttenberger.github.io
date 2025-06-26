@@ -11,11 +11,11 @@ function main()
   canvas.style.minWidth = 800;
   canvas.style.minHeight = 500;
 
-    game = new Game(canvas);
-    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-    gl.enable(gl.BLEND);
+  game = new Game(canvas);
+  gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+  gl.enable(gl.BLEND);
 
-    initScene();
+  initScene();
 
   mat4.perspective(Game.pMatrix, 45, gl.viewportWidth / gl.viewportHeight, 1.0, 1000.0);
   mat4.fromTranslation(Game.mMatrix, vec3.fromValues(0.0, 0.0, -100.0));
@@ -148,7 +148,7 @@ function initScene()
   ];
 
   var triUV = [
-        0.5, 0.5,
+    0.5, 0.5,
     0.0, 0.0,
     1.0, 0.0,
     1.0, 1.0,
@@ -176,9 +176,9 @@ function initScene()
   game.m_root.addComponent( new RotateComponent().fromEuler(0, 0.005, 0 ) );
 
   var cube = new GameObject();
-  vec3.multiply( cube.m_transform.scale, cube.m_transform.scale, vec3.fromValues( 50, 50, 50 ) )
+  vec3.multiply( cube.m_transform.scale, cube.m_transform.scale, vec3.fromValues( 65, 65, 65 ) )
   vec3.add( cube.m_transform.position, cube.m_transform.position, [ 0, 0, 0 ] );
-  cube.addComponent( new SkinnedModelComponent().setTexture(game.loadTexture("/library/projects/flocking/images/glass.png")).setBuffers(cubeBuffers) );
+  cube.addComponent( new TextureModelComponent().setTexture(Game.loadTexture("/library/projects/flocking/images/glass.png")).setBuffers(cubeBuffers) );
 
   for(var i = 0; i < 150; i++)
   {
@@ -187,7 +187,8 @@ function initScene()
     var v = vec3.normalize( v, v );
     vec3.scale( v, v, 25 );
     vec3.add( tri.m_transform.position, tri.m_transform.position, v );
-    tri.addComponent( new SkinnedModelComponent().setTexture(game.loadTexture("/library/projects/flocking/images/ship.png")).setBuffers(triBuffers) );
+    tri.m_transform.scale = vec3.fromValues(1.5, 1.5, 1.5);
+    tri.addComponent( new TextureModelComponent().setTexture(Game.loadTexture("/library/projects/flocking/images/ship.png")).setBuffers(triBuffers) );
     tri.addComponent( new FlockerComponent( ) );
     FlockManager.Instance().m_members.push( tri );
     game.m_root.addChildGameObject( tri );

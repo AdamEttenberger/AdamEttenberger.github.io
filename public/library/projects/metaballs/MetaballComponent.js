@@ -1,4 +1,4 @@
-MetaballComponent.prototype = new ModelComponent();
+MetaballComponent.prototype = new GameObjectComponent();
 MetaballComponent.prototype.constructor = MetaballComponent;
 MetaballComponent.Mode = {
   kVersion2012: "Version2012",
@@ -205,6 +205,7 @@ function MetaballComponent( run_mode )
   var planarVertices = [ -1.0, -1.0, 0.0, 1.0, -1.0, 0.0, 1.0, 1.0, 0.0, -1.0, 1.0, 0.0 ];
   var planarUV = [ 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0 ];
   var planarIndices = [ 0, 1, 2, 0, 2, 3 ];
+  var startTime = Date.now();
 
   this.mode = run_mode ?? MetaballComponent.Mode.kVersion2025;
   this.g_radius = 0.1;
@@ -212,7 +213,6 @@ function MetaballComponent( run_mode )
   this.vertexPositionBuffer = new Buffer( gl, Buffer.POSITION, gl.ARRAY_BUFFER, planarVertices, 3 );
   this.vertexTextureBuffer = new Buffer( gl, Buffer.TEXTURE, gl.ARRAY_BUFFER, planarUV, 2 );
   this.indexBuffer = new Buffer( gl, Buffer.INDEX, gl.ELEMENT_ARRAY_BUFFER, planarIndices, 1 );
-  this.startTime = Date.now();
 
   this.runLatest = function() {
     return this.mode != MetaballComponent.Mode.kVersion2012;
@@ -341,7 +341,7 @@ function MetaballComponent( run_mode )
 
     const kCycleTimeMs = 30000.0;
     MetaballComponent.HueMetaballShader.apply( );
-    MetaballComponent.HueMetaballShader.setUniform1f(MetaballComponent.UniformType.hue, (((Date.now() - this.startTime) % kCycleTimeMs) / kCycleTimeMs));
+    MetaballComponent.HueMetaballShader.setUniform1f(MetaballComponent.UniformType.hue, (((Date.now() - startTime) % kCycleTimeMs) / kCycleTimeMs));
 
     if (MetaballComponent.MetaballPointsShader.apply( ))
     {
@@ -411,6 +411,26 @@ function MetaballComponent( run_mode )
     this.setAlphaThreshold(message.threshold);
     this.setParticleCount(message.count);
   }
+
+  this.serialize = async function() {
+    return {
+      "type": "MetaballComponent",
+      "mode": this.mode,
+      "radius": this.g_radius,
+      "threshold": this.g_threshold,
+    };
+  }
+
+  this.deserialize = function(jsonObject) {
+    if (jsonObject.type !== "MetaballComponent") {
+      return;
+    }
+    this.mode = jsonObject.mode ?? MetaballComponent.Mode.kVersion2025;
+    this.g_radius = jsonObject.radius ?? 0.1;
+    this.g_threshold = jsonObject.threshold ?? 0.5;
+    return this;
+  }
+
 
   this.init();
 }

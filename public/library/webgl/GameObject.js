@@ -5,6 +5,8 @@ function GameObject()
   this.components = new Array();
   this.children = new Array();
 
+  this.components.push(this.m_transform);
+
   this.absolutePosition = function()
   {
     if (this.parent != null)
@@ -71,6 +73,12 @@ function GameObject()
 
   this.addComponent = function(component)
   {
+    // Transform is a special case since there must always be
+    // exactly one instance per GameObject.
+    if (component instanceof Transform) {
+      this.m_transform.copy(component);
+      return;
+    }
     if (this.components.indexOf(component) == -1)
     {
       component.m_gameObject = this;

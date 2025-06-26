@@ -63,7 +63,7 @@ import ProjectCard from '@/components/project_card.vue'
                :date="new Date('2012/09/01')"
                :lastmod="new Date('2012/09/01')">
     <p>
-      A Simple 3D WebGL demonstration using a GameObject/Component model. In this project I used a Javascript math library <ExternalLink to="https://github.com/toji/gl-matrix">gl-matrix</ExternalLink> to speed production.
+      A Simple 3D WebGL demonstration using a GameObject/Component model. In this project I used a JavaScript math library <ExternalLink to="https://github.com/toji/gl-matrix">gl-matrix</ExternalLink> to speed production.
     </p>
   </ProjectCard>
 </template>
