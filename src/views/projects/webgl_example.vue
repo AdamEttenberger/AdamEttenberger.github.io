@@ -176,7 +176,7 @@ function postMessageToFrame(target_frame, filepath) {
       <br />
       <p>
         Then any globals like the camera position are set, which will later be provided as shader uniform values.
-        Finally, the core game loop is started and following this point game updates should mostly be driven by GameObjectComponent logic.
+        Finally, the game loop is started and any further updates should be driven by GameObjectComponent logic.
       </p>
       <br />
       <Code lang="javascript"
@@ -204,7 +204,7 @@ function postMessageToFrame(target_frame, filepath) {
       <p>
         The following demo frame loads the minimum environment necessary to run the Proto-Engine, then waits until the host page provides a JSON file to present.
         This scene was created by serializing two demos, the one at the top of this page and the one at the top of the <RouterLink to="/projects/webgl_flocking">WebGL Flocking</RouterLink> project page.
-        I took the export fromm this page and copied the giant aquarium box from the flocking demo into it.
+        I took the export from this page and copied the giant aquarium box from the flocking demo into it.
       </p>
       <br />
       <Code lang="javascript" file="/library/projects/webgl/deserialization_demo.js" />
