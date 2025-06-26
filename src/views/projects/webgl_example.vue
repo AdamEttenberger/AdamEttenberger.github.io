@@ -156,7 +156,7 @@ function postMessageToFrame(target_frame, filepath) {
       </p>
       <br />
       <Code lang="javascript"
-            caption="Load vertex and index buffers for a cube into WebGL."
+            caption="Load vertex position, color, and index buffers for a unit equilateral triangle into WebGL."
             text="
           var v1 = vec3.fromValues(0, 1, 0);
           var v2 = vec3.rotateZ(/*dest=*/vec3.create(),
@@ -201,8 +201,11 @@ function postMessageToFrame(target_frame, filepath) {
         var triangle = new GameObject();
         triangle.addComponent(new ModelComponent().setBuffers(buffers));
         triangle.addComponent(new RotateComponent().fromEuler(0, 0, -0.025));
-        game.m_root.addChildGameObject(triangle);
-
+        game.m_root.addChildGameObject(triangle);" />
+      <br />
+      <Code lang="javascript"
+            caption="Setup the camera."
+            text="
         // Setup the camera (move the world forward 5 units).
         mat4.perspective(Game.pMatrix, 45, gl.viewportWidth / gl.viewportHeight, 1.0, 1000.0);
         mat4.fromTranslation(Game.mMatrix, vec3.fromValues(0.0, 0.0, -5.0));
@@ -213,7 +216,7 @@ function postMessageToFrame(target_frame, filepath) {
       </p>
       <br />
       <Code lang="javascript"
-            caption="Setup the camera and begin the core game loop."
+            caption="Start the core game loop."
             text="
         game.start();
       " />
