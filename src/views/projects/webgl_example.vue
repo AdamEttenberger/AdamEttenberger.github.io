@@ -49,7 +49,7 @@ function postMessageToFrame(target_frame, filepath) {
 
     <Section heading="Goals">
       <ul>
-        <li>Implement a basic 3D scene without importing a game engine or rendering framework.</li>
+        <li>Implement a basic 3D scene without importing a third-party game engine or rendering framework.</li>
         <li>Interchangeable model rendering types (color, texture, color + texture).</li>
         <li>Easy to quickly prototype new behaviors.</li>
       </ul>
