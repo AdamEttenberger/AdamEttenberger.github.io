@@ -163,12 +163,12 @@ function initScene()
   colorCube.addComponent( new RotateComponent().fromEuler(0, -0.03, 0) );
 
   var textureCube = new GameObject();
-  textureCube.addComponent( new SkinnedModelComponent().setTexture(game.loadTexture("/library/projects/webgl/images/metalcrate.png")).setBuffers(textureCubeBuffers) );
+  textureCube.addComponent( new TextureModelComponent().setTexture(Game.loadTexture("/library/projects/webgl/images/metalcrate.png")).setBuffers(textureCubeBuffers) );
   textureCube.addComponent( new RotateComponent().fromEuler(-0.04, 0, 0) );
   textureCube.addComponent( new RotateComponent().fromEuler(0, -0.03, 0) );
 
   var colorTextureCube = new GameObject();
-  colorTextureCube.addComponent( new ColoredSkinnedModelComponent().setTexture(game.loadTexture("/library/projects/webgl/images/metalcrate.png")).setBuffers(colorTextureCubeBuffers) );
+  colorTextureCube.addComponent( new ColorTextureModelComponent().setTexture(Game.loadTexture("/library/projects/webgl/images/metalcrate.png")).setBuffers(colorTextureCubeBuffers) );
   colorTextureCube.addComponent( new RotateComponent().fromEuler(0.04, 0, 0) );
   colorTextureCube.addComponent( new RotateComponent().fromEuler(0, -0.03, 0) );
 

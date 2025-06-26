@@ -65,4 +65,25 @@ function ModelComponent() {
 
     this.buffers.forEach(element => ModelComponent.Shader.unbindBuffer(element));
   }
+
+  this.serialize = async function() {
+    return {
+      "type": "ModelComponent",
+      "buffers": await Promise.all(this.buffers.map(element => element.serialize())),
+    };
+  }
+
+  this.deserialize = function(jsonObject) {
+    if (jsonObject.type !== "ModelComponent") {
+      return;
+    }
+
+    return new Promise((resolve, reject) => {
+      if (!jsonObject.buffers) {
+        reject();
+      }
+      this.setBuffers(jsonObject.buffers.map(element => new Buffer(gl, element.buffer_type, element.gl_array_type, element.buff, element.item_size)));
+      resolve(this);
+    });
+  }
 }

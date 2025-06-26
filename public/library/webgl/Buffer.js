@@ -22,6 +22,31 @@ function Buffer( gl, bufferType, GL_ARRAY_TYPE, arr, itemSize ) {
   this.unbindBuffer = function() {
     gl.bindBuffer( type, null );
   }
+
+  this.getBufferData = function() {
+    var result = null;
+    if (type == gl.ARRAY_BUFFER) {
+      result = new Float32Array(this.numItems * this.itemSize);
+    } else if (type == gl.ELEMENT_ARRAY_BUFFER) {
+      result = new Uint8Array(this.numItems * this.itemSize);
+    } else {
+      throw new Error("Must supply ARRAY_BUFFER or ELEMENT_ARRAY_BUFFER as GL_ARRAY_TYPE");
+    }
+
+    this.bindBuffer();
+    gl.getBufferSubData(type, 0, result);
+    this.unbindBuffer();
+    return result;
+  }
+
+  this.serialize = function() {
+    return {
+      "gl_array_type": type,
+      "buffer_type": this.BufferType,
+      "buff": Array.from(this.getBufferData()),
+      "item_size": this.itemSize,
+    };
+  }
 }
 
 Buffer.INDEX    = 0;

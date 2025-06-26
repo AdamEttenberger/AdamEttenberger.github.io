@@ -22,4 +22,19 @@ function RotateComponent() {
                                    (z ?? 0) * kRadToDegScalar);
     return this;
   }
+
+  this.serialize = async function() {
+    return {
+      "type": "RotateComponent",
+      "rotation": quat.equals(this.rotation, quat.create()) ? undefined : Array.from(this.rotation),
+    };
+  }
+
+  this.deserialize = async function(jsonObject) {
+    if (jsonObject.type !== "RotateComponent") {
+      return;
+    }
+    quat.copy(this.rotation, jsonObject.rotation ?? Quat.create());
+    return this;
+  }
 }
