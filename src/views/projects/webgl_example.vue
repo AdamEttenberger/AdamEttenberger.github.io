@@ -125,6 +125,17 @@ function postMessageToFrame(target_frame, filepath) {
         Something to consider if you're starting a new WebGL project is <ExternalLink to="https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/getContext">HTMLCanvasElement.getContext</ExternalLink> now supports more modern advanced OpenGL APIs like "webgl2" and "webgpu".
         This project originally targeted "webgl" and "experimental-webgl" APIs.
       </p>
+      <br />
+      <p>
+        However a few concepts are worth mention as there's important differences in default behavior between rendering APIs although they may be configurable.
+        This demo relies on WebGL APIs based on OpenGL which uses a "right-handed" coordinate system and counter-clockwise front-face winding, while DirectX uses a "left-handed" coordinate system and clockwise winding.
+        These details are important because the coordinate system affects placement and <ExternalLink to="https://en.wikipedia.org/wiki/Back-face_culling">back-face culling</ExternalLink> affects whether a triangle is drawn.
+      </p>
+      <br />
+      <Figure src="/images/projects/webgl_example/coordinate_system.png"
+              alt="Illustration showing DirectX and OpenGL default coordinate systems." />
+      <Figure src="/images/projects/webgl_example/winding_order.png"
+              alt="Illustration showing DirectX and OpenGL default winding order." />
     </Section>
 
     <Section heading="Building a Scene">
@@ -137,6 +148,7 @@ function postMessageToFrame(target_frame, filepath) {
             text="
         var canvas = document.querySelector('canvas');
         game = new Game(canvas);
+        Game.clearColor = vec4.fromValues( 0.0, 0.0, 0.0, 1.0 );
       " />
       <br />
       <p>
@@ -146,46 +158,70 @@ function postMessageToFrame(target_frame, filepath) {
       <Code lang="javascript"
             caption="Load vertex and index buffers for a cube into WebGL."
             text="
-        var cubeVertexPositionData = [ ... ];
-        var cubeVertexColorData = [ ... ];
-        var cubeVertexIndices = [ ... ];
+          var v1 = vec3.fromValues(0, 1, 0);
+          var v2 = vec3.rotateZ(/*dest=*/vec3.create(),
+                                /*src=*/v1,
+                                /*origin=*/vec3.create(),
+                                /*radians=*/(2/3) * Math.PI);
+          var v3 = vec3.rotateZ(/*dest=*/vec3.create(),
+                                /*src=*/v1,
+                                /*origin=*/vec3.create(),
+                                /*radians=*/-(2/3) * Math.PI);
 
-        var colorCubeBuffers = [
-          new Buffer( gl, Buffer.POSITION, gl.ARRAY_BUFFER, cubeVertexPositionData, 3 ),
-          new Buffer( gl, Buffer.COLOR, gl.ARRAY_BUFFER, cubeVertexColorData, 4 ),
-          new Buffer( gl, Buffer.INDEX, gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndices, 1 )
-        ];
+          var buffers = [
+            new Buffer( gl, Buffer.POSITION, gl.ARRAY_BUFFER,
+              [
+                Array.from(v1),
+                Array.from(v2),
+                Array.from(v3),
+              ].flat(),
+              3),
+            new Buffer( gl, Buffer.COLOR, gl.ARRAY_BUFFER,
+              [
+                1, 0, 0, 1, // red   #FF0000FF
+                0, 1, 0, 1, // green #00FF00FF
+                0, 0, 1, 1, // blue  #0000FFFF
+              ],
+              4),
+            new Buffer( gl, Buffer.INDEX, gl.ELEMENT_ARRAY_BUFFER,
+              [
+                0, 1, 2,
+              ],
+              1),
+          ];
       " />
       <br />
       <p>
-        Then the scene is populated:
+        Then the scene is populated and the camera is setup:
       </p>
       <br />
       <Code lang="javascript"
             caption="Creates a new parent and child GameObject then adds the parent to the scene root."
             text="
-        var cube = new GameObject();
-        cube.addComponent( new ModelComponent().setBuffers( colorCubeBuffers ) );
-        cube.addComponent( new RotateComponent().fromEuler(0.05, 0, 0) );
+        var triangle = new GameObject();
+        triangle.addComponent(new ModelComponent().setBuffers(buffers));
+        triangle.addComponent(new RotateComponent().fromEuler(0, 0, -0.025));
+        game.m_root.addChildGameObject(triangle);
 
-        var container_node = new GameObject();
-        container_node.addChildGameObject( cube );
-
-        game.m_root.addChildGameObject( container_node );
+        // Setup the camera (move the world forward 5 units).
+        mat4.perspective(Game.pMatrix, 45, gl.viewportWidth / gl.viewportHeight, 1.0, 1000.0);
+        mat4.fromTranslation(Game.mMatrix, vec3.fromValues(0.0, 0.0, -5.0));
       " />
       <br />
       <p>
-        Then any globals like the camera position are set, which will later be provided as shader uniform values.
         Finally, the game loop is started and any further updates should be driven by GameObjectComponent logic.
       </p>
       <br />
       <Code lang="javascript"
             caption="Setup the camera and begin the core game loop."
             text="
-        mat4.perspective(Game.pMatrix, 45, gl.viewportWidth / gl.viewportHeight, 1.0, 1000.0);
-        mat4.fromTranslation(Game.mMatrix, vec3.fromValues(0.0, 0.0, -5.0));
         game.start();
       " />
+      <br />
+      <Player title="Hello Triangle"
+              :date="new Date('2025/06/26')"
+              :lastmod="new Date('2025/06/26')"
+              frame="/library/projects/webgl/hello_triangle.html" />
     </Section>
 
     <Section heading="Component Examples">
@@ -199,38 +235,91 @@ function postMessageToFrame(target_frame, filepath) {
         A simple component example is the RotateComponent, which applies an angular velocity to the object's transform each frame:
       </p>
       <br />
-      <Code lang="javascript" file="/library/webgl/RotateComponent.js" />
+      <Details summary="RotateComponent.js">
+        <Code lang="javascript" file="/library/webgl/RotateComponent.js" />
+      </Details>
       <br />
       <p>
-        A more complex example is the ColorTextureModelComponent which creates a ShaderProgram that's used to render itself:
+        A more complex example is the ColorTextureModelComponent which creates a ShaderProgram used to render itself:
       </p>
       <br />
-      <Code lang="javascript" file="/library/webgl/ColorTextureModelComponent.js" />
+      <Details summary="ColorTextureModelComponent.js">
+        <Code lang="javascript" file="/library/webgl/ColorTextureModelComponent.js" />
+      </Details>
     </Section>
 
     <Section heading="Serialization/Deserialization">
       <p>
-        The following demo loads the minimum environment necessary to run the Proto-Engine, then waits until the host page provides a JSON file to present.
-        This scene was created by serializing two demos, the one at the top of this page and the one at the top of the <RouterLink to="/projects/webgl_flocking">WebGL Flocking</RouterLink> project page.
-        I took the export from this page and copied the giant aquarium box from the flocking demo into it.
+        Scenes or individual GameObjects can be serialized and deserialized, which enables support for saving and loading levels or prefab objects.
       </p>
       <br />
-      <Code lang="javascript" file="/library/projects/webgl/project_loader.js" />
+      <p>
+        For example, the "Hello Triangle" scene has been exported as the following JSON file:
+      </p>
       <br />
-      <Player title="JSON Deserialization"
+      <Details summary="hello_triangle.json">
+        <Code file="/library/webgl/scenes/hello_triangle.json" />
+      </Details>
+      <br />
+      <p>
+        The JSON may be loaded into the Proto-Engine, for example with this minimal project loader:
+      </p>
+      <br />
+      <Details summary="project_loader.js">
+        <Code lang="javascript" file="/library/projects/webgl/project_loader.js" />
+      </Details>
+      <br />
+      <Player title="hello_triangle.json"
+              :date="new Date('2025/06/26')"
+              :lastmod="new Date('2025/06/26')"
+              frame="/library/projects/webgl/project_loader.html"
+              @load="(e) => onPlayerLoaded(e, '/library/webgl/scenes/hello_triangle.json')" />
+      <br />
+      <p>
+        The following demo loads a more complicated scene composed of parts from the demos at the top of the page and the <RouterLink to="/projects/webgl_flocking">WebGL Flocking</RouterLink> project page which can be found here: <ExternalLink to="/library/webgl/scenes/deserialization_example.json">deserialization_example.json</ExternalLink>.
+        The scene's composed of serialized output from the the demo at the top of this page and giant cube from the <RouterLink to="/projects/webgl_flocking">WebGL Flocking</RouterLink> project page.
+        This also includes binary data such as models and textures which are output as a JSON array and base64 encoded string respectively.
+        While JSON isn't the most space efficient file format, this does make it possible to deploy a game or demo with a single self-contained JSON file.
+        JSON is very flexible for prototyping and very easy to work with in JavaScript.
+      </p>
+      <br />
+      <Player title="deserialization_example.json"
               :date="new Date('2025/06/25')"
               :lastmod="new Date('2025/06/25')"
               frame="/library/projects/webgl/project_loader.html"
               @load="(e) => onPlayerLoaded(e, '/library/webgl/scenes/deserialization_example.json')" />
       <br />
       <p>
-        The JSON scene file for this demo above can be found here:
-        <ExternalLink to="/library/webgl/scenes/deserialization_example.json">deserialization_example.json</ExternalLink>
+        Serialization and deserialization are handled asynchronously, and JavaScript Promises make it easy to schedule parallel and order dependent tasks together.
+        One challenge that came up involved serialization being called before a scene was fully loaded, since models and textures are bundled into the output.
+        If a resource wasn't ready the serialization would fail, causing part of the scene tree to be pruned.
+        However the fix was simple, the only change needed was to `await` the resource loader during serialization.
+        This allows other serialization tasks to continue asynchronously while resource dependent tasks are blocked until they're ready.
       </p>
       <br />
-      <p>
-        While JSON isn't the most space efficient file format for this type of content, it is very flexible for prototyping and very easy to work with in JavaScript.
-      </p>
+      <Code lang="javascript"
+            caption="Texture serialization seamlessly waits until the texture is ready without blocking other tasks."
+            text="
+        // Game.js
+        Game.serializeTexture = async function(texture) {
+          await texture.loader;
+          const canvas = document.createElement('canvas');
+          canvas.width = texture.image.width;
+          canvas.height = texture.image.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(texture.image, 0, 0);
+          return canvas.toDataURL('image/png', 1.0);
+        }
+
+        // TextureModelComponent.js
+        this.serialize = async function() {
+          return {
+            'type': 'TextureModelComponent',
+            'texture': await Game.serializeTexture(this.texture),
+            'buffers': await Promise.all(this.buffers.map(element => element.serialize())),
+          };
+        }
+      " />
       <br />
       <Code lang="javascript"
             caption="High-level deserialization logic."
@@ -255,37 +344,6 @@ function postMessageToFrame(target_frame, filepath) {
                 ? resolve(await new TComponent().deserialize(jsonComponent))
                 : reject();
           });
-        }
-      " />
-      <br />
-      <p>
-        Serialization and deserialization are handled asynchronously, JavaScript Promises make it easy to schedule parallel and order dependent tasks together.
-        For instance, the initial implementation bundles texture and model data into the JSON file, making it possible to deploy an entire scene in a game through a single self-contained file.
-        Because of this detail, if resources aren't ready in time for serialization it fails.
-        However, with Promises it was simple to add a bit of logic that waited asynchronously for the resources to be ready before continuing with a particular component while not blocking other serialization tasks.
-      </p>
-      <br />
-      <Code lang="javascript"
-            caption="Texture serialization waits seamlessly until the texture is ready."
-            text="
-        // Game.js
-        Game.serializeTexture = async function(texture) {
-          await texture.loader;
-          const canvas = document.createElement('canvas');
-          canvas.width = texture.image.width;
-          canvas.height = texture.image.height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(texture.image, 0, 0);
-          return canvas.toDataURL('image/png', 1.0);
-        }
-
-        // TextureModelComponent.js
-        this.serialize = async function() {
-          return {
-            'type': 'TextureModelComponent',
-            'texture': await Game.serializeTexture(this.texture),
-            'buffers': await Promise.all(this.buffers.map(element => element.serialize())),
-          };
         }
       " />
     </Section>
