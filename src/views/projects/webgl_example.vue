@@ -195,14 +195,22 @@ function postMessageToFrame(target_frame, filepath) {
       <br />
       <Code lang="javascript" file="/library/webgl/GameObjectComponent.js" />
       <br />
+      <p>
+        A simple component example is the RotateComponent, which applies an angular velocity to the object's transform each frame:
+      </p>
+      <br />
       <Code lang="javascript" file="/library/webgl/RotateComponent.js" />
+      <br />
+      <p>
+        A more complex example is the ColorTextureModelComponent which creates a ShaderProgram that's used to render itself:
+      </p>
       <br />
       <Code lang="javascript" file="/library/webgl/ColorTextureModelComponent.js" />
     </Section>
 
     <Section heading="Serialization/Deserialization">
       <p>
-        The following demo frame loads the minimum environment necessary to run the Proto-Engine, then waits until the host page provides a JSON file to present.
+        The following demo loads the minimum environment necessary to run the Proto-Engine, then waits until the host page provides a JSON file to present.
         This scene was created by serializing two demos, the one at the top of this page and the one at the top of the <RouterLink to="/projects/webgl_flocking">WebGL Flocking</RouterLink> project page.
         I took the export from this page and copied the giant aquarium box from the flocking demo into it.
       </p>
