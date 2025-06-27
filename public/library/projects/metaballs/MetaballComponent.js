@@ -44,8 +44,8 @@ function MetaballComponent( run_mode )
       {
         MetaballComponent.TextureShader = new ShaderProgram( );
         var loader = Promise.all([
-          MetaballComponent.TextureShader.attachShader( "/library/webgl/shaders/texture-vs.c", gl.VERTEX_SHADER ),
-          MetaballComponent.TextureShader.attachShader( "/library/webgl/shaders/texture-fs.c", gl.FRAGMENT_SHADER ),
+          MetaballComponent.TextureShader.attachShader( "/library/proto_engine/shaders/texture-vs.c", gl.VERTEX_SHADER ),
+          MetaballComponent.TextureShader.attachShader( "/library/proto_engine/shaders/texture-fs.c", gl.FRAGMENT_SHADER ),
         ])
         .then(() => {
           MetaballComponent.TextureShader.linkProgram( );

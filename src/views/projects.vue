@@ -58,8 +58,8 @@ import ProjectCard from '@/components/project_card.vue'
   </ProjectCard>
 
   <ProjectCard title="WebGL Proto-Engine"
-               image="/images/projects/webgl-example.png"
-               route="/projects/webgl_example"
+               image="/images/projects/proto_engine.png"
+               route="/projects/webgl_proto_engine"
                :date="new Date('2012/09/01')"
                :lastmod="new Date('2025/06/26')">
     <p>

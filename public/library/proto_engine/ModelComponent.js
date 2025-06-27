@@ -15,8 +15,8 @@ function ModelComponent() {
   if (gl && !ModelComponent.Shader) {
     ModelComponent.Shader = new ShaderProgram( );
     Promise.all([
-      ModelComponent.Shader.attachShader( "/library/webgl/shaders/color-vs.c", gl.VERTEX_SHADER ),
-      ModelComponent.Shader.attachShader( "/library/webgl/shaders/color-fs.c", gl.FRAGMENT_SHADER ),
+      ModelComponent.Shader.attachShader( "/library/proto_engine/shaders/color-vs.c", gl.VERTEX_SHADER ),
+      ModelComponent.Shader.attachShader( "/library/proto_engine/shaders/color-fs.c", gl.FRAGMENT_SHADER ),
     ])
     .then(() => {
       ModelComponent.Shader.linkProgram( );

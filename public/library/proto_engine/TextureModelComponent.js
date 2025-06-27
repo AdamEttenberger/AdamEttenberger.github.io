@@ -18,8 +18,8 @@ function TextureModelComponent() {
   {
     TextureModelComponent.Shader = new ShaderProgram( );
     Promise.all([
-      TextureModelComponent.Shader.attachShader( "/library/webgl/shaders/texture-vs.c", gl.VERTEX_SHADER ),
-      TextureModelComponent.Shader.attachShader( "/library/webgl/shaders/texture-fs.c", gl.FRAGMENT_SHADER ),
+      TextureModelComponent.Shader.attachShader( "/library/proto_engine/shaders/texture-vs.c", gl.VERTEX_SHADER ),
+      TextureModelComponent.Shader.attachShader( "/library/proto_engine/shaders/texture-fs.c", gl.FRAGMENT_SHADER ),
     ])
     .then(() => {
       TextureModelComponent.Shader.linkProgram( );

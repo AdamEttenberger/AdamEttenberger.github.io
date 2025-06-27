@@ -17,8 +17,8 @@ function ColorTextureModelComponent() {
   if (gl && !ColorTextureModelComponent.Shader) {
     ColorTextureModelComponent.Shader = new ShaderProgram( );
     Promise.all([
-      ColorTextureModelComponent.Shader.attachShader( "/library/webgl/shaders/color-texture-vs.c", gl.VERTEX_SHADER ),
-      ColorTextureModelComponent.Shader.attachShader( "/library/webgl/shaders/color-texture-fs.c", gl.FRAGMENT_SHADER ),
+      ColorTextureModelComponent.Shader.attachShader( "/library/proto_engine/shaders/color-texture-vs.c", gl.VERTEX_SHADER ),
+      ColorTextureModelComponent.Shader.attachShader( "/library/proto_engine/shaders/color-texture-fs.c", gl.FRAGMENT_SHADER ),
     ])
     .then(() => {
       ColorTextureModelComponent.Shader.linkProgram( );
