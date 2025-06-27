@@ -144,7 +144,7 @@ function FlockerComponent( )
     quat.normalize( this.m_gameObject.m_transform.rotation, q );
   }
 
-  this.update = function()
+  this.update = function(dt)
   {
     var f = this.calcSteeringForce( );
     this.clampSteeringForce( f );
