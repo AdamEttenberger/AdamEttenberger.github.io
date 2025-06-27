@@ -173,7 +173,7 @@ function initScene()
   //
   game.m_managers.push( FlockManager.Instance() );
 
-  game.m_root.addComponent( new RotateComponent().fromEuler(0, 0.005, 0 ) );
+  game.m_root.addComponent( new RotateComponent().fromEuler(0, 15, 0 ) );
 
   var cube = new GameObject();
   vec3.multiply( cube.m_transform.scale, cube.m_transform.scale, vec3.fromValues( 65, 65, 65 ) )

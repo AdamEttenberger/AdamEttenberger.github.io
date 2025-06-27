@@ -9,7 +9,7 @@ function FlockManager()
 
   this.m_members = new Array();
   this.draw = function(gl) { /* Draw Code */ }
-  this.update = function() { /* Update Code */ }
+  this.update = function(dt) { /* Update Code */ }
 
   this.serialize = async function() {
     return {"type": "FlockManager"};
