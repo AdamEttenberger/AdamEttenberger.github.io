@@ -37,7 +37,6 @@ const requested_play = ref(false);
 .player {
   display: flex;
   flex-direction: column;
-  user-select: none;
 }
 
 .responsive-frame {
@@ -88,5 +87,9 @@ iframe.renderer {
    * black background, or weren't setup correctly.
    */
   background-color: black;
+  /**
+   * Prevent selecting the canvas frame.
+   */
+  user-select: none;
 }
 </style>
