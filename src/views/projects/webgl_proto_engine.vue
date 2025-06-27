@@ -306,8 +306,7 @@ function postMessageToFrame(target_frame, filepath) {
               @load="(e) => onPlayerLoaded(e, '/library/proto_engine/scenes/hello_triangle.json')" />
       <br />
       <p>
-        The following demo loads a more complicated scene composed of parts from the demos at the top of the page and the <RouterLink to="/projects/webgl_flocking">WebGL Flocking</RouterLink> project page which can be found here: <ExternalLink to="/library/proto_engine/scenes/deserialization_example.json">deserialization_example.json</ExternalLink>.
-        The scene's composed of serialized output from the the demo at the top of this page and giant cube from the <RouterLink to="/projects/webgl_flocking">WebGL Flocking</RouterLink> project page.
+        The following demo loads <ExternalLink to="/library/proto_engine/scenes/deserialization_example.json">deserialization_example.json</ExternalLink> which is a scene composed of parts from the demo at the top of the page and the giant textured cube from the <RouterLink to="/projects/webgl_flocking">WebGL Flocking</RouterLink> project page.
         This also includes binary data such as models and textures which are output as a JSON array and base64 encoded string respectively.
         While JSON isn't the most space efficient file format, this does make it possible to deploy a game or demo with a single self-contained JSON file.
         JSON is very flexible for prototyping and very easy to work with in JavaScript.
