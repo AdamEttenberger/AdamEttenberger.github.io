@@ -119,23 +119,50 @@ function postMessageToFrame(target_frame, filepath) {
 
     <Section heading="WebGL Tutorial?">
       <p>
-        This isn't a WebGL tutorial, instead for a deeper dive I encourage checking out the excellent MDN <ExternalLink to="https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API">WebGL API documentation</ExternalLink> and <ExternalLink to="https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial">WebGL tutorial</ExternalLink> for modern best practices.
+        This isn't a WebGL tutorial.
+        For a deeper dive I encourage checking out the excellent MDN <ExternalLink to="https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API">WebGL API documentation</ExternalLink> and <ExternalLink to="https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial">WebGL tutorial</ExternalLink> for modern best practices.
         Also check out <ExternalLink to="https://learnopengl.com/">https://learnopengl.com/</ExternalLink> which is a great primer for OpenGL and rendering concepts.
         Keep in mind that this project is fairly old and was quickly thrown together.
         Something to consider if you're starting a new WebGL project is <ExternalLink to="https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/getContext">HTMLCanvasElement.getContext</ExternalLink> now supports more modern advanced OpenGL APIs like "webgl2" and "webgpu".
         This project originally targeted "webgl" and "experimental-webgl" APIs.
       </p>
+    </Section>
+    <Section heading="Important API Differences">
+      <p>
+        There are a few concepts I want to briefly mention, as rendering APIs can differ significantly in their default behavior, even if that behavior is configurable.
+        This demo relies on WebGL APIs which are based on OpenGL.
+      </p>
       <br />
       <p>
-        However a few concepts are worth mention as there's important differences in default behavior between rendering APIs although they may be configurable.
-        This demo relies on WebGL APIs based on OpenGL which uses a "right-handed" coordinate system and counter-clockwise front-face winding, while DirectX uses a "left-handed" coordinate system and clockwise winding.
-        These details are important because the coordinate system affects placement and <ExternalLink to="https://en.wikipedia.org/wiki/Back-face_culling">back-face culling</ExternalLink> affects whether a triangle is drawn.
+        OpenGL uses a "right-handed" coordinate system while DirectX uses a "left-handed" coordinate system.
+        The main differences are the z-axis is inverted and rotations other than the z-axis are opposite one another.
+        In OpenGL the forward (into the screen) vector is +z and DirectX forward is -z.
+        With rotation the "rule of thumb" is to point your thumb (based on the coordinate system "handed-ness") along a positive-axis and positive-rotation turns the direction your fingers curl when making a fist.
+        Since the z-axis is inverted, rotation around the positive z-axis is the same direction for both systems.
       </p>
       <br />
       <Figure src="/images/projects/webgl_example/coordinate_system.png"
               alt="Illustration showing DirectX and OpenGL default coordinate systems." />
+      <br />
+      <p>
+        Texture coordinates are also inverted along the y-axis.
+        In OpenGL the UV origin is the bottom-left corner while in DirectX the UV origin is the top-left corner.
+      </p>
+      <br />
+      <Figure src="/images/projects/webgl_example/uv_coordinate_system.png"
+              alt="Illustration showing DirectX and OpenGL default UV coordinate systems." />
+      <br />
+      <p>
+        When considering <ExternalLink to="https://en.wikipedia.org/wiki/Back-face_culling">back-face culling</ExternalLink> the windings are opposite as well.
+        By default OpenGL uses a counter-clockwise front-face winding while DirectX uses a clockwise front-face winding.
+      </p>
+      <br />
       <Figure src="/images/projects/webgl_example/winding_order.png"
               alt="Illustration showing DirectX and OpenGL default winding order." />
+      <br />
+      <p>
+        Keep in mind this is just the tip of the iceberg; a few important high-level differences that can be confusing when first getting started with rendering.
+      </p>
     </Section>
 
     <Section heading="Building a Scene">
