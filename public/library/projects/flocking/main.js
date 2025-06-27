@@ -1,4 +1,5 @@
 window.addEventListener("load", main, true);
+window.addEventListener("message", handleMessage);
 
 var game;
 var shaderProgram;
@@ -150,4 +151,37 @@ function initScene()
   game.m_root.addChildGameObject( cube );
 
   FlockManager.Instance().spawn(150);
+}
+
+function handleMessage( event ) {
+  if (event.origin !== window.location.origin) {
+    return;
+  }
+  if (event.data.reload || event.data.count) {
+    var old_count = FlockManager.Instance().count();
+    var new_count = event.data.count ?? old_count;
+    FlockManager.Instance().despawn(event.data.reload ? old_count : old_count - new_count);
+    FlockManager.Instance().spawn(new_count - FlockManager.Instance().count());
+  }
+  if (event.data.speed) {
+    FlockerComponent.maxSpeed = event.data.speed;
+  }
+  if (event.data.force) {
+    FlockerComponent.maxForce = event.data.force;
+  }
+  if (event.data.alignment) {
+    FlockerComponent.alignmentScale = event.data.alignment;
+  }
+  if (event.data.cohesion) {
+    FlockerComponent.cohesionScale = event.data.cohesion;
+  }
+  if (event.data.separation) {
+    FlockerComponent.separationScale = event.data.separation;
+  }
+  if (event.data.sight_radius) {
+    FlockerComponent.sightRadius = event.data.sight_radius;
+  }
+  if (event.data.separation_radius) {
+    FlockerComponent.separationRadius = event.data.separation_radius;
+  }
 }

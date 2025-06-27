@@ -5,10 +5,10 @@ defineProps({
   properties: { type: Object, required: true },
 });
 
-/**
- * Emits `name: String, new_value: any`
- */
-const emit = defineEmits(['property-changed']);
+const emit = defineEmits([
+  'property-changed', // (name: String, new_value: any)
+  'property-click',   // (name: String)
+]);
 
 function onPropertyChanged(name, new_value) {
   emit('property-changed', name, new_value);
@@ -23,7 +23,8 @@ function onPropertyChanged(name, new_value) {
                  :type="value.type"
                  :options="value.options"
                  v-model="value.model"
-                 @property-changed="onPropertyChanged" />
+                 @property-changed="onPropertyChanged"
+                 @property-click="$emit('property-click', key)" />
   </div>
 </template>
 
