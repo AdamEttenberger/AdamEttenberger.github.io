@@ -85,18 +85,17 @@ function FlockerComponent( )
   {
     var f = vec3.create( );
 
-    for(i in FlockManager.Instance().m_members)
-    {
-      if ( FlockManager.Instance().m_members[i] !== this.m_gameObject )
-      {
-        var dist = vec3.dist( this.m_gameObject.m_transform.position, FlockManager.Instance().m_members[i].m_transform.position );
-        if ( dist <= FlockerComponent.sightRadius )
-        {
-          this.closeFlockersArray.push( FlockManager.Instance().m_members[i] );
-          this.distanceArray.push( dist );
-        }
+    FlockManager.Instance().forEach(member => {
+      if (member === this.m_gameObject) {
+        return;
       }
-    }
+
+      var dist = vec3.dist( this.m_gameObject.m_transform.position, member.m_transform.position );
+      if ( dist <= FlockerComponent.sightRadius ) {
+        this.closeFlockersArray.push(member);
+        this.distanceArray.push(dist);
+      }
+    });
 
     vec3.add( f, f, vec3.scale( vec3.create(), this.alignment( ), FlockerComponent.alignmentScale ) );
     vec3.add( f, f, vec3.scale( vec3.create(), this.cohesion( ), FlockerComponent.cohesionScale ) );
