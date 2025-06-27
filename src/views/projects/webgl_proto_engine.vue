@@ -111,9 +111,9 @@ function postMessageToFrame(target_frame, filepath) {
         </li>
       </ul>
       <br />
-      <Figure src="/images/projects/webgl_example/architecture.png"
+      <Figure src="/images/projects/webgl_proto_engine/architecture.png"
               alt="UML-like class relationship diagram." />
-      <Figure src="/images/projects/webgl_example/scene.png"
+      <Figure src="/images/projects/webgl_proto_engine/scene.png"
               alt="Scene hierarchy, the Game has 2 children, a triangular prism model and invisible pivot. The invisible pivot has 3 children, the colored, skinned, and colored + skinned cube models. All GameObject instances have a Transform and RotateComponent." />
     </Section>
 
@@ -141,7 +141,7 @@ function postMessageToFrame(target_frame, filepath) {
         Since the z-axis is inverted, rotation around the positive z-axis is the same direction for both systems.
       </p>
       <br />
-      <Figure src="/images/projects/webgl_example/coordinate_system.png"
+      <Figure src="/images/projects/webgl_proto_engine/coordinate_system.png"
               alt="Illustration showing DirectX and OpenGL default coordinate systems." />
       <br />
       <p>
@@ -149,7 +149,7 @@ function postMessageToFrame(target_frame, filepath) {
         In OpenGL the UV origin is the bottom-left corner while in DirectX the UV origin is the top-left corner.
       </p>
       <br />
-      <Figure src="/images/projects/webgl_example/uv_coordinate_system.png"
+      <Figure src="/images/projects/webgl_proto_engine/uv_coordinate_system.png"
               alt="Illustration showing DirectX and OpenGL default UV coordinate systems." />
       <br />
       <p>
@@ -157,7 +157,7 @@ function postMessageToFrame(target_frame, filepath) {
         By default OpenGL uses a counter-clockwise front-face winding while DirectX uses a clockwise front-face winding.
       </p>
       <br />
-      <Figure src="/images/projects/webgl_example/winding_order.png"
+      <Figure src="/images/projects/webgl_proto_engine/winding_order.png"
               alt="Illustration showing DirectX and OpenGL default winding order." />
       <br />
       <p>
@@ -251,7 +251,7 @@ function postMessageToFrame(target_frame, filepath) {
       <Player title="Hello Triangle"
               :date="new Date('2025/06/26')"
               :lastmod="new Date('2025/06/26')"
-              frame="/library/projects/webgl/hello_triangle.html" />
+              frame="/library/projects/proto_engine/hello_triangle.html" />
     </Section>
 
     <Section heading="Component Examples">
@@ -259,14 +259,14 @@ function postMessageToFrame(target_frame, filepath) {
         All components implement the same interface, GameObjectComponent, which contains an update and draw method which are called by the Game instance.
       </p>
       <br />
-      <Code lang="javascript" file="/library/webgl/GameObjectComponent.js" />
+      <Code lang="javascript" file="/library/proto_engine/GameObjectComponent.js" />
       <br />
       <p>
         A simple component example is the RotateComponent, which applies an angular velocity to the object's transform each frame:
       </p>
       <br />
       <Details summary="RotateComponent.js">
-        <Code lang="javascript" file="/library/webgl/RotateComponent.js" />
+        <Code lang="javascript" file="/library/proto_engine/RotateComponent.js" />
       </Details>
       <br />
       <p>
@@ -274,7 +274,7 @@ function postMessageToFrame(target_frame, filepath) {
       </p>
       <br />
       <Details summary="ColorTextureModelComponent.js">
-        <Code lang="javascript" file="/library/webgl/ColorTextureModelComponent.js" />
+        <Code lang="javascript" file="/library/proto_engine/ColorTextureModelComponent.js" />
       </Details>
     </Section>
 
@@ -288,7 +288,7 @@ function postMessageToFrame(target_frame, filepath) {
       </p>
       <br />
       <Details summary="hello_triangle.json">
-        <Code file="/library/webgl/scenes/hello_triangle.json" />
+        <Code file="/library/proto_engine/scenes/hello_triangle.json" />
       </Details>
       <br />
       <p>
@@ -296,17 +296,17 @@ function postMessageToFrame(target_frame, filepath) {
       </p>
       <br />
       <Details summary="project_loader.js">
-        <Code lang="javascript" file="/library/projects/webgl/project_loader.js" />
+        <Code lang="javascript" file="/library/projects/proto_engine/project_loader.js" />
       </Details>
       <br />
       <Player title="hello_triangle.json"
               :date="new Date('2025/06/26')"
               :lastmod="new Date('2025/06/26')"
-              frame="/library/projects/webgl/project_loader.html"
-              @load="(e) => onPlayerLoaded(e, '/library/webgl/scenes/hello_triangle.json')" />
+              frame="/library/projects/proto_engine/project_loader.html"
+              @load="(e) => onPlayerLoaded(e, '/library/proto_engine/scenes/hello_triangle.json')" />
       <br />
       <p>
-        The following demo loads a more complicated scene composed of parts from the demos at the top of the page and the <RouterLink to="/projects/webgl_flocking">WebGL Flocking</RouterLink> project page which can be found here: <ExternalLink to="/library/webgl/scenes/deserialization_example.json">deserialization_example.json</ExternalLink>.
+        The following demo loads a more complicated scene composed of parts from the demos at the top of the page and the <RouterLink to="/projects/webgl_flocking">WebGL Flocking</RouterLink> project page which can be found here: <ExternalLink to="/library/proto_engine/scenes/deserialization_example.json">deserialization_example.json</ExternalLink>.
         The scene's composed of serialized output from the the demo at the top of this page and giant cube from the <RouterLink to="/projects/webgl_flocking">WebGL Flocking</RouterLink> project page.
         This also includes binary data such as models and textures which are output as a JSON array and base64 encoded string respectively.
         While JSON isn't the most space efficient file format, this does make it possible to deploy a game or demo with a single self-contained JSON file.
@@ -316,8 +316,8 @@ function postMessageToFrame(target_frame, filepath) {
       <Player title="deserialization_example.json"
               :date="new Date('2025/06/25')"
               :lastmod="new Date('2025/06/25')"
-              frame="/library/projects/webgl/project_loader.html"
-              @load="(e) => onPlayerLoaded(e, '/library/webgl/scenes/deserialization_example.json')" />
+              frame="/library/projects/proto_engine/project_loader.html"
+              @load="(e) => onPlayerLoaded(e, '/library/proto_engine/scenes/deserialization_example.json')" />
       <br />
       <p>
         Serialization and deserialization are handled asynchronously, and JavaScript Promises make it easy to schedule parallel and order dependent tasks together.
