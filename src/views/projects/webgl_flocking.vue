@@ -31,44 +31,56 @@ const editorProperties = ref({
   speed: {
     label: "Max Speed",
     type: "range",
-    model: 40,
+    model: 12,
     options: {min_value: 1, max_value: 100, step_value: 1},
   },
   force: {
     label: "Max Steer Force",
     type: "range",
-    model: 5,
-    options: {min_value: 1, max_value: 10, step_value: 1},
-  },
-  cohesion: {
-    label: "Cohesion",
-    type: "range",
-    model: 0.5,
-    options: {min_value: 0, max_value: 1, step_value: 0.1},
-  },
-  separation: {
-    label: "Separation",
-    type: "range",
-    model: 0.75,
-    options: {min_value: 0, max_value: 1, step_value: 0.1},
+    model: 20,
+    options: {min_value: 10, max_value: 30, step_value: 1},
   },
   alignment: {
     label: "Alignment",
     type: "range",
-    model: 1.0,
-    options: {min_value: 0, max_value: 1, step_value: 0.1},
+    model: 9.0,
+    options: {min_value: 0, max_value: 20, step_value: 1},
+  },
+  separation: {
+    label: "Separation",
+    type: "range",
+    model: 15.0,
+    options: {min_value: 0, max_value: 20, step_value: 1},
+  },
+  cohesion: {
+    label: "Cohesion",
+    type: "range",
+    model: 7.0,
+    options: {min_value: 0, max_value: 20, step_value: 1},
+  },
+  containment: {
+    label: "Containment",
+    type: "range",
+    model: 100.0,
+    options: {min_value: 0, max_value: 100, step_value: 1},
   },
   sight_radius: {
     label: "Sight Radius",
     type: "range",
-    model: 20.0,
-    options: {min_value: 0, max_value: 35, step_value: 0.1},
+    model: 8.0,
+    options: {min_value: 0, max_value: 35, step_value: 1},
   },
   separation_radius: {
     label: "Separation Radius",
     type: "range",
-    model: 10.0,
-    options: {min_value: 0, max_value: 35, step_value: 0.1},
+    model: 3.0,
+    options: {min_value: 0, max_value: 35, step_value: 1},
+  },
+  containment_radius: {
+    label: "Containment Radius",
+    type: "range",
+    model: 30.0,
+    options: {min_value: 0, max_value: 35, step_value: 1},
   },
 });
 
@@ -84,11 +96,13 @@ function postMessageToFrame(target_frame) {
     count: editorProperties.value.count.model,
     speed: editorProperties.value.speed.model,
     force: editorProperties.value.force.model,
-    cohesion: editorProperties.value.cohesion.model,
-    separation: editorProperties.value.separation.model,
     alignment: editorProperties.value.alignment.model,
+    separation: editorProperties.value.separation.model,
+    cohesion: editorProperties.value.cohesion.model,
+    containment: editorProperties.value.containment.model,
     sight_radius: editorProperties.value.sight_radius.model,
     separation_radius: editorProperties.value.separation_radius.model,
+    containment_radius: editorProperties.value.containment_radius.model,
   }, window.location.origin);
   needs_reload.value = false;
 }
