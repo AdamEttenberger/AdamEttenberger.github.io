@@ -2,8 +2,6 @@ window.addEventListener("load", main, true);
 window.addEventListener("message", handleMessage);
 
 var game;
-var shaderProgram;
-var buffers = new Array();
 
 function main()
 {
@@ -163,25 +161,31 @@ function handleMessage( event ) {
     FlockManager.Instance().despawn(event.data.reload ? old_count : old_count - new_count);
     FlockManager.Instance().spawn(new_count - FlockManager.Instance().count());
   }
-  if (event.data.speed) {
+  if (event.data.speed !== undefined) {
     FlockerComponent.maxSpeed = event.data.speed;
   }
-  if (event.data.force) {
+  if (event.data.force !== undefined) {
     FlockerComponent.maxForce = event.data.force;
   }
-  if (event.data.alignment) {
+  if (event.data.alignment !== undefined) {
     FlockerComponent.alignmentScale = event.data.alignment;
   }
-  if (event.data.cohesion) {
-    FlockerComponent.cohesionScale = event.data.cohesion;
-  }
-  if (event.data.separation) {
+  if (event.data.separation !== undefined) {
     FlockerComponent.separationScale = event.data.separation;
   }
-  if (event.data.sight_radius) {
+  if (event.data.cohesion !== undefined) {
+    FlockerComponent.cohesionScale = event.data.cohesion;
+  }
+  if (event.data.containment !== undefined) {
+    FlockerComponent.containmentScale = event.data.containment;
+  }
+  if (event.data.sight_radius !== undefined) {
     FlockerComponent.sightRadius = event.data.sight_radius;
   }
-  if (event.data.separation_radius) {
+  if (event.data.separation_radius !== undefined) {
     FlockerComponent.separationRadius = event.data.separation_radius;
+  }
+  if (event.data.containment_radius !== undefined) {
+    FlockerComponent.containmentRadius = event.data.containment_radius;
   }
 }

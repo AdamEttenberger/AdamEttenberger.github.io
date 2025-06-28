@@ -51,10 +51,18 @@ function FlockManager()
   this.spawn = function(count = 1) {
     for (var i = 0; i < count; ++i) {
       var tri = new GameObject();
-      var v = vec3.fromValues((Math.random()*50)-25, (Math.random()*50)-25, (Math.random()*50)-25);
-      var v = vec3.normalize(v, v);
-      vec3.scale(v, v, 25);
-      vec3.add(tri.m_transform.position, tri.m_transform.position, v);
+
+      var _rand_quaternion = () => {
+        var q1 = quat.setAxisAngle(quat.create(), FlockerComponent.axis_forward(), Math.random()*2*Math.PI);
+        var q2 = quat.setAxisAngle(quat.create(), vec3.fromValues(1, 0, 0), Math.random()*2*Math.PI);
+        var result = quat.multiply(quat.create(), q1, q2);
+        return quat.normalize(result, result);
+      };
+
+      tri.m_transform.rotation = _rand_quaternion();
+      vec3.transformQuat(tri.m_transform.position, FlockerComponent.axis_forward(), _rand_quaternion());
+      vec3.scale(tri.m_transform.position, tri.m_transform.position, 20.0);
+
       tri.m_transform.scale = vec3.fromValues(1.5, 1.5, 1.5);
       tri.addComponent(new TextureModelComponent().setTexture(Game.loadTexture("/library/projects/flocking/images/ship.png")).setBuffers(triBuffers));
       tri.addComponent(new FlockerComponent());
