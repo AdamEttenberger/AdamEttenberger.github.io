@@ -136,7 +136,7 @@ function postMessageToFrame(target_frame, filepath) {
       <p>
         OpenGL uses a "right-handed" coordinate system while DirectX uses a "left-handed" coordinate system.
         The main differences are the z-axis is inverted and rotations other than the z-axis are opposite one another.
-        In OpenGL the forward (into the screen) vector is +z and DirectX forward is -z.
+        In OpenGL the forward (into the screen) vector is (-z) and DirectX forward is (+z).
         With rotation the "rule of thumb" is to point your thumb (based on the coordinate system "handed-ness") along a positive-axis and positive-rotation turns the direction your fingers curl when making a fist.
         Since the z-axis is inverted, rotation around the positive z-axis is the same direction for both systems.
       </p>
