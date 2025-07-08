@@ -56,7 +56,7 @@ const routes = [
     props: {
       title: "WebGL Flocking",
       date: new Date('2012/10/05'),
-      lastmod: new Date('2012/10/05'),
+      lastmod: new Date('2025/07/07'),
       frame: "/library/projects/flocking/main.html",
     },
   },
