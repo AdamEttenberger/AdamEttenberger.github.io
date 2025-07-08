@@ -1,8 +1,7 @@
 window.addEventListener("load", main, true);
+window.addEventListener("message", handleMessage);
 
 var game;
-var shaderProgram;
-var buffers = new Array();
 
 function main()
 {
@@ -138,61 +137,55 @@ function initScene()
   ];
 
   //
-
-  var triVertices = [
-    0.0,  0.5,  0.0,
-    -0.5,  -0.5,  -0.5,
-    -0.5,  -0.5,  0.5,
-    0.5,  -0.5,  0.5,
-    0.5,  -0.5,  -0.5
-  ];
-
-  var triUV = [
-    0.5, 0.5,
-    0.0, 0.0,
-    1.0, 0.0,
-    1.0, 1.0,
-    0.0, 1.0
-    ];
-
-  var triIndices = [
-    0, 1, 2,
-    0, 2, 3,
-    0, 3, 4,
-    0, 4, 1,
-    3, 2, 1,
-    1, 4, 3
-    ];
-
-  var triBuffers = [
-    new Buffer( gl, Buffer.POSITION, gl.ARRAY_BUFFER, triVertices, 3 ),
-    new Buffer( gl, Buffer.TEXTURE, gl.ARRAY_BUFFER, triUV, 2 ),
-    new Buffer( gl, Buffer.INDEX, gl.ELEMENT_ARRAY_BUFFER, triIndices, 1 ),
-  ];
-
-  //
   game.m_managers.push( FlockManager.Instance() );
 
-  game.m_root.addComponent( new RotateComponent().fromEuler(0, 0.005, 0 ) );
+  game.m_root.addComponent( new RotateComponent().fromEuler(0, 15, 0 ) );
 
   var cube = new GameObject();
   vec3.multiply( cube.m_transform.scale, cube.m_transform.scale, vec3.fromValues( 65, 65, 65 ) )
   vec3.add( cube.m_transform.position, cube.m_transform.position, [ 0, 0, 0 ] );
   cube.addComponent( new TextureModelComponent().setTexture(Game.loadTexture("/library/projects/flocking/images/glass.png")).setBuffers(cubeBuffers) );
 
-  for(var i = 0; i < 150; i++)
-  {
-    var tri = new GameObject();
-    var v = vec3.fromValues( (Math.random()*50)-25, (Math.random()*50)-25, (Math.random()*50)-25 );
-    var v = vec3.normalize( v, v );
-    vec3.scale( v, v, 25 );
-    vec3.add( tri.m_transform.position, tri.m_transform.position, v );
-    tri.m_transform.scale = vec3.fromValues(1.5, 1.5, 1.5);
-    tri.addComponent( new TextureModelComponent().setTexture(Game.loadTexture("/library/projects/flocking/images/ship.png")).setBuffers(triBuffers) );
-    tri.addComponent( new FlockerComponent( ) );
-    FlockManager.Instance().m_members.push( tri );
-    game.m_root.addChildGameObject( tri );
-  }
-
   game.m_root.addChildGameObject( cube );
+
+  FlockManager.Instance().spawn(150);
+}
+
+function handleMessage( event ) {
+  if (event.origin !== window.location.origin) {
+    return;
+  }
+  if (event.data.reload || event.data.count) {
+    var old_count = FlockManager.Instance().count();
+    var new_count = event.data.count ?? old_count;
+    FlockManager.Instance().despawn(event.data.reload ? old_count : old_count - new_count);
+    FlockManager.Instance().spawn(new_count - FlockManager.Instance().count());
+  }
+  if (event.data.speed !== undefined) {
+    FlockerComponent.maxSpeed = event.data.speed;
+  }
+  if (event.data.force !== undefined) {
+    FlockerComponent.maxForce = event.data.force;
+  }
+  if (event.data.alignment !== undefined) {
+    FlockerComponent.alignmentScale = event.data.alignment;
+  }
+  if (event.data.separation !== undefined) {
+    FlockerComponent.separationScale = event.data.separation;
+  }
+  if (event.data.cohesion !== undefined) {
+    FlockerComponent.cohesionScale = event.data.cohesion;
+  }
+  if (event.data.containment !== undefined) {
+    FlockerComponent.containmentScale = event.data.containment;
+  }
+  if (event.data.sight_radius !== undefined) {
+    FlockerComponent.sightRadius = event.data.sight_radius;
+  }
+  if (event.data.separation_radius !== undefined) {
+    FlockerComponent.separationRadius = event.data.separation_radius;
+  }
+  if (event.data.containment_radius !== undefined) {
+    FlockerComponent.containmentRadius = event.data.containment_radius;
+  }
 }

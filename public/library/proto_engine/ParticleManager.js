@@ -12,13 +12,13 @@ function ParticleManager()
 
   this.draw = function(gl) { /* Draw Code */ }
 
-  this.update = function()
+  this.update = function(dt)
   {
     for(i in this.m_members)
     {
       var p = this.m_members[i];
-      vec3.add( p.velocity, p.velocity, p.acceleration );
-      vec3.add( p.position, p.position, p.velocity );
+      vec3.add( p.velocity, p.velocity, vec3.scale(vec3.create(), p.acceleration, dt) );
+      vec3.add( p.position, p.position, vec3.scale(vec3.create(), p.velocity, dt) );
     }
   }
 

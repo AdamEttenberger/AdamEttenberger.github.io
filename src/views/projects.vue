@@ -50,7 +50,7 @@ import ProjectCard from '@/components/project_card.vue'
                image="/images/projects/flocking.png"
                route="/projects/webgl_flocking"
                :date="new Date('2012/10/05')"
-               :lastmod="new Date('2012/10/05')">
+               :lastmod="new Date('2025/07/07')">
     <p>
       Using the GameObject/Component model in the WebGL example below, I have put together a 3D flocking simulation using Craig Reynolds' <ExternalLink to="https://www.red3d.com/cwr/boids/">Boids Algorithm</ExternalLink>.
       WebGL Flocking used <ExternalLink to="https://github.com/toji/gl-matrix">gl-matrix</ExternalLink> to speed production.

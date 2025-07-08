@@ -1,13 +1,14 @@
 <script setup>
 import { ref } from 'vue'
+import Button from '@/components/property_editor/button.vue'
 import ComboBox from '@/components/property_editor/combo_box.vue'
 import ImageButton from '@/components/image_button.vue'
 import NumberRange from '@/components/property_editor/number_range.vue'
 
-/**
- * Emits `name: String, new_value: any`
- */
-const emit = defineEmits(['property-changed']);
+const emit = defineEmits([
+  'property-changed', // (name: String, new_value: any)
+  'property-click',   // (name: String)
+]);
 
 const props = defineProps({
   name: { type: String, required: true },
@@ -17,14 +18,14 @@ const props = defineProps({
 });
 
 const model = defineModel({
-  required: true,
+  default: null,
   set(value) {
     emit('property-changed', props.name, value);
     return value;
   }
 });
 
-const initial_value = ref(model.value);
+const initial_value = model?.value ? ref(model.value) : undefined;
 
 </script>
 
@@ -32,7 +33,7 @@ const initial_value = ref(model.value);
   <div class="property-row">
     <label :for="name">{{ label }}</label>
     <div class="undo">
-      <ImageButton v-if="model != (options.initial_value ?? initial_value)" @click="model = (options.initial_value ?? initial_value)">
+      <ImageButton v-if="model != (options?.initial_value ?? initial_value)" @click="model = (options?.initial_value ?? initial_value)">
         <font-awesome-icon :icon="['fas', 'arrow-rotate-left']" />
       </ImageButton>
     </div>
@@ -46,6 +47,10 @@ const initial_value = ref(model.value);
               :name="name"
               :options="options.values"
               v-model="model" />
+    <Button v-if="type === 'button'"
+              :name="name"
+              :label="label"
+              @property-click="$emit('property-click', name)" />
   </div>
 </template>
 

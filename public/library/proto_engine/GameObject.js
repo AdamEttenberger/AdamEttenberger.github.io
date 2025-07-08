@@ -23,14 +23,10 @@ function GameObject()
     return this.m_transform.position;
   }
 
-  this.update = function()
+  this.update = function(dt)
   {
-    var i;
-    for(i in this.children)
-      this.children[i].update();
-
-    for(i in this.components)
-      this.components[i].update();
+    this.children.forEach(child => child.update(dt));
+    this.components.forEach(component => component.update(dt));
   }
 
   this.draw = function(gl)

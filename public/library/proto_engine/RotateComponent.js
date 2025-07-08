@@ -4,9 +4,10 @@ RotateComponent.prototype.constructor = RotateComponent;
 function RotateComponent() {
   this.rotation = quat.create();
 
-  this.update = function() {
-    quat.multiply( this.m_gameObject.m_transform.rotation, this.m_gameObject.m_transform.rotation, this.rotation );
-    quat.normalize( this.m_gameObject.m_transform.rotation, this.m_gameObject.m_transform.rotation );
+  this.update = function(dt) {
+    quat.multiply(this.m_gameObject.m_transform.rotation,
+                  this.m_gameObject.m_transform.rotation,
+                  quat.pow(quat.create(), this.rotation, dt));
   }
 
   this.fromValues = function(x, y, z, w) {
@@ -14,19 +15,18 @@ function RotateComponent() {
     return this;
   }
 
+  /**
+   * Euler angles in degrees to rotate around the x-, y-, and z-axis.
+   */
   this.fromEuler = function(x, y, z) {
-    const kRadToDegScalar = 180 / Math.PI;
-    this.rotation = quat.fromEuler(quat.create(),
-                                   (x ?? 0) * kRadToDegScalar,
-                                   (y ?? 0) * kRadToDegScalar,
-                                   (z ?? 0) * kRadToDegScalar);
+    this.rotation = quat.fromEuler(quat.create(), (x ?? 0), (y ?? 0), (z ?? 0));
     return this;
   }
 
   this.serialize = async function() {
     return {
       "type": "RotateComponent",
-      "rotation": quat.equals(this.rotation, quat.create()) ? undefined : Array.from(this.rotation),
+      "rotation": quat.exactEquals(this.rotation, quat.create()) ? undefined : Array.from(this.rotation),
     };
   }
 
@@ -34,7 +34,7 @@ function RotateComponent() {
     if (jsonObject.type !== "RotateComponent") {
       return;
     }
-    quat.copy(this.rotation, jsonObject.rotation ?? Quat.create());
+    quat.copy(this.rotation, jsonObject.rotation ?? quat.create());
     return this;
   }
 }
