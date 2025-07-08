@@ -10,7 +10,7 @@ function main()
   canvas.style.minHeight = 500;
 
   game = new Game(canvas);
-  Game.clearColor = vec4.fromValues( 0.0, 0.0, 0.0, 1.0 );
+  Game.clearColor = vec4.fromValues(0.0, 0.0, 0.0, 1.0);
 
   initScene();
 
@@ -88,10 +88,10 @@ function initScene()
     20, 21, 22,   20, 22, 23  // Left face
     ];
 
-  var cubePosition = new Buffer( gl, Buffer.POSITION, gl.ARRAY_BUFFER, cubeVertices, 3 );
-  var cubeColor = new Buffer( gl, Buffer.COLOR, gl.ARRAY_BUFFER, cubeColors, 4 );
-  var cubeTexture = new Buffer( gl, Buffer.TEXTURE, gl.ARRAY_BUFFER, cubeUV, 2 );
-  var cubeIBuff = new Buffer( gl, Buffer.INDEX, gl.ELEMENT_ARRAY_BUFFER, cubeIndices, 1 );
+  var cubePosition = new Buffer(gl, Buffer.POSITION, gl.ARRAY_BUFFER, cubeVertices, 3);
+  var cubeColor = new Buffer(gl, Buffer.COLOR, gl.ARRAY_BUFFER, cubeColors, 4);
+  var cubeTexture = new Buffer(gl, Buffer.TEXTURE, gl.ARRAY_BUFFER, cubeUV, 2);
+  var cubeIBuff = new Buffer(gl, Buffer.INDEX, gl.ELEMENT_ARRAY_BUFFER, cubeIndices, 1);
 
   var colorCubeBuffers = [
     cubePosition,
@@ -140,54 +140,47 @@ function initScene()
     ];
 
   var triBuffers = [
-    new Buffer( gl, Buffer.POSITION, gl.ARRAY_BUFFER, triVertices, 3 ),
-    new Buffer( gl, Buffer.COLOR, gl.ARRAY_BUFFER, triColors, 4 ),
-    new Buffer( gl, Buffer.INDEX, gl.ELEMENT_ARRAY_BUFFER, triIndices, 1 ),
+    new Buffer(gl, Buffer.POSITION, gl.ARRAY_BUFFER, triVertices, 3),
+    new Buffer(gl, Buffer.COLOR, gl.ARRAY_BUFFER, triColors, 4),
+    new Buffer(gl, Buffer.INDEX, gl.ELEMENT_ARRAY_BUFFER, triIndices, 1),
   ];
 
   //
 
-  game.m_root.addComponent( new RotateComponent().fromEuler(-30, 0, 0 ) );
+  game.m_root.addComponent(new RotateComponent().pushEuler(-30, 0, 0));
 
   var cubes = new GameObject();
-  vec3.add( cubes.m_transform.position, cubes.m_transform.position, vec3.fromValues( 1.5, 0, 0 ) )
-  cubes.addComponent( new RotateComponent().fromEuler(0, 0, 60) );
+  vec3.add(cubes.m_transform.position, cubes.m_transform.position, vec3.fromValues(1.5, 0, 0))
+  cubes.addComponent(new RotateComponent().pushEuler(0, 0, 60));
 
   var colorCube = new GameObject();
-  colorCube.addComponent( new ModelComponent().setBuffers(colorCubeBuffers) );
-  colorCube.addComponent( new RotateComponent().fromEuler(120, 0, 0) );
-  colorCube.addComponent( new RotateComponent().fromEuler(0, -90, 0) );
+  colorCube.addComponent(new ModelComponent().setBuffers(colorCubeBuffers));
+  colorCube.addComponent(new RotateComponent().pushEuler(120, -90, 0));
 
   var textureCube = new GameObject();
-  textureCube.addComponent( new TextureModelComponent().setTexture(Game.loadTexture("/library/projects/proto_engine/images/metalcrate.png")).setBuffers(textureCubeBuffers) );
-  textureCube.addComponent( new RotateComponent().fromEuler(-120, 0, 0) );
-  textureCube.addComponent( new RotateComponent().fromEuler(0, -90, 0) );
+  textureCube.addComponent(new TextureModelComponent().setTexture(Game.loadTexture("/library/projects/proto_engine/images/metalcrate.png")).setBuffers(textureCubeBuffers));
+  textureCube.addComponent(new RotateComponent().pushEuler(-120, -90, 0));
 
   var colorTextureCube = new GameObject();
-  colorTextureCube.addComponent( new ColorTextureModelComponent().setTexture(Game.loadTexture("/library/projects/proto_engine/images/metalcrate.png")).setBuffers(colorTextureCubeBuffers) );
-  colorTextureCube.addComponent( new RotateComponent().fromEuler(120, 0, 0) );
-  colorTextureCube.addComponent( new RotateComponent().fromEuler(0, -90, 0) );
+  colorTextureCube.addComponent(new ColorTextureModelComponent().setTexture(Game.loadTexture("/library/projects/proto_engine/images/metalcrate.png")).setBuffers(colorTextureCubeBuffers));
+  colorTextureCube.addComponent(new RotateComponent().pushEuler(120, -90, 0));
 
-  cubes.addChildGameObject( colorCube );
-  cubes.addChildGameObject( textureCube );
-  cubes.addChildGameObject( colorTextureCube );
+  cubes.addChildGameObject(colorCube);
+  cubes.addChildGameObject(textureCube);
+  cubes.addChildGameObject(colorTextureCube);
 
-  var r = 1.0;
-  var dr = ( Math.PI * 2 ) / 3 ;
-  var s = 0;
-
-  for(var i in cubes.children)
-  {
-    vec3.add( cubes.children[i].m_transform.position, cubes.children[i].m_transform.position , vec3.fromValues( Math.cos(dr * i) * r, Math.sin(dr * i) * r, 0 ) )
-  }
+  var radius = 1.0;
+  var step_rad = (Math.PI * 2) / 3;
+  cubes.children.forEach((child, i) => vec3.add(child.m_transform.position, child.m_transform.position,
+                                                vec3.fromValues(Math.cos(step_rad * i) * radius, Math.sin(step_rad * i) * radius, 0)));
 
   var tri = new GameObject();
-  vec3.add( tri.m_transform.position, tri.m_transform.position , vec3.fromValues( -1.5, 0, 0 ) )
-  quat.multiply( tri.m_transform.rotation, tri.m_transform.rotation, quat.setAxisAngle( quat.create(),vec3.fromValues( 1, 0, 0 ), Math.PI / 4.0 ) );
-  tri.addComponent( new ModelComponent().setBuffers( triBuffers ) );
-  tri.addComponent( new RotateComponent().fromEuler(0, 360, 0) );
+  vec3.add(tri.m_transform.position, tri.m_transform.position, vec3.fromValues(-1.5, 0, 0))
+  quat.multiply(tri.m_transform.rotation, tri.m_transform.rotation, quat.setAxisAngle(quat.create(), vec3.fromValues(1, 0, 0), Math.PI / 4.0));
+  tri.addComponent(new ModelComponent().setBuffers(triBuffers));
+  tri.addComponent(new RotateComponent().pushEuler(0, 360, 0));
 
-  game.m_root.addChildGameObject( cubes );
-  game.m_root.addChildGameObject( tri );
+  game.m_root.addChildGameObject(cubes);
+  game.m_root.addChildGameObject(tri);
 
 }

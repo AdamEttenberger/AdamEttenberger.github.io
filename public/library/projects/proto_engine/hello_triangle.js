@@ -43,7 +43,7 @@ function main()
 
   var triangle = new GameObject();
   triangle.addComponent(new ModelComponent().setBuffers(buffers));
-  triangle.addComponent(new RotateComponent().fromEuler(0, 0, -120));
+  triangle.addComponent(new RotateComponent().pushEuler(0, 0, -120));
   game.m_root.addChildGameObject(triangle);
 
   // Setup the camera (move the world forward 5 units).

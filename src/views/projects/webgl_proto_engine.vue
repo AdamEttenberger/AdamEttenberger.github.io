@@ -227,7 +227,7 @@ function postMessageToFrame(target_frame, filepath) {
             text="
         var triangle = new GameObject();
         triangle.addComponent(new ModelComponent().setBuffers(buffers));
-        triangle.addComponent(new RotateComponent().fromEuler(0, 0, -120));
+        triangle.addComponent(new RotateComponent().pushEuler(0, 0, -120));
         game.m_root.addChildGameObject(triangle);" />
       <br />
       <Code lang="javascript"
