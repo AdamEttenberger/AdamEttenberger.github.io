@@ -147,26 +147,26 @@ function initScene()
 
   //
 
-  game.m_root.addComponent( new RotateComponent().fromEuler(-0.01, 0, 0 ) );
+  game.m_root.addComponent( new RotateComponent().fromEuler(-30, 0, 0 ) );
 
   var cubes = new GameObject();
   vec3.add( cubes.m_transform.position, cubes.m_transform.position, vec3.fromValues( 1.5, 0, 0 ) )
-  cubes.addComponent( new RotateComponent().fromEuler(0, 0, 0.02) );
+  cubes.addComponent( new RotateComponent().fromEuler(0, 0, 60) );
 
   var colorCube = new GameObject();
   colorCube.addComponent( new ModelComponent().setBuffers(colorCubeBuffers) );
-  colorCube.addComponent( new RotateComponent().fromEuler(0.04, 0, 0) );
-  colorCube.addComponent( new RotateComponent().fromEuler(0, -0.03, 0) );
+  colorCube.addComponent( new RotateComponent().fromEuler(120, 0, 0) );
+  colorCube.addComponent( new RotateComponent().fromEuler(0, -90, 0) );
 
   var textureCube = new GameObject();
   textureCube.addComponent( new TextureModelComponent().setTexture(Game.loadTexture("/library/projects/proto_engine/images/metalcrate.png")).setBuffers(textureCubeBuffers) );
-  textureCube.addComponent( new RotateComponent().fromEuler(-0.04, 0, 0) );
-  textureCube.addComponent( new RotateComponent().fromEuler(0, -0.03, 0) );
+  textureCube.addComponent( new RotateComponent().fromEuler(-120, 0, 0) );
+  textureCube.addComponent( new RotateComponent().fromEuler(0, -90, 0) );
 
   var colorTextureCube = new GameObject();
   colorTextureCube.addComponent( new ColorTextureModelComponent().setTexture(Game.loadTexture("/library/projects/proto_engine/images/metalcrate.png")).setBuffers(colorTextureCubeBuffers) );
-  colorTextureCube.addComponent( new RotateComponent().fromEuler(0.04, 0, 0) );
-  colorTextureCube.addComponent( new RotateComponent().fromEuler(0, -0.03, 0) );
+  colorTextureCube.addComponent( new RotateComponent().fromEuler(120, 0, 0) );
+  colorTextureCube.addComponent( new RotateComponent().fromEuler(0, -90, 0) );
 
   cubes.addChildGameObject( colorCube );
   cubes.addChildGameObject( textureCube );
@@ -185,7 +185,7 @@ function initScene()
   vec3.add( tri.m_transform.position, tri.m_transform.position , vec3.fromValues( -1.5, 0, 0 ) )
   quat.multiply( tri.m_transform.rotation, tri.m_transform.rotation, quat.setAxisAngle( quat.create(),vec3.fromValues( 1, 0, 0 ), Math.PI / 4.0 ) );
   tri.addComponent( new ModelComponent().setBuffers( triBuffers ) );
-  tri.addComponent( new RotateComponent().fromEuler(0, 0.1, 0) );
+  tri.addComponent( new RotateComponent().fromEuler(0, 360, 0) );
 
   game.m_root.addChildGameObject( cubes );
   game.m_root.addChildGameObject( tri );

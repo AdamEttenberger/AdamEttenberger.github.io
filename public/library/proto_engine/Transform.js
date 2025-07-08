@@ -25,7 +25,7 @@ function Transform()
     return {
       "type": "Transform",
       "position": vec3.equals(this.position, vec3.create()) ? undefined : Array.from(this.position),
-      "rotation": quat.equals(this.rotation, quat.create()) ? undefined : Array.from(this.rotation),
+      "rotation": quat.exactEquals(this.rotation, quat.create()) ? undefined : Array.from(this.rotation),
       "scale": vec3.equals(this.scale, vec3.fromValues(1, 1, 1)) ? undefined : Array.from(this.scale),
     };
   }

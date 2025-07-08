@@ -229,9 +229,7 @@ function MetaballComponent( run_mode )
     for(i = 0; i < count; i++)
     {
       var p = ParticleManager.Instance().createParticle( );
-      p.velocity = vec3.fromValues( (Math.random()*20)-10, (Math.random()*20)-10, 0 );
-      vec3.normalize( p.velocity, p.velocity );
-      vec3.scale( p.velocity, p.velocity, 1.0 / 500 );
+      vec3.rotateZ(p.velocity, vec3.fromValues(0, 0.1, 0), vec3.create(), Math.random() * 2 * Math.PI);
       p.position = vec3.fromValues( Math.random(), Math.random(), 0 );
       // p.radius = 0.1;//((Math.random()*30-5)+5)/100.0;
       p.color = vec4.fromValues( Math.ceil(Math.random()*10.0)/10.0, Math.ceil(Math.random()*10.0)/10.0, Math.ceil(Math.random()*10.0)/10.0, 1.0 );

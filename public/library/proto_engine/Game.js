@@ -1,3 +1,4 @@
+const { mat2, mat2d, mat3, mat4, quat, quat2, vec2, vec3, vec4 } = glMatrix;
 var gl = null;
 
 const AllowedComponentNames = [
@@ -21,6 +22,8 @@ function Game(canvas)
   this.m_intervalID = null;
   this.running = false;
   this.fps = 50;
+
+  var _frame_time = performance.now();
 
   try
   {
@@ -46,12 +49,14 @@ function Game(canvas)
     Game.ExceptionHandler("GL_INITIALIZATION");
   }
 
-  this.update = function()
+  this.update = function(dt)
   {
-    var i;
-    for(i in this.m_managers)
-      this.m_managers[i].update();
-    this.m_root.update();
+    var new_time = performance.now();
+    var dt = (new_time - _frame_time) * 0.001;
+    _frame_time = new_time;
+
+    this.m_managers.forEach(manager => manager.update(dt));
+    this.m_root.update(dt);
   }
 
   this.draw = function()
@@ -60,9 +65,7 @@ function Game(canvas)
     gl.clearColor( Game.clearColor[0], Game.clearColor[1], Game.clearColor[2], Game.clearColor[3] );
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
 
-    var i;
-    for(i in this.m_managers)
-      this.m_managers[i].draw(gl);
+    this.m_managers.forEach(manager => manager.draw(gl));
     this.m_root.draw(gl);
   }
 
