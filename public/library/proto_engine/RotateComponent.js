@@ -10,16 +10,11 @@ function RotateComponent() {
                   quat.pow(quat.create(), this.rotation, dt));
   }
 
-  this.fromValues = function(x, y, z, w) {
-    this.rotation = quat.fromValues(x ?? 0, y ?? 0, z ?? 0, w ?? 1);
-    return this;
-  }
-
   /**
-   * Euler angles in degrees to rotate around the x-, y-, and z-axis.
+   * Rotates this component by angles in degrees to rotate around the x-, y-, and z-axis.
    */
-  this.fromEuler = function(x, y, z) {
-    this.rotation = quat.fromEuler(quat.create(), (x ?? 0), (y ?? 0), (z ?? 0));
+  this.pushEuler = function(x, y, z) {
+    quat.multiply(this.rotation, this.rotation, quat.fromEuler(quat.create(), x, y, z));
     return this;
   }
 
