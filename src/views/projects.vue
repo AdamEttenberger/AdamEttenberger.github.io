@@ -8,7 +8,7 @@ import ProjectCard from '@/components/project_card.vue'
                image="/images/projects/tile_match.png"
                route="/projects/match_three"
                :date="new Date('2025/05/27')"
-               :lastmod="new Date('2025/07/07')">
+               :lastmod="new Date('2025/07/10')">
     <p>
       A simple 3D Match-3 game made with the <ExternalLink to="https://godotengine.org/">Godot</ExternalLink> game engine and <ExternalLink to="https://www.blender.org/">Blender</ExternalLink>.
     </p>
