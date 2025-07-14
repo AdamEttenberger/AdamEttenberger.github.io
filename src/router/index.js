@@ -26,7 +26,7 @@ const routes = [
     props: {
       title: "Match-3 Game",
       date: new Date('2025/05/27'),
-      lastmod: new Date('2025/07/11'),
+      lastmod: new Date('2025/07/14'),
       frame: "/library/projects/tile_match/tile_match.html",
     },
   },
