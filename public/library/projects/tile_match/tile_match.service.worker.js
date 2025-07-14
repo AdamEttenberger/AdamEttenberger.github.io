@@ -4,7 +4,7 @@
 // Incrementing CACHE_VERSION will kick off the install event and force
 // previously cached resources to be updated from the network.
 /** @type {string} */
-const CACHE_VERSION = '1752499636|15686177892';
+const CACHE_VERSION = '1752508887|6979118698';
 /** @type {string} */
 const CACHE_PREFIX = 'Tile Match-sw-cache-';
 const CACHE_NAME = CACHE_PREFIX + CACHE_VERSION;
