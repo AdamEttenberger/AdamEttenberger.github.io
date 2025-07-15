@@ -158,14 +158,16 @@ function onPropertyChanged(name, new_value) {
       </p>
       <br />
 
-      <Figure src="/images/projects/metaballs/viewport_explanation.png"
+      <Figure src_light="/images/projects/metaballs/viewport_explanation_light.png"
+              src_dark="/images/projects/metaballs/viewport_explanation_dark.png"
               alt="Image describing the quadrants in the live demo at the top of the page.
                   (1) upper-left: base texture,
                   (2) upper-right: diffuse metaball,
                   (3) lower-left: diffuse metaball + outline,
                   (4) lower-right: hue + outline." />
 
-      <Figure src="/images/projects/metaballs/hierarchy.png"
+      <Figure src_light="/images/projects/metaballs/hierarchy_light.png"
+              src_dark="/images/projects/metaballs/hierarchy_dark.png"
               alt="Image describing the the scene hierarchy.
                   (1) VertexPositionColor[] data,
                   (2) Base Texture,

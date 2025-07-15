@@ -111,9 +111,11 @@ function postMessageToFrame(target_frame, filepath) {
         </li>
       </ul>
       <br />
-      <Figure src="/images/projects/webgl_proto_engine/architecture.png"
+      <Figure src_light="/images/projects/webgl_proto_engine/architecture_light.png"
+              src_dark="/images/projects/webgl_proto_engine/architecture_dark.png"
               alt="UML-like class relationship diagram." />
-      <Figure src="/images/projects/webgl_proto_engine/scene.png"
+      <Figure src_light="/images/projects/webgl_proto_engine/scene_light.png"
+              src_dark="/images/projects/webgl_proto_engine/scene_dark.png"
               alt="Scene hierarchy, the Game has 2 children, a triangular prism model and invisible pivot. The invisible pivot has 3 children, the colored, skinned, and colored + skinned cube models. All GameObject instances have a Transform and RotateComponent." />
     </Section>
 
@@ -142,7 +144,8 @@ function postMessageToFrame(target_frame, filepath) {
         Since the z-axis is inverted, rotation around the positive z-axis is the same direction for both systems.
       </p>
       <br />
-      <Figure src="/images/projects/webgl_proto_engine/coordinate_system.png"
+      <Figure src_light="/images/projects/webgl_proto_engine/coordinate_system_light.png"
+              src_dark="/images/projects/webgl_proto_engine/coordinate_system_dark.png"
               alt="Illustration of the default coordinate system in OpenGL (left) and DirectX (right)." />
       <br />
       <p>
@@ -150,7 +153,8 @@ function postMessageToFrame(target_frame, filepath) {
         In OpenGL the UV origin is the bottom-left corner while in DirectX the UV origin is the top-left corner.
       </p>
       <br />
-      <Figure src="/images/projects/webgl_proto_engine/uv_coordinate_system.png"
+      <Figure src_light="/images/projects/webgl_proto_engine/uv_coordinate_system_light.png"
+              src_dark="/images/projects/webgl_proto_engine/uv_coordinate_system_dark.png"
               alt="Illustration of the default UV coordinate system in OpenGL (left) and DirectX (right)." />
       <br />
       <p>
@@ -158,7 +162,8 @@ function postMessageToFrame(target_frame, filepath) {
         By default OpenGL uses a counter-clockwise front-face winding while DirectX uses a clockwise front-face winding.
       </p>
       <br />
-      <Figure src="/images/projects/webgl_proto_engine/winding_order.png"
+      <Figure src_light="/images/projects/webgl_proto_engine/winding_order_light.png"
+              src_dark="/images/projects/webgl_proto_engine/winding_order_dark.png"
               alt="Illustration of the default winding order in OpenGL (left) and DirectX (right)." />
       <br />
       <p>
