@@ -127,6 +127,7 @@ function postMessageToFrame(target_frame, filepath) {
         This project originally targeted "webgl" and "experimental-webgl" APIs.
       </p>
     </Section>
+
     <Section heading="Important API Differences">
       <p>
         There are a few concepts I want to briefly mention, as rendering APIs can differ significantly in their default behavior, even if that behavior is configurable.
@@ -142,7 +143,7 @@ function postMessageToFrame(target_frame, filepath) {
       </p>
       <br />
       <Figure src="/images/projects/webgl_proto_engine/coordinate_system.png"
-              alt="Illustration showing DirectX and OpenGL default coordinate systems." />
+              alt="Illustration of the default coordinate system in OpenGL (left) and DirectX (right)." />
       <br />
       <p>
         Texture coordinates are also inverted along the y-axis.
@@ -150,7 +151,7 @@ function postMessageToFrame(target_frame, filepath) {
       </p>
       <br />
       <Figure src="/images/projects/webgl_proto_engine/uv_coordinate_system.png"
-              alt="Illustration showing DirectX and OpenGL default UV coordinate systems." />
+              alt="Illustration of the default UV coordinate system in OpenGL (left) and DirectX (right)." />
       <br />
       <p>
         When considering <ExternalLink to="https://en.wikipedia.org/wiki/Back-face_culling">back-face culling</ExternalLink> the windings are opposite as well.
@@ -158,7 +159,7 @@ function postMessageToFrame(target_frame, filepath) {
       </p>
       <br />
       <Figure src="/images/projects/webgl_proto_engine/winding_order.png"
-              alt="Illustration showing DirectX and OpenGL default winding order." />
+              alt="Illustration of the default winding order in OpenGL (left) and DirectX (right)." />
       <br />
       <p>
         Keep in mind this is just the tip of the iceberg; a few important high-level differences that can be confusing when first getting started with rendering.
