@@ -101,7 +101,7 @@ const props = defineProps({
               alt="Animation demonstrating the difference in friction between the two terrain tile types." />
       <br />
       <p>
-        Another subtle feature is the floaty-jump, which makes the slippery platforming a more forgiving.
+        Another subtle feature is the floaty-jump, which makes the slippery platforming more forgiving.
         Players are allowed 1 jump action which resets after the touching the ground.
       </p>
       <br />
