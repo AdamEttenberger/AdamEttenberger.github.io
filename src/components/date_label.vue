@@ -1,22 +1,20 @@
 <script setup>
-const props = defineProps({
-  date: { type: Date, required: true },
-  lastmod: { type: Date },
-})
+import DateText from '@/components/date_text.vue';
 
-function formatDate(date) {
-  return date.toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'short',
-  });
-}
+var props = defineProps({
+  date: { required: true },
+  lastmod: { default: null },
+})
+const show_lastmod = props.lastmod && (props.lastmod.getTime ? props.lastmod : props.lastmod.value)?.getTime() != props.date.getTime();
 </script>
 
 <template>
   <div class="date-label">
-    <time class="date" :datetime="date">{{ formatDate(date) }}</time>
-    <br/>
-    <time v-if="lastmod && lastmod.getTime() != date.getTime()" class="lastmod" :datetime="lastmod">{{ formatDate(lastmod) }}</time>
+    <DateText class="date" :date="date" />
+    <br v-if="show_lastmod" />
+    <DateText v-if="show_lastmod"
+              class="lastmod"
+              :date="lastmod" />
   </div>
 </template>
 

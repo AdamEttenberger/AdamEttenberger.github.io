@@ -31,8 +31,8 @@
   --theme-text-warn-light: var(--theme-black);
   --theme-text-error-light: var(--theme-black);
   --theme-text-dark-1: var(--theme-white);
-  --theme-text-dark-2: #C1E1C1;
-  --theme-text-button-dark: var(--theme-white);
+  --theme-text-dark-2: #f4bc6c;
+  --theme-text-button-dark: var(--theme-black);
   --theme-text-warn-dark: var(--theme-black);
   --theme-text-error-dark: var(--theme-black);
 
@@ -101,6 +101,11 @@
 }
 
 :root {
+  /* Nearly all pages need a scrollbar, however for the few pages that don't reserving
+   * space for the vertical scrollbar prevents layout from "popping" during navigation.
+   * Also fixes similar popping issues related to components with conditional rendering.
+   */
+  overflow-y: scroll;
   scrollbar-color: var(--color-scrollbar) transparent;
 }
 
@@ -134,7 +139,11 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-h1, h2, h3, h4, h5, h6, figcaption {
+b {
+  font-weight: bold;
+}
+
+b, h1, h2, h3, h4, h5, h6, figcaption {
   color: var(--color-text-heading);
 }
 
@@ -174,4 +183,9 @@ merror {
 
 .framed {
   border: var(--size-border);
+}
+
+.centered {
+  text-align: center;
+  align-self: center;
 }

@@ -21,6 +21,9 @@ const editorProperties = ref({
   reload: {
     label: "Reload",
     type: "button",
+    options: {
+      text: "Restart Scene",
+    },
   },
   count: {
     label: "Count",
@@ -122,10 +125,12 @@ function scheduleUpdate() {
 function onPropertyChanged(name, new_value) {
   scheduleUpdate();
 }
+
 function onPropertyButtonClick(name) {
-  if (name === 'reload') {
-    needs_reload.value = true;
+  if (name !== 'reload') {
+    return;
   }
+  needs_reload.value = true;
   scheduleUpdate();
 }
 </script>
@@ -135,7 +140,8 @@ function onPropertyButtonClick(name) {
           :date="date"
           :lastmod="lastmod"
           :frame="frame"
-          :paused="false" />
+          :paused="false"
+          @load="onPlayerLoaded" />
   <UnderConstruction />
   <Column>
     <Section heading="Controls">
