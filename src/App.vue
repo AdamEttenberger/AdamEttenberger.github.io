@@ -1,49 +1,61 @@
 <script setup>
-import ExternalLink from '@/components/external_link.vue'
-import ImageButton from '@/components/image_button.vue'
-import ThemeToggle from '@/components/theme_toggle.vue'
-
-import LogoIcon from '@/assets/logo.svg'
+import ConsentBanner from '@/components/consent_banner.vue'
+import Footer from '@/components/footer.vue'
+import LogoHomeButton from '@/components/image_buttons/logo_home_button.vue'
+import SettingsButton from '@/components/settings_button.vue'
+import SocialLink from '@/components/image_buttons/social_link.vue'
+import ThemeToggle from '@/components/image_buttons/theme_toggle.vue'
 </script>
 
 <template>
   <div class="app">
     <header>
-      <ImageButton class="logo" route="/" :src="LogoIcon" alt="Logo" :transparent="true" />
+      <div class="logo">
+        <LogoHomeButton />
+      </div>
       <div class="title">
         <RouterLink to="/"><h1>Adam Ettenberger</h1></RouterLink>
         <div class="links">
-          <ExternalLink to="https://www.linkedin.com/in/adamettenberger/" :show_ext="false"><font-awesome-icon size="2x" title="LinkedIn" icon="fa-brands fa-linkedin" aria-label="LinkedIn" /></ExternalLink>
-          <ExternalLink to="https://github.com/AdamEttenberger" :show_ext="false"><font-awesome-icon size="2x" title="GitHub" icon="fa-brands fa-github-square" aria-label="GitHub" /></ExternalLink>
+          <div class="socials">
+            <SocialLink type="about" />
+            <SocialLink type="hire-me" />
+            <SocialLink type="linkedin" />
+            <SocialLink type="github" />
+            <SocialLink type="resume" />
+          </div>
           <div class="controls">
-            <ThemeToggle class="theme-toggle" />
+            <ThemeToggle />
+            <SettingsButton />
           </div>
         </div>
       </div>
     </header>
 
+    <ConsentBanner />
+
     <main>
       <RouterView />
     </main>
 
-    <footer><div class="copyright">&copy;&nbsp;{{ new Date().getFullYear() }} Adam Ettenberger</div></footer>
+    <Footer />
   </div>
 </template>
 
 <style scoped>
 
-header,
-header .links,
-header .controls {
+header {
   display: flex;
   flex-direction: row;
   place-items: center;
   align-items: center;
 }
 
-header .links {
+header .socials,
+header .controls {
+  display: flex;
+  flex-direction: row;
   height: 2em;
-  padding-right: var(--size-padding-round);
+  gap: 0 var(--size-padding-round);
   & > * {
     height: 100%;
   }
@@ -74,16 +86,6 @@ main {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-}
-
-footer > .copyright {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: medium;
-  height: 2.5rem;
-  border-radius: var(--size-border-radius);
-  background-color: var(--color-background-soft);
 }
 
 @media only screen and (max-width: 25rem) {

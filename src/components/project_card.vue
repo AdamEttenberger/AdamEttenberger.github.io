@@ -1,19 +1,19 @@
 <script setup>
-import ImageButton from '@/components/image_button.vue'
+import Button from '@/components/button.vue'
 import ProjectLabel from '@/components/project_label.vue'
 
-const props = defineProps({
+defineProps({
   image: { type: String, required: true },
   title: { type: String, required: true },
   route: { type: String, required: true },
   date: { type: Date },
-  lastmod: { type: Date },
+  lastmod: { default: null },
 })
 </script>
 
 <template>
   <article class="container">
-    <ImageButton class="icon" :src="image" :alt="title" :route="route" :transparent="true" />
+    <Button class="icon" :src="image" :alt="title" :route="route" :transparent="true" />
     <ProjectLabel class="label" :title="title" :date="date" :route="route" />
     <section class="summary">
       <div class="scroller">
@@ -44,6 +44,14 @@ const props = defineProps({
     aspect-ratio: 1;
     grid-column: 1 / 2;
     grid-row: 1 / 3;
+  }
+
+  & .icon {
+    transition: padding var(--anim-transition);
+    padding: 5%;
+    &:hover {
+      padding: 0;
+    }
   }
 
   & > .label {
@@ -91,6 +99,11 @@ const props = defineProps({
       grid-row: 1 / 2;
     }
 
+    /* Favor image size over animations for small devices, likely mobile. */
+    & > .icon {
+      padding: 0;
+    }
+
     & > .label {
       grid-column: 2 / 3;
       grid-row: 1 / 2;
@@ -103,5 +116,4 @@ const props = defineProps({
     }
   }
 }
-
 </style>

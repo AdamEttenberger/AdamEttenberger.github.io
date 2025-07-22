@@ -1,6 +1,8 @@
-<script setup>
+<script setup lang="ts">
+import { ref } from 'vue'
 import ExternalLink from '@/components/external_link.vue'
 import ProjectCard from '@/components/project_card.vue'
+const website_lastmod = ref(__BUILD_TIMESTAMP__);
 </script>
 
 <template>
@@ -16,7 +18,9 @@ import ProjectCard from '@/components/project_card.vue'
 
   <ProjectCard title="This Website"
                image="/images/projects/website.png"
-               route="/projects/website">
+               route="/projects/website"
+               :date="new Date('2012/09/19')"
+               :lastmod="new Date(website_lastmod)">
     <p>
       This portfolio website is something I initially created while at RIT to showcase some of my class projects or personal projects.
       Originally static HTML, CSS, JavaScript, and ShockWave Flash files, this has been migrated over the years to newer technologies, multiple frameworks / CMS / templating engines.
