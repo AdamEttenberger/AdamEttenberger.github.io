@@ -7,9 +7,9 @@ import ExternalLink from '@/components/external_link.vue'
 import Section from '@/components/section.vue'
 import Quote from '@/components/quote.vue'
 import SettingsButton from '@/components/settings_button.vue'
-import { emailTemplateStore } from '@/stores/email_template_store'
+import { useEmailTemplateStore } from '@/stores/email_template'
 
-const emails = emailTemplateStore();
+const emails = useEmailTemplateStore();
 </script>
 
 <template>

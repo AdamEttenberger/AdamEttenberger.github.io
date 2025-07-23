@@ -1,13 +1,13 @@
 <script setup>
 import Button from '@/components/button.vue'
-import { emailTemplateStore } from '@/stores/email_template_store'
+import { useEmailTemplateStore } from '@/stores/email_template'
 
 defineProps({
   type: { type: String, required: true },
   text: { type: String, default: null },
 })
 
-const emails = emailTemplateStore();
+const emails = useEmailTemplateStore();
 </script>
 
 <template>
