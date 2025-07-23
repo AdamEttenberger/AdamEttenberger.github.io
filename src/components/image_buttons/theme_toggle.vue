@@ -3,18 +3,18 @@ import { watch } from 'vue'
 import Button from '@/components/button.vue'
 // Pinia Stores
 import { useUserPreferencesStore } from '@/stores/user_preferences'
-const preferences = useUserPreferencesStore();
+const user_preferences = useUserPreferencesStore();
 
-watch(preferences, () => {
-  document.body.style.colorScheme = preferences.color_scheme;
+user_preferences.$subscribe(() => {
+  document.body.style.colorScheme = user_preferences.color_scheme;
 });
 </script>
 
 <template>
   <Button class="button"
-          :title="`set theme to ${preferences.useDarkMode ? 'light' : 'dark'} mode`"
+          :title="`set theme to ${user_preferences.useDarkMode ? 'light' : 'dark'} mode`"
           :icon="['fas', 'lightbulb']"
-          @click="preferences.toggleColorScheme()" />
+          @click="user_preferences.toggleColorScheme()" />
 </template>
 
 <style scoped>
