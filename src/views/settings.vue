@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import Column from '@/components/column.vue'
+import PropertyBuilder from '@/util/property_builder'
 import PropertyEditor from '@/components/property_editor/property_editor.vue'
 import Section from '@/components/section.vue'
 
-const editorProperties = ref({
-
-});
+const editorProperties = ref(new PropertyBuilder()
+    .build());
 
 function onPropertyButtonClick(name) {
 
