@@ -4,7 +4,7 @@ import Column from '@/components/column.vue'
 import ExternalLink from '@/components/external_link.vue'
 import ProjectLabel from '@/components/project_label.vue'
 import Section from '@/components/section.vue'
-import { emailTemplateStore } from '@/stores/email_template_store'
+import { useEmailTemplateStore } from '@/stores/email_template'
 
 defineProps({
   title: { type: String, required: true },
@@ -12,7 +12,7 @@ defineProps({
   lastmod: { default: null },
 })
 
-const emails = emailTemplateStore();
+const emails = useEmailTemplateStore();
 </script>
 
 <template>

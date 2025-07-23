@@ -4,8 +4,8 @@ import Column from '@/components/column.vue'
 import ExternalLink from '@/components/external_link.vue'
 import DateText from '@/components/date_text.vue';
 import Section from '@/components/section.vue'
-import { emailTemplateStore } from '@/stores/email_template_store'
-const emails = emailTemplateStore();
+import { useEmailTemplateStore } from '@/stores/email_template'
+const emails = useEmailTemplateStore();
 const current_job_title = "Senior Software Engineer";
 </script>
 
