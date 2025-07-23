@@ -12,9 +12,18 @@ export default class PropertyBuilder {
     return this;
   }
 
+  addToggle(name: string, label: string, model: boolean): PropertyBuilder {
+    this._result[name] = {
+      type: 'toggle',
+      label,
+      model,
+    }
+    return this;
+  }
+
   addRange(name: string, label: string, model: number, min_value: number, max_value: number, step_value: number): PropertyBuilder {
     this._result[name] = {
-      type: "range",
+      type: 'range',
       label,
       model,
       options: {
@@ -28,7 +37,7 @@ export default class PropertyBuilder {
 
   addComboBox(name: string, label: string, model: string, values: Object): PropertyBuilder {
     this._result[name] = {
-      type: "combobox",
+      type: 'combobox',
       label,
       model,
       options: {
