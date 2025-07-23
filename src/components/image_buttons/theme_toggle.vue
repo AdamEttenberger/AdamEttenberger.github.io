@@ -1,23 +1,20 @@
 <script setup labg="ts">
-import { onMounted, watch } from 'vue'
+import { watch } from 'vue'
 import Button from '@/components/button.vue'
 // Pinia Stores
-import userPrefsStore from '@/stores/local_storage/user_prefs'
-const user_prefs = userPrefsStore();
+import { useUserPreferencesStore } from '@/stores/user_preferences'
+const preferences = useUserPreferencesStore();
 
-function applyColorScheme() {
-  document.body.style.colorScheme = user_prefs.getColorScheme;
-}
-
-watch(user_prefs, applyColorScheme);
-onMounted(applyColorScheme);
+watch(preferences, () => {
+  document.body.style.colorScheme = preferences.color_scheme;
+});
 </script>
 
 <template>
   <Button class="button"
-          :title="`set theme to ${user_prefs.useDarkMode ? 'light' : 'dark'} mode`"
+          :title="`set theme to ${preferences.useDarkMode ? 'light' : 'dark'} mode`"
           :icon="['fas', 'lightbulb']"
-          @click="user_prefs.toggleColorScheme()" />
+          @click="preferences.toggleColorScheme()" />
 </template>
 
 <style scoped>
