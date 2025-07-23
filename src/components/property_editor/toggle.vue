@@ -24,11 +24,9 @@ const model = defineModel({
 
 <template>
   <div class="toggle">
-    <div class="container">
-      <Button v-if="model" class="button"
-              :icon="(icon && model) ?? ['fas', 'check']"
-              @click="$emit('click')" />
-    </div>
+    <Button class="button"
+            :icon="model ? (icon ?? ['fas', 'xmark']) : undefined"
+            @click="model = !model" />
   </div>
 </template>
 
@@ -39,19 +37,8 @@ const model = defineModel({
   height: 1lh;
 }
 
-.toggle > .container {
+.button {
+  aspect-ratio: 1;
   width: auto;
-}
-
-.background {
-  background-color: var(--color-background-button);
-}
-
-.foreground {
-  background-color: var();
-}
-
-.dot {
-  background-color: var(--color-background-);
 }
 </style>
