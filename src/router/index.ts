@@ -1,6 +1,6 @@
 import { createWebHistory, createRouter } from 'vue-router'
 import { useScrollAffectingContentWaiterStore } from '@/stores/scroll_affecting_content_waiter'
-import userPrefsStore from '@/stores/local_storage/user_prefs'
+import { useConsentStore } from '@/stores/consent'
 import Plausible from 'plausible-tracker'
 
 const routes = [
@@ -109,8 +109,8 @@ var router = createRouter({
 });
 
 router.afterEach(() => {
-  const user_prefs = userPrefsStore();
-  if (!user_prefs.allowFirstPartyTracking) {
+  const consent = useConsentStore();
+  if (!consent.allow_first_party_tracking) {
     return;
   }
   // const plausible = Plausible({
