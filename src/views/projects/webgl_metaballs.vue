@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 import Code from '@/components/code.vue'
 import Column from '@/components/column.vue'
@@ -6,82 +6,50 @@ import ExternalLink from '@/components/external_link.vue'
 import Figure from '@/components/figure.vue'
 import Math from '@/components/math.vue'
 import Player from '@/components/player.vue'
+import PropertyBuilder from '@/util/property_builder'
 import PropertyEditor from '@/components/property_editor/property_editor.vue'
 import Quote from '@/components/quote.vue'
 import Section from '@/components/section.vue'
 
-const props = defineProps({
+
+defineProps({
   title: { type: String, required: true },
   date: { type: Date, required: true },
   lastmod: { type: Date },
   frame: { type: String, required: true },
 })
 
-const editorProperties = ref({
-  count: {
-    label: "Count",
-    type: "range",
-    model: 40,
-    options: {
-      min_value: 1,
-      max_value: 100,
-      step_value: 1,
-    },
-  },
-  radius: {
-    label: "Radius",
-    type: "range",
-    model: 0.1,
-    options: {
-      min_value: 0.01,
-      max_value: 0.2,
-      step_value: 0.01,
-    },
-  },
-  threshold: {
-    label: "Min-Mass",
-    type: "range",
-    model: 0.5,
-    options: {
-      min_value: 0.01,
-      max_value: 0.99,
-      step_value: 0.01,
-    },
-  },
-  preset: {
-    label: "Preset",
-    type: "combobox",
-    model: "default",
-    options: {
-      values: {
-        "default": {
-          label: "Default",
-          count: 40,
-          radius: 0.1,
-          threshold: 0.5,
-        },
-        "extra-gloopy": {
-          label: "Extra Gloopy",
-          count: 40,
-          radius: 0.1,
-          threshold: 0.75,
-        },
-        "explosive-growth": {
-          label: "Explosive Growth",
-          count: 20,
-          radius: 0.2,
-          threshold: 0.9,
-        },
-        "many-mini": {
-          label: "Many Mini",
-          count: 100,
-          radius: 0.05,
-          threshold: 0.5,
-        }
+const editorProperties = ref(new PropertyBuilder()
+    .addRange('count', 'Count', 40, /*min=*/1, /*max=*/100, /*step=*/1)
+    .addRange('radius', 'Radius', 0.1, /*min=*/0.01, /*max=*/0.2, /*step=*/0.01)
+    .addRange('threshold', 'Min-Mass', 0.5, /*min=*/0.01, /*max=*/0.99, /*step=*/0.01)
+    .addComboBox('preset', 'Preset', 'default', {
+      "default": {
+        label: "Default",
+        count: 40,
+        radius: 0.1,
+        threshold: 0.5,
       },
-    },
-  },
-});
+      "extra-gloopy": {
+        label: "Extra Gloopy",
+        count: 40,
+        radius: 0.1,
+        threshold: 0.75,
+      },
+      "explosive-growth": {
+        label: "Explosive Growth",
+        count: 20,
+        radius: 0.2,
+        threshold: 0.9,
+      },
+      "many-mini": {
+        label: "Many Mini",
+        count: 100,
+        radius: 0.05,
+        threshold: 0.5,
+      },
+    })
+    .build());
 
 function onPlayerLoaded(target_frame) {
   postMessageToFrame(target_frame);

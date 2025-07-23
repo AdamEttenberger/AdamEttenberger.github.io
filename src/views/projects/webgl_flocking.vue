@@ -6,6 +6,7 @@ import ExternalLink from '@/components/external_link.vue'
 import Figure from '@/components/figure.vue'
 import Math from '@/components/math.vue'
 import Player from '@/components/player.vue'
+import PropertyBuilder from '@/util/property_builder'
 import PropertyEditor from '@/components/property_editor/property_editor.vue'
 import Quote from '@/components/quote.vue'
 import Section from '@/components/section.vue'
@@ -17,75 +18,19 @@ const props = defineProps({
   frame: { type: String, required: true },
 })
 
-const editorProperties = ref({
-  reload: {
-    label: "Reload",
-    type: "button",
-    options: {
-      text: "Restart Scene",
-    },
-  },
-  count: {
-    label: "Count",
-    type: "range",
-    model: 150,
-    options: {min_value: 1, max_value: 500, step_value: 1},
-  },
-  speed: {
-    label: "Max Speed",
-    type: "range",
-    model: 12,
-    options: {min_value: 1, max_value: 100, step_value: 1},
-  },
-  force: {
-    label: "Max Steer Force",
-    type: "range",
-    model: 20,
-    options: {min_value: 10, max_value: 30, step_value: 1},
-  },
-  alignment: {
-    label: "Alignment",
-    type: "range",
-    model: 9.0,
-    options: {min_value: 0, max_value: 20, step_value: 1},
-  },
-  separation: {
-    label: "Separation",
-    type: "range",
-    model: 15.0,
-    options: {min_value: 0, max_value: 20, step_value: 1},
-  },
-  cohesion: {
-    label: "Cohesion",
-    type: "range",
-    model: 7.0,
-    options: {min_value: 0, max_value: 20, step_value: 1},
-  },
-  containment: {
-    label: "Containment",
-    type: "range",
-    model: 100.0,
-    options: {min_value: 0, max_value: 100, step_value: 1},
-  },
-  sight_radius: {
-    label: "Sight Radius",
-    type: "range",
-    model: 8.0,
-    options: {min_value: 0, max_value: 35, step_value: 1},
-  },
-  separation_radius: {
-    label: "Separation Radius",
-    type: "range",
-    model: 3.0,
-    options: {min_value: 0, max_value: 35, step_value: 1},
-  },
-  containment_radius: {
-    label: "Containment Radius",
-    type: "range",
-    model: 30.0,
-    options: {min_value: 0, max_value: 35, step_value: 1},
-  },
-});
+const editorProperties = ref(new PropertyBuilder()
+    .addButton('reload', 'Reload', 'Restart Scene')
+    .addRange('count', 'Count', 150, /*min=*/1, /*max=*/500, /*step=*/1)
+    .addRange('speed', 'Max Speed', 12, /*min=*/1, /*max=*/100, /*step=*/1)
+    .addRange('force', 'Max Steer Force', 20, /*min=*/10, /*max=*/30, /*step=*/1)
+    .addRange('alignment', 'Alignment', 9, /*min=*/0, /*max=*/20, /*step=*/1)
+    .addRange('separation', 'Separation', 15, /*min=*/0, /*max=*/20, /*step=*/1)
+    .addRange('cohesion', 'Cohesion', 7, /*min=*/0, /*max=*/20, /*step=*/1)
+    .addRange('containment', 'Containment', 100, /*min=*/0, /*max=*/100, /*step=*/1)
+    .addRange('sight_radius', 'Sight Radius', 8, /*min=*/0, /*max=*/35, /*step=*/1)
+    .addRange('separation_radius', 'Separation Radius', 3, /*min=*/0, /*max=*/35, /*step=*/1)
+    .addRange('containment_radius', 'Containment Radius', 30, /*min=*/0, /*max=*/35, /*step=*/1)
+    .build());
 
 const needs_reload = ref(false);
 
