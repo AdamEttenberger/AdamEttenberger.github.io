@@ -2,6 +2,9 @@
 import { ref } from 'vue'
 import Button from '@/components/button.vue'
 import Column from '@/components/column.vue'
+import { useConsentStore } from '@/stores/consent'
+
+const consent = useConsentStore();
 
 enum ConsentDialogState {
   Default,
@@ -14,12 +17,13 @@ const dialog_state = ref(ConsentDialogState.Default);
 function onConsentDialogComplete(consent_given: Boolean, remember_choice: Boolean) {
   dialog_state.value = ConsentDialogState.Hidden;
   if (remember_choice) {
-    // TODO: Remember choice to hide dialog
+    consent.allow_hiding_consent_banner.value = true;
   }
   if (!consent_given) {
     return;
   }
-  // TODO: Enable user preferences and tracking
+  consent.allow_first_party_tracking.value = true;
+  consent.allow_saving_user_preferences.value = true;
 }
 
 function onUserConsentRejectAllRememberMeOption(remember_choice) {
