@@ -1,5 +1,5 @@
 import { createWebHistory, createRouter } from 'vue-router'
-import { scrollAffectingContentWaiterStore } from '@/stores/scroll_affecting_content_waiter'
+import { useScrollAffectingContentWaiterStore } from '@/stores/scroll_affecting_content_waiter'
 import userPrefsStore from '@/stores/local_storage/user_prefs'
 import Plausible from 'plausible-tracker'
 
@@ -92,7 +92,7 @@ var router = createRouter({
     if (!savedPosition) {
       return { top: 0 };
     }
-    const store = scrollAffectingContentWaiterStore();
+    const store = useScrollAffectingContentWaiterStore();
     document.querySelectorAll("iframe,img").forEach((ele) => {
       if (ele instanceof HTMLIFrameElement) {
         if (ele.src && ele.readyState === 'loading') {
