@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import ConsentBanner from '@/components/consent_banner.vue'
 import Footer from '@/components/footer.vue'
 import LogoHomeButton from '@/components/image_buttons/logo_home_button.vue'

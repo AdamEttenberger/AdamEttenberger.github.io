@@ -1,47 +1,38 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref } from 'vue'
+import Button from '@/components/button.vue'
 import Column from '@/components/column.vue'
-import Button from '@/components/button.vue';
-import userPrefsStore from '@/stores/local_storage/user_prefs'
-import UserPreferences from '@/types/user_preferences'
 
-const user_prefs = userPrefsStore();
-
-enum MenuState {
+enum ConsentDialogState {
   Default,
   ShowAskToRememberChoice,
   Hidden,
 };
-const menu_state = ref(MenuState.Default);
+
+const dialog_state = ref(ConsentDialogState.Default);
+
+function onConsentDialogComplete(consent_given: Boolean, remember_choice: Boolean) {
+  dialog_state.value = ConsentDialogState.Hidden;
+  if (remember_choice) {
+    // TODO: Remember choice to hide dialog
+  }
+  if (!consent_given) {
+    return;
+  }
+  // TODO: Enable user preferences and tracking
+}
+
+function onUserConsentRejectAllRememberMeOption(remember_choice) {
+  onConsentDialogComplete(/*consent_given=*/false, remember_choice);
+}
 
 function onUserConsentGiven() {
-  user_prefs.do_not_show_consent_banner = true;
-  user_prefs.allow_saving_preferences = true;
-  user_prefs.preferences.value = new UserPreferences();
-  user_prefs.preferences.value.allow_first_party_tracking = true;
-  menu_state.value = MenuState.Hidden;
+  onConsentDialogComplete(/*consent_given=*/true, /*remember_choice=*/true);
 }
-
-function onUserConsentRejectAll() {
-  menu_state.value = MenuState.ShowAskToRememberChoice;
-}
-
-function onUserConsentRejectAllRememberMeOption(remember_me) {
-  if (remember_me) {
-    user_prefs.do_not_show_consent_banner = true;
-  }
-  menu_state.value = MenuState.Hidden;
-}
-
-onMounted(() => {
-  menu_state.value = user_prefs.do_not_show_consent_banner
-      ? MenuState.Hidden
-      : MenuState.Default;
-});
 </script>
 
 <template>
-  <Column v-if="menu_state == MenuState.Default" class="banner">
+  <Column v-if="dialog_state == ConsentDialogState.Default" class="dialog">
     <div class="split">
       <div>
         This website is designed to be cookie-free and will not collect personal data beyond what's required for the site to function, but would like to collect anonymized first-party analytics to monitor performance over time.
@@ -50,14 +41,14 @@ onMounted(() => {
       </div>
       <div class="row">
         <Button class="button" text="Learn More" route="/privacy_statement" />
-        <Button class="button" text="Reject All" @click="onUserConsentRejectAll" />
+        <Button class="button" text="Reject All" @click="dialog_state.value = ConsentDialogState.ShowAskToRememberChoice" />
         <Button class="button" text="Settings" route="/settings" />
         <Button class="button" text="Ok" @click="onUserConsentGiven" />
       </div>
     </div>
   </Column>
 
-  <Column v-if="menu_state == MenuState.ShowAskToRememberChoice" class="banner">
+  <Column v-if="dialog_state == ConsentDialogState.ShowAskToRememberChoice" class="dialog">
     <div class="split">
       <div>
         May this site remember your choice if you visit again?
@@ -72,7 +63,7 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.banner {
+.dialog {
   font-size: small;
 }
 
