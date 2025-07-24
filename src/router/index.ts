@@ -1,4 +1,4 @@
-import { createWebHistory, createRouter } from 'vue-router'
+import { createWebHashHistory, createRouter } from 'vue-router'
 import { useScrollAffectingContentWaiterStore } from '@/stores/scroll_affecting_content_waiter'
 
 const routes = [
@@ -84,7 +84,7 @@ const routes = [
 ];
 
 var router = createRouter({
-  history: createWebHistory(),
+  history: createWebHashHistory(),
   routes,
   scrollBehavior(to, from, savedPosition) {
     if (!savedPosition) {
