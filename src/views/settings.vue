@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { onMounted, ref, watch } from 'vue'
+import { storeToRefs } from 'pinia'
 import Button from '@/components/button.vue'
 import Column from '@/components/column.vue'
 import PropertyBuilder from '@/util/property_builder'
@@ -14,63 +15,36 @@ const consent = useConsentStore();
 const user_preferences = useUserPreferencesStore();
 const match_three_scorecard = useMatchThreeScorecardStore();
 
-const consent_property_mapping = new Map([
-  ['consent.allow_hiding_consent_banner', 'allow_hiding_consent_banner'],
-  ['consent.allow_first_party_tracking', 'allow_first_party_tracking'],
-  ['consent.allow_saving_user_preferences', 'allow_saving_user_preferences'],
-  ['consent.allow_saving_match_three_scorecard', 'allow_saving_match_three_scorecard'],
-]);
+const {
+  allow_hiding_consent_banner,
+  allow_first_party_tracking,
+  allow_saving_user_preferences,
+  allow_saving_match_three_scorecard
+} = storeToRefs(consent);
+
+const {
+  color_scheme,
+} = storeToRefs(user_preferences);
 
 const consent_properties = ref(new PropertyBuilder()
-    .addToggle('consent.allow_hiding_consent_banner', 'Hide consent banner', consent.allow_hiding_consent_banner)
-    .addToggle('consent.allow_first_party_tracking', 'First-party tracking', consent.allow_first_party_tracking)
-    .addToggle('consent.allow_saving_user_preferences', 'Save User Preferences', consent.allow_saving_user_preferences)
-    .addToggle('consent.allow_saving_match_three_scorecard', 'Save Match-3 Scorecard', consent.allow_saving_match_three_scorecard)
+    .addToggle('consent.allow_hiding_consent_banner', 'Hide consent banner', allow_hiding_consent_banner)
+    .addToggle('consent.allow_first_party_tracking', 'First-party tracking', allow_first_party_tracking)
+    .addToggle('consent.allow_saving_user_preferences', 'Save User Preferences', allow_saving_user_preferences)
+    .addToggle('consent.allow_saving_match_three_scorecard', 'Save Match-3 Scorecard', allow_saving_match_three_scorecard)
     .build());
 
-const user_preferences_properties_mapping = new Map([
-  ['user.color_scheme', 'color_scheme'],
-]);
-
 const user_preferences_properties = ref(new PropertyBuilder()
-    .addToggle('consent.allow_saving_user_preferences', 'Save User Preferences', consent.allow_saving_user_preferences)
-    .addComboBox('user.color_scheme', "Color Scheme", user_preferences.color_scheme, {
+    .addToggle('consent.allow_saving_user_preferences', 'Save User Preferences', allow_saving_user_preferences)
+    .addComboBox('user.color_scheme', "Color Scheme", color_scheme, {
       "normal": { label: 'System Default' },
       "dark": { label: 'Dark' },
       "light": { label: 'Light' },
     })
     .build());
 
-const match_three_scorecard_properties_mapping = new Map([
-]);
-
 const match_three_scorecard_properties = ref(new PropertyBuilder()
-    .addToggle('consent.allow_saving_match_three_scorecard', 'Save Match-3 Scorecard', consent.allow_saving_match_three_scorecard)
+    .addToggle('consent.allow_saving_match_three_scorecard', 'Save Match-3 Scorecard', allow_saving_match_three_scorecard)
     .build());
-
-function merge_into_store(store, properties, mapping) {
-  console.log(`merge_into_store`);
-  var patch = {};
-  mapping.forEach((store_key, property_key) => {
-    patch[store_key] = properties.value[property_key].model;
-  });
-  store.$patch(patch);
-}
-
-function merge_from_store(store, properties, mapping) {
-  mapping.forEach((store_key, property_key) => {
-    properties.value[property_key].model = store[store_key];
-  });
-}
-
-consent.$subscribe(() => merge_from_store(consent, consent_properties, consent_property_mapping));
-watch(consent_properties, () => merge_into_store(consent, consent_properties, consent_property_mapping), { deep: true });
-
-user_preferences.$subscribe(() => merge_from_store(user_preferences, user_preferences_properties, user_preferences_properties_mapping));
-watch(user_preferences_properties, () => merge_into_store(user_preferences, user_preferences_properties, user_preferences_properties_mapping), { deep: true });
-
-match_three_scorecard.$subscribe(() => merge_from_store(match_three_scorecard, match_three_scorecard_properties, match_three_scorecard_properties_mapping));
-watch(match_three_scorecard_properties, () => merge_into_store(match_three_scorecard, match_three_scorecard_properties, match_three_scorecard_properties_mapping), { deep: true });
 </script>
 
 <template>
