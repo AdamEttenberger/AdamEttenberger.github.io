@@ -6,7 +6,7 @@ import ExternalLink from '@/components/external_link.vue'
 import Figure from '@/components/figure.vue'
 import Math from '@/components/math.vue'
 import Player from '@/components/player.vue'
-import PropertyBuilder from '@/util/property_editor/property_builder'
+import PropertyBuilder, { PropertyNumberRangeBuilder, PropertyComboBoxBuilder } from '@/util/property_editor/property_builder'
 import PropertyEditor from '@/components/property_editor/property_editor.vue'
 import Quote from '@/components/quote.vue'
 import Section from '@/components/section.vue'
@@ -20,10 +20,10 @@ defineProps({
 })
 
 const editorProperties = ref(new PropertyBuilder()
-    .addRange('count', 'Count', 40, /*min=*/1, /*max=*/100, /*step=*/1)
-    .addRange('radius', 'Radius', 0.1, /*min=*/0.01, /*max=*/0.2, /*step=*/0.01)
-    .addRange('threshold', 'Min-Mass', 0.5, /*min=*/0.01, /*max=*/0.99, /*step=*/0.01)
-    .addComboBox('preset', 'Preset', 'default', {
+    .addProperty('count', new PropertyNumberRangeBuilder().setLabel('Count').setModel(40).setMin(1).setMax(100).setStep(1))
+    .addProperty('radius', new PropertyNumberRangeBuilder().setLabel('Radius').setModel(0.1).setMin(0.01).setMax(0.2).setStep(0.01))
+    .addProperty('threshold', new PropertyNumberRangeBuilder().setLabel('Min-Mass').setModel(0.5).setMin(0.01).setMax(0.99).setStep(0.01))
+    .addProperty('preset', new PropertyComboBoxBuilder().setLabel('Preset').setModel('default').setValues({
       "default": {
         label: "Default",
         count: 40,
@@ -48,7 +48,7 @@ const editorProperties = ref(new PropertyBuilder()
         radius: 0.05,
         threshold: 0.5,
       },
-    })
+    }))
     .build());
 
 function onPlayerLoaded(target_frame) {

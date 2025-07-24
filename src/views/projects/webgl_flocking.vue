@@ -6,7 +6,7 @@ import ExternalLink from '@/components/external_link.vue'
 import Figure from '@/components/figure.vue'
 import Math from '@/components/math.vue'
 import Player from '@/components/player.vue'
-import PropertyBuilder from '@/util/property_editor/property_builder'
+import PropertyBuilder, { PropertyButtonBuilder, PropertyNumberRangeBuilder } from '@/util/property_editor/property_builder'
 import PropertyEditor from '@/components/property_editor/property_editor.vue'
 import Quote from '@/components/quote.vue'
 import Section from '@/components/section.vue'
@@ -19,17 +19,17 @@ const props = defineProps({
 })
 
 const editorProperties = ref(new PropertyBuilder()
-    .addButton('reload', 'Reload', 'Restart Scene')
-    .addRange('count', 'Count', 150, /*min=*/1, /*max=*/500, /*step=*/1)
-    .addRange('speed', 'Max Speed', 12, /*min=*/1, /*max=*/100, /*step=*/1)
-    .addRange('force', 'Max Steer Force', 20, /*min=*/10, /*max=*/30, /*step=*/1)
-    .addRange('alignment', 'Alignment', 9, /*min=*/0, /*max=*/20, /*step=*/1)
-    .addRange('separation', 'Separation', 15, /*min=*/0, /*max=*/20, /*step=*/1)
-    .addRange('cohesion', 'Cohesion', 7, /*min=*/0, /*max=*/20, /*step=*/1)
-    .addRange('containment', 'Containment', 100, /*min=*/0, /*max=*/100, /*step=*/1)
-    .addRange('sight_radius', 'Sight Radius', 8, /*min=*/0, /*max=*/35, /*step=*/1)
-    .addRange('separation_radius', 'Separation Radius', 3, /*min=*/0, /*max=*/35, /*step=*/1)
-    .addRange('containment_radius', 'Containment Radius', 30, /*min=*/0, /*max=*/35, /*step=*/1)
+    .addProperty('reload', new PropertyButtonBuilder().setLabel('Reload').setText('Restart Scene'))
+    .addProperty('count', new PropertyNumberRangeBuilder().setLabel('Count').setModel(150).setMin(1).setMax(500).setStep(1))
+    .addProperty('speed', new PropertyNumberRangeBuilder().setLabel('Max Speed').setModel(12).setMin(1).setMax(100).setStep(1))
+    .addProperty('force', new PropertyNumberRangeBuilder().setLabel('Max Steer Force').setModel(20).setMin(10).setMax(30).setStep(1))
+    .addProperty('alignment', new PropertyNumberRangeBuilder().setLabel('Alignment').setModel(9).setMin(0).setMax(20).setStep(1))
+    .addProperty('separation', new PropertyNumberRangeBuilder().setLabel('Separation').setModel(15).setMin(0).setMax(20).setStep(1))
+    .addProperty('cohesion', new PropertyNumberRangeBuilder().setLabel('Cohesion').setModel(7).setMin(0).setMax(20).setStep(1))
+    .addProperty('containment', new PropertyNumberRangeBuilder().setLabel('Containment').setModel(100).setMin(0).setMax(100).setStep(1))
+    .addProperty('sight_radius', new PropertyNumberRangeBuilder().setLabel('Sight Radius').setModel(8).setMin(0).setMax(35).setStep(1))
+    .addProperty('separation_radius', new PropertyNumberRangeBuilder().setLabel('Separation Radius').setModel(3).setMin(0).setMax(35).setStep(1))
+    .addProperty('containment_radius', new PropertyNumberRangeBuilder().setLabel('Containment Radius').setModel(30).setMin(0).setMax(35).setStep(1))
     .build());
 
 const needs_reload = ref(false);
