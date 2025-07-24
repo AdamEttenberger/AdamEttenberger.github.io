@@ -9,7 +9,7 @@ import Section from '@/components/section.vue'
 import { useConsentStore } from '@/stores/consent'
 import { useUserPreferencesStore } from '@/stores/user_preferences'
 import { useMatchThreeScorecardStore } from '@/stores/match_three_scorecard'
-import PropertyBuilder, { PropertyToggleBuilder, PropertyComboBoxBuilder } from '@/util/property_editor/property_builder'
+import PropertyBuilder, { PropertyButtonBuilder, PropertyComboBoxBuilder, PropertyToggleBuilder } from '@/util/property_editor/property_builder'
 
 const consent = useConsentStore();
 const user_preferences = useUserPreferencesStore();
@@ -44,7 +44,16 @@ const user_preferences_properties = ref(new PropertyBuilder()
 
 const match_three_scorecard_properties = ref(new PropertyBuilder()
     .addProperty('consent.allow_saving_match_three_scorecard', new PropertyToggleBuilder().setLabel('Save Match-3 Personal Scorecard').setModel(allow_saving_match_three_scorecard))
+    .addProperty('action.delete_match_three_scorecard', new PropertyButtonBuilder().setLabel('Delete personal scorecard').setText("Delete"))
     .build());
+
+function onPropertyButtonClick(name) {
+  switch (name) {
+    case 'action.delete_match_three_scorecard':
+      match_three_scorecard.scorecard = null;
+      break;
+  }
+}
 </script>
 
 <template>
@@ -73,7 +82,8 @@ const match_three_scorecard_properties = ref(new PropertyBuilder()
     </Section>
 
     <Section heading="Match-3 Game">
-      <PropertyEditor :properties="match_three_scorecard_properties" />
+      <PropertyEditor :properties="match_three_scorecard_properties"
+                      @property-click="onPropertyButtonClick" />
     </Section>
 
     <Section heading="Delete Everything">
