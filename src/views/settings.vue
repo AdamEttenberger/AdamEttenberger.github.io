@@ -54,6 +54,12 @@ function onPropertyButtonClick(name) {
       break;
   }
 }
+
+function onDeleteAllLocalStorage() {
+  consent.$reset();
+  user_preferences.$reset();
+  match_three_scorecard.$reset();
+}
 </script>
 
 <template>
@@ -93,7 +99,7 @@ function onPropertyButtonClick(name) {
       </p>
       <br />
       <div class="row">
-        <Button class="delete" text="Delete All Local Storage" />
+        <Button class="delete" text="Delete All Local Storage" @click="onDeleteAllLocalStorage" />
       </div>
     </Section>
   </Column>
