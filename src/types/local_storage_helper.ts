@@ -19,7 +19,7 @@ export default class LocalStorageHelper {
 
   static bind(store: any, prereq_ref): void {
     var on_storage_event = (event) => {
-      if (event.key !== null && event.key !== store.$id) {
+      if (event.key && event.key !== store.$id) {
         return;
       }
       LocalStorageHelper.pull(store, prereq_ref);
