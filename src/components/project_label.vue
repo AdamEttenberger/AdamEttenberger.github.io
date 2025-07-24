@@ -1,10 +1,10 @@
 <script setup>
 import DateLabel from '@/components/date_label.vue'
 
-const props = defineProps({
+defineProps({
   title: { type: String, required: true },
   date: { type: Date },
-  lastmod: { type: Date },
+  lastmod: { default: null },
   route: { type: String },
 })
 </script>

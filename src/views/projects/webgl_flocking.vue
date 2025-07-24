@@ -6,6 +6,7 @@ import ExternalLink from '@/components/external_link.vue'
 import Figure from '@/components/figure.vue'
 import Math from '@/components/math.vue'
 import Player from '@/components/player.vue'
+import PropertyBuilder, { PropertyButtonBuilder, PropertyNumberRangeBuilder } from '@/util/property_editor/property_builder'
 import PropertyEditor from '@/components/property_editor/property_editor.vue'
 import Quote from '@/components/quote.vue'
 import Section from '@/components/section.vue'
@@ -17,72 +18,19 @@ const props = defineProps({
   frame: { type: String, required: true },
 })
 
-const editorProperties = ref({
-  reload: {
-    label: "Reload",
-    type: "button",
-  },
-  count: {
-    label: "Count",
-    type: "range",
-    model: 150,
-    options: {min_value: 1, max_value: 500, step_value: 1},
-  },
-  speed: {
-    label: "Max Speed",
-    type: "range",
-    model: 12,
-    options: {min_value: 1, max_value: 100, step_value: 1},
-  },
-  force: {
-    label: "Max Steer Force",
-    type: "range",
-    model: 20,
-    options: {min_value: 10, max_value: 30, step_value: 1},
-  },
-  alignment: {
-    label: "Alignment",
-    type: "range",
-    model: 9.0,
-    options: {min_value: 0, max_value: 20, step_value: 1},
-  },
-  separation: {
-    label: "Separation",
-    type: "range",
-    model: 15.0,
-    options: {min_value: 0, max_value: 20, step_value: 1},
-  },
-  cohesion: {
-    label: "Cohesion",
-    type: "range",
-    model: 7.0,
-    options: {min_value: 0, max_value: 20, step_value: 1},
-  },
-  containment: {
-    label: "Containment",
-    type: "range",
-    model: 100.0,
-    options: {min_value: 0, max_value: 100, step_value: 1},
-  },
-  sight_radius: {
-    label: "Sight Radius",
-    type: "range",
-    model: 8.0,
-    options: {min_value: 0, max_value: 35, step_value: 1},
-  },
-  separation_radius: {
-    label: "Separation Radius",
-    type: "range",
-    model: 3.0,
-    options: {min_value: 0, max_value: 35, step_value: 1},
-  },
-  containment_radius: {
-    label: "Containment Radius",
-    type: "range",
-    model: 30.0,
-    options: {min_value: 0, max_value: 35, step_value: 1},
-  },
-});
+const editorProperties = ref(new PropertyBuilder()
+    .addProperty('reload', new PropertyButtonBuilder().setLabel('Reload').setText('Restart Scene'))
+    .addProperty('count', new PropertyNumberRangeBuilder().setLabel('Count').setModel(150).setMin(1).setMax(500).setStep(1))
+    .addProperty('speed', new PropertyNumberRangeBuilder().setLabel('Max Speed').setModel(12).setMin(1).setMax(100).setStep(1))
+    .addProperty('force', new PropertyNumberRangeBuilder().setLabel('Max Steer Force').setModel(20).setMin(10).setMax(30).setStep(1))
+    .addProperty('alignment', new PropertyNumberRangeBuilder().setLabel('Alignment').setModel(9).setMin(0).setMax(20).setStep(1))
+    .addProperty('separation', new PropertyNumberRangeBuilder().setLabel('Separation').setModel(15).setMin(0).setMax(20).setStep(1))
+    .addProperty('cohesion', new PropertyNumberRangeBuilder().setLabel('Cohesion').setModel(7).setMin(0).setMax(20).setStep(1))
+    .addProperty('containment', new PropertyNumberRangeBuilder().setLabel('Containment').setModel(100).setMin(0).setMax(100).setStep(1))
+    .addProperty('sight_radius', new PropertyNumberRangeBuilder().setLabel('Sight Radius').setModel(8).setMin(0).setMax(35).setStep(1))
+    .addProperty('separation_radius', new PropertyNumberRangeBuilder().setLabel('Separation Radius').setModel(3).setMin(0).setMax(35).setStep(1))
+    .addProperty('containment_radius', new PropertyNumberRangeBuilder().setLabel('Containment Radius').setModel(30).setMin(0).setMax(35).setStep(1))
+    .build());
 
 const needs_reload = ref(false);
 
@@ -122,10 +70,12 @@ function scheduleUpdate() {
 function onPropertyChanged(name, new_value) {
   scheduleUpdate();
 }
+
 function onPropertyButtonClick(name) {
-  if (name === 'reload') {
-    needs_reload.value = true;
+  if (name !== 'reload') {
+    return;
   }
+  needs_reload.value = true;
   scheduleUpdate();
 }
 </script>
@@ -135,7 +85,8 @@ function onPropertyButtonClick(name) {
           :date="date"
           :lastmod="lastmod"
           :frame="frame"
-          :paused="false" />
+          :paused="false"
+          @load="onPlayerLoaded" />
   <UnderConstruction />
   <Column>
     <Section heading="Controls">

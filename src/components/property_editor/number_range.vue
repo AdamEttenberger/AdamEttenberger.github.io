@@ -6,6 +6,7 @@ const emit = defineEmits(['property-changed']);
 
 const props = defineProps({
   name: { type: String, required: true },
+  disabled: { type: Boolean, required: true },
   min_value: { type: Number, required: true },
   max_value: { type: Number, required: true },
   step_value: { type: Number, required: true },
@@ -25,12 +26,14 @@ const model = defineModel({
 <template>
   <div class="number-range">
     <input :name="name" type="number"
+           :disabled="disabled"
            inputmode="decimal"
            :min="min_value"
            :max="max_value"
            :step="step_value"
            v-model.number.lazy="model" />
     <input :name="name" type="range"
+           :disabled="disabled"
            :min="min_value"
            :max="max_value"
            :step="step_value"
@@ -45,15 +48,16 @@ const model = defineModel({
   gap: var(--size-property-grid-gap);
 }
 input[type=number] {
+  color: var(--color-text-button);
+  background-color: var(--color-background-button);
   font-family: Consolas, Monaco, 'Lucida Console', 'Courier New', Courier, monospace;
   border-radius: var(--size-border-radius);
   padding-left: var(--size-padding-round);
-  font-size: 0.9rem;
+  font-size: 1rem;
 
   display: block;
   width: 4.5rem;
   transition: background-color var(--anim-transition);
-  background-color: var(--color-background-button);
   &:hover,
   &:focus {
     background-color: var(--color-background-button-hover);
@@ -65,7 +69,7 @@ input[type=number] {
   &::-webkit-inner-spin-button {
     -webkit-appearance: none;
     mask: url("@/assets/property_editor/number_spinner.svg");
-    background-color: var(--color-text);
+    background-color: var(--color-text-button);
     width: 1rem;
     height: 1rem;
     padding-right: var(--size-padding-hard);

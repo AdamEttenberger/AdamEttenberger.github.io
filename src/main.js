@@ -10,17 +10,21 @@ import { library } from '@fortawesome/fontawesome-svg-core'
 // import { far } from '@fortawesome/free-regular-svg-icons'
 // import { fab } from '@fortawesome/free-brands-svg-icons'
 import {
-  faArrowRotateLeft,
   faCirclePlay,
   faDragon,
+  faEnvelope,
   faFileCircleXmark,
-  faMoon,
-  faSun,
+  faFilePdf,
+  faGear,
+  faLightbulb,
+  faQuestion,
+  faRotateLeft,
   faUpRightFromSquare,
+  faXmark,
 } from '@fortawesome/free-solid-svg-icons'
 import {
-  faGithubSquare,
-  faLinkedin,
+  faGithub,
+  faLinkedinIn,
 } from '@fortawesome/free-brands-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
@@ -30,17 +34,21 @@ app.use(pinia);
 
 // FontAwesome Config
 library.add(
-  faArrowRotateLeft,
   faCirclePlay,
   faDragon,
+  faEnvelope,
   faFileCircleXmark,
-  faMoon,
-  faSun,
+  faFilePdf,
+  faGear,
+  faLightbulb,
+  faQuestion,
+  faRotateLeft,
   faUpRightFromSquare,
+  faXmark,
 );
 library.add(
-  faLinkedin,
-  faGithubSquare
+  faGithub,
+  faLinkedinIn,
 );
 app.component('font-awesome-icon', FontAwesomeIcon);
 // Routing Config

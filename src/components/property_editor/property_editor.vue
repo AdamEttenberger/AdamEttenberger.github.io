@@ -19,6 +19,7 @@ function onPropertyChanged(name, new_value) {
   <div class="framed property-editor">
     <PropertyRow v-for="(value, key) in properties"
                  :name="key"
+                 :disabled="value.disabled"
                  :label="value.label"
                  :type="value.type"
                  :options="value.options"
