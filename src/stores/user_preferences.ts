@@ -13,6 +13,10 @@ export const useUserPreferencesStore = defineStore('user-preferences', () => {
     color_scheme.value = useDarkMode.value ? "light" : "dark";
   }
 
+  function $reset() {
+    color_scheme.value = 'normal';
+  }
+
   return {
     // State
     color_scheme,
@@ -20,5 +24,6 @@ export const useUserPreferencesStore = defineStore('user-preferences', () => {
     useDarkMode,
     // Actions
     toggleColorScheme,
+    $reset,
   };
 });

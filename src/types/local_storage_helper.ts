@@ -4,7 +4,7 @@ export default class LocalStorageHelper {
   static pull(store: any, prereq_ref): void {
     const cached_value = localStorage.getItem(store.$id);
     if (!cached_value) {
-      return;
+      store.$reset();
     }
     store.$state = JSON.parse(cached_value);
   }
@@ -19,7 +19,7 @@ export default class LocalStorageHelper {
 
   static bind(store: any, prereq_ref): void {
     var on_storage_event = (event) => {
-      if (store.$id !== event.key) {
+      if (event.key !== null && event.key !== store.$id) {
         return;
       }
       LocalStorageHelper.pull(store, prereq_ref);

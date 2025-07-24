@@ -3,13 +3,13 @@ import { onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import Button from '@/components/button.vue'
 import Column from '@/components/column.vue'
-import PropertyBuilder from '@/util/property_editor/property_builder'
 import PropertyEditor from '@/components/property_editor/property_editor.vue'
 import Section from '@/components/section.vue'
 // Pinia Stores
 import { useConsentStore } from '@/stores/consent'
 import { useUserPreferencesStore } from '@/stores/user_preferences'
 import { useMatchThreeScorecardStore } from '@/stores/match_three_scorecard'
+import PropertyBuilder, { PropertyToggleBuilder, PropertyComboBoxBuilder } from '@/util/property_editor/property_builder'
 
 const consent = useConsentStore();
 const user_preferences = useUserPreferencesStore();
@@ -27,23 +27,23 @@ const {
 } = storeToRefs(user_preferences);
 
 const consent_properties = ref(new PropertyBuilder()
-    .addToggle('consent.allow_hiding_consent_banner', 'Hide consent banner', allow_hiding_consent_banner)
-    .addToggle('consent.allow_first_party_tracking', 'Allow first-party tracking', allow_first_party_tracking)
-    .addToggle('consent.allow_saving_user_preferences', 'Save User Preferences', allow_saving_user_preferences)
-    .addToggle('consent.allow_saving_match_three_scorecard', 'Save Match-3 Scorecard', allow_saving_match_three_scorecard)
+    .addProperty('consent.allow_hiding_consent_banner', new PropertyToggleBuilder().setLabel('Hide consent banner').setModel(allow_hiding_consent_banner))
+    .addProperty('consent.allow_first_party_tracking', new PropertyToggleBuilder().setLabel('Allow first-party tracking').setModel(allow_first_party_tracking))
+    .addProperty('consent.allow_saving_user_preferences', new PropertyToggleBuilder().setLabel('Save User Preferences').setModel(allow_saving_user_preferences))
+    .addProperty('consent.allow_saving_match_three_scorecard', new PropertyToggleBuilder().setLabel('Save Match-3 Scorecard').setModel(allow_saving_match_three_scorecard))
     .build());
 
 const user_preferences_properties = ref(new PropertyBuilder()
-    .addToggle('consent.allow_saving_user_preferences', 'Save User Preferences', allow_saving_user_preferences)
-    .addComboBox('user.color_scheme', "Color Scheme", color_scheme, {
+    .addProperty('consent.allow_saving_user_preferences', new PropertyToggleBuilder().setLabel('Save User Preferences').setModel(allow_saving_user_preferences))
+    .addProperty('user.color_scheme', new PropertyComboBoxBuilder().setLabel('Color Scheme').setModel(color_scheme).setValues({
       "normal": { label: 'System Default' },
       "dark": { label: 'Dark' },
       "light": { label: 'Light' },
-    })
+    }))
     .build());
 
 const match_three_scorecard_properties = ref(new PropertyBuilder()
-    .addToggle('consent.allow_saving_match_three_scorecard', 'Save Match-3 Personal Scorecard', allow_saving_match_three_scorecard)
+    .addProperty('consent.allow_saving_match_three_scorecard', new PropertyToggleBuilder().setLabel('Save Match-3 Personal Scorecard').setModel(allow_saving_match_three_scorecard))
     .build());
 </script>
 
