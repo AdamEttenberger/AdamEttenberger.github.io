@@ -93,7 +93,7 @@ function onPropertyButtonClick(name) {
       </p>
       <br />
       <div class="row">
-        <Button class="delete">Delete All Local Storage</Button>
+        <Button class="delete" text="Delete All Local Storage" />
       </div>
     </Section>
   </Column>
