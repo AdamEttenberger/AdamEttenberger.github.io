@@ -1,17 +1,22 @@
 <script setup>
+import Button from '@/components/button.vue'
 import Column from '@/components/column.vue'
 import ExternalLink from '@/components/external_link.vue'
 import ProjectLabel from '@/components/project_label.vue'
 import Section from '@/components/section.vue'
-import UnderConstruction from '@/components/under_construction.vue'
-const props = defineProps({
+import { useEmailTemplateStore } from '@/stores/email_template'
+
+defineProps({
   title: { type: String, required: true },
+  date: { type: Date, required: true },
+  lastmod: { default: null },
 })
+
+const emails = useEmailTemplateStore();
 </script>
 
 <template>
-  <ProjectLabel :title="title" />
-  <UnderConstruction />
+  <ProjectLabel :title="title" :date="date" :lastmod="lastmod" />
   <Column class="content">
     <Section heading="Welcome!">
       <p>
@@ -60,6 +65,15 @@ const props = defineProps({
       <p>
         I really enjoy learning new things, and experimenting with new technology!
       </p>
+    </Section>
+
+    <Section heading="Feedback">
+      <p>
+        If you have critical feedback that is both specific and actionable such as a security or privacy concern, please use the following email template including as much detail as possible and I will attempt to mitigate or resolve concerns in a timely manner.
+        Please review the <RouterLink to="/privacy_statement">privacy statement</RouterLink> which includes sections on providing feedback and email policy.
+      </p>
+      <br />
+      <Button class="feedback" :mailto="emails.feedback" />
     </Section>
 
     <Section heading="More Coming Soon!">

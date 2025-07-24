@@ -7,7 +7,7 @@ defineProps({
 </script>
 
 <template>
-  <div>
+  <div class="quote">
     <blockquote :cite="cite_url">
       <p>&#x275D;<slot></slot>&#x275E;</p>
     </blockquote>
@@ -16,6 +16,10 @@ defineProps({
 </template>
 
 <style scoped>
+.quote {
+  text-align: center;
+}
+
 .name {
   text-align: right;
   font-size: smaller;

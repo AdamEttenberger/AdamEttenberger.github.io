@@ -6,6 +6,7 @@ const emit = defineEmits(['property-changed']);
 
 const props = defineProps({
   name: { type: String, required: true },
+  disabled: { type: Boolean, required: true },
   options: { type: Object, required: true },
 });
 
@@ -20,7 +21,7 @@ const model = defineModel({
 </script>
 
 <template>
-  <select :name="name" v-model="model">
+  <select :name="name" :disabled="disabled" v-model="model">
     <option v-for="(option, key) in options"
             :value="key">
       {{ option.label }}
@@ -39,7 +40,7 @@ option::checkmark {
 }
 
 select {
-  font-size: 0.9rem;
+  font-size: 1rem;
   border-radius: var(--size-border-radius);
   padding: 0 var(--size-padding-round);
   align-items: center;

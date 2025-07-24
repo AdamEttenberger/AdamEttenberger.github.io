@@ -1,7 +1,7 @@
-<script setup>
+<script setup lang="ts">
 // Pinia Stores
-import { colorSchemeStore } from '@/stores/color_scheme'
-const store = colorSchemeStore();
+import { useUserPreferencesStore } from '@/stores/user_preferences'
+const preferences = useUserPreferencesStore();
 
 defineProps({
   src: { type: String, default: null },
@@ -15,8 +15,7 @@ defineProps({
 <template>
   <figure>
     <div class="framed">
-      <img v-if="(src_light && src_dark) && store.isDarkMode" :src="src_dark" :alt="alt" />
-      <img v-else-if="(src_light && src_dark) && !store.isDarkMode" :src="src_light" :alt="alt" />
+      <img v-if="(src_light && src_dark)" :src="preferences.useDarkMode ? src_dark : src_light" :alt="alt" />
       <img v-else-if="src" :src="src" :alt="alt" />
       <slot v-else></slot>
     </div>

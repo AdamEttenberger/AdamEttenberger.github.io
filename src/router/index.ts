@@ -1,28 +1,26 @@
-import { createMemoryHistory, createRouter } from 'vue-router'
-
-import ProjectList from '/src/views/projects.vue'
-import match_three from '/src/views/projects/match_three.vue'
-import renu from '/src/views/projects/renu.vue'
-import webgl_metaballs from '/src/views/projects/webgl_metaballs.vue'
-import webgl_flocking from '/src/views/projects/webgl_flocking.vue'
-import webgl_proto_engine from '/src/views/projects/webgl_proto_engine.vue'
-import website from '/src/views/projects/website.vue'
-import { createWebHashHistory } from 'vue-router';
-// Pinia Stores
-import { scrollAffectingContentWaiterStore } from '@/stores/scroll_affecting_content_waiter'
+import { createWebHistory, createRouter } from 'vue-router'
+import { useScrollAffectingContentWaiterStore } from '@/stores/scroll_affecting_content_waiter'
 
 const routes = [
   {
     path: "/",
-    component: ProjectList,
+    component: () => import('@/views/projects.vue'),
+  },
+  {
+    path: "/about/",
+    component: () => import('@/views/about.vue'),
+  },
+  {
+    path: "/privacy_statement/",
+    component: () => import('@/views/privacy_statement.vue'),
   },
   {
     path: "/projects/",
-    component: ProjectList,
+    component: () => import('@/views/projects.vue'),
   },
   {
     path: "/projects/match_three/",
-    component: match_three,
+    component: () => import('@/views/projects/match_three.vue'),
     props: {
       title: "Match-3 Game",
       date: new Date('2025/05/27'),
@@ -32,7 +30,7 @@ const routes = [
   },
   {
     path: "/projects/renu/",
-    component: renu,
+    component: () => import('@/views/projects/renu.vue'),
     props: {
       title: "RENU - Imagine Cup 2013 @ RIT",
       date: new Date('2012/12/01'),
@@ -42,7 +40,7 @@ const routes = [
   },
   {
     path: "/projects/webgl_proto_engine/",
-    component: webgl_proto_engine,
+    component: () => import('@/views/projects/webgl_proto_engine.vue'),
     props: {
       title: "WebGL Proto-Engine",
       date: new Date('2012/09/01'),
@@ -52,7 +50,7 @@ const routes = [
   },
   {
     path: "/projects/webgl_flocking/",
-    component: webgl_flocking,
+    component: () => import('@/views/projects/webgl_flocking.vue'),
     props: {
       title: "WebGL Flocking",
       date: new Date('2012/10/05'),
@@ -62,7 +60,7 @@ const routes = [
   },
   {
     path: "/projects/webgl_metaballs/",
-    component: webgl_metaballs,
+    component: () => import('@/views/projects/webgl_metaballs.vue'),
     props: {
       title: "WebGL Metaballs",
       date: new Date('2012/10/08'),
@@ -72,21 +70,27 @@ const routes = [
   },
   {
     path: "/projects/website/",
-    component: website,
+    component: () => import('@/views/projects/website.vue'),
     props: {
       title: "This Website",
+      date: new Date('2012/09/19'),
+      lastmod: new Date(__BUILD_TIMESTAMP__),
     },
+  },
+  {
+    path: "/settings/",
+    component: () => import('@/views/settings.vue'),
   },
 ];
 
-const router = createRouter({
-  history: createWebHashHistory(),
+var router = createRouter({
+  history: createWebHistory(),
   routes,
   scrollBehavior(to, from, savedPosition) {
     if (!savedPosition) {
       return { top: 0 };
     }
-    const store = scrollAffectingContentWaiterStore();
+    const store = useScrollAffectingContentWaiterStore();
     document.querySelectorAll("iframe,img").forEach((ele) => {
       if (ele instanceof HTMLIFrameElement) {
         if (ele.src && ele.readyState === 'loading') {
@@ -100,5 +104,6 @@ const router = createRouter({
     });
     return store.wait.then(() => savedPosition);
   },
-})
-export default router
+});
+
+export default router;

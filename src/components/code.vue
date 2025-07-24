@@ -1,5 +1,5 @@
-<script setup>
-import { ref, onMounted } from 'vue'
+<script setup lang="ts">
+import { computed, ref, onMounted } from 'vue'
 import {basicSetup} from "codemirror"
 import {EditorState} from "@codemirror/state"
 import {EditorView} from "@codemirror/view"
@@ -15,9 +15,9 @@ import { vue } from "@codemirror/lang-vue"
 import { yaml } from "@codemirror/lang-yaml"
 import { oneDark } from "@codemirror/theme-one-dark"
 // Pinia Stores
-import { scrollAffectingContentWaiterStore } from '@/stores/scroll_affecting_content_waiter'
+import { useScrollAffectingContentWaiterStore } from '@/stores/scroll_affecting_content_waiter'
 
-const scrollAffectingContentWaiter = scrollAffectingContentWaiterStore();
+const scrollAffectingContentWaiter = useScrollAffectingContentWaiterStore();
 
 const props = defineProps({
   text: { type: String, default: null },
@@ -25,6 +25,17 @@ const props = defineProps({
   lang: { type: String, default: "cpp" },
   caption: { type: String, default: null },
 })
+
+const caption = computed(() => {
+  if (props.caption) {
+    return props.caption;
+  }
+  if (props.file) {
+    // Extract the filename from the path as fallback.
+    return props.file.substring(props.file.lastIndexOf('/') + 1);
+  }
+  return null;
+});
 
 const editor = ref();
 const init_failed = ref(false);
@@ -77,17 +88,6 @@ function getTextAsync() {
   });
 }
 
-function getCaption() {
-  if (props.caption) {
-    return props.caption;
-  }
-  if (props.file) {
-    // Extract the filename from the path as fallback.
-    return props.file.substring(props.file.lastIndexOf('/') + 1);
-  }
-  return null;
-}
-
 function getLanguageExtension() {
   switch (props.lang) {
     case "cpp": return cpp();
@@ -123,7 +123,6 @@ onMounted(() => {
       extensions: extensions,
     });
   }).catch(() => {
-    console.log("failed")
     init_failed.value = true
   });
   scrollAffectingContentWaiter.add(task);
@@ -131,7 +130,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <Figure :caption="getCaption()">
+  <Figure :caption="caption">
     <div v-if="init_failed" class="error">
       <font-awesome-icon :icon="['fas', 'file-circle-xmark']" />
       <br />
