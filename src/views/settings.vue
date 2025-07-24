@@ -3,7 +3,7 @@ import { onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import Button from '@/components/button.vue'
 import Column from '@/components/column.vue'
-import PropertyBuilder from '@/util/property_builder'
+import PropertyBuilder from '@/util/property_editor/property_builder'
 import PropertyEditor from '@/components/property_editor/property_editor.vue'
 import Section from '@/components/section.vue'
 // Pinia Stores
