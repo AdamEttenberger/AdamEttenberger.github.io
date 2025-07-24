@@ -99,7 +99,7 @@ const emails = useEmailTemplateStore();
       <p>
         Should you consent to first-party [metrics, telemetry, analytics, data collection], any data collected will be treated with care and only ever shared in aggregate form.
         Examples of "aggregate form" include but are not limited to; "(annual || monthly) visitors", "(most || least) popular (page || game)".
-        Data collected will <b>NEVER</b> be sold or shared with advertisers.
+        Data collected will <b>never</b> be sold or shared with advertisers.
         Data collected will only be used for the purpose of making informed decisions about the website, or for sharing in aggregated form as mentioned.
       </p>
       <br />
