@@ -112,12 +112,14 @@ const emails = useEmailTemplateStore();
         Following is an example of what a first-party analytics event should look like:
       </p>
       <br />
-      <Code lang="javascript"
+      <Code lang="text"
             caption="Example of a first-party analytics API call."
             text="
-        Request URL: https://data.adamettenberger.com/api/event
+        # Request URL
+        'https://data.adamettenberger.com/api/event'
 
-        POST Payload => {
+        # POST Payload
+        {
           name: 'pageview',
           domain: 'adamettenberger.com',
           url: 'https://adamettenberger.com/about',
