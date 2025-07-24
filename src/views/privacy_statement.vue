@@ -114,7 +114,18 @@ const emails = useEmailTemplateStore();
       <br />
       <Code lang="javascript"
             caption="Example of a first-party analytics API call."
-            text="https://data.adamettenberger.com/api/event" />
+            text="
+        Request URL: https://data.adamettenberger.com/api/event
+
+        POST Payload => {
+          name: 'pageview',
+          domain: 'adamettenberger.com',
+          url: 'https://adamettenberger.com/about',
+          hashMode: 1,
+          referrer: null,
+          deviceWidth: null,
+        }
+      " />
     </Section>
   </Column>
 </template>

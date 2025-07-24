@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, watch } from 'vue'
+import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia'
 import ConsentBanner from '@/components/consent_banner.vue'
 import Footer from '@/components/footer.vue'
 import LocalStorageHelper from '@/types/local_storage_helper'
 import LogoHomeButton from '@/components/image_buttons/logo_home_button.vue'
+import Plausible from 'plausible-tracker'
 import SettingsButton from '@/components/settings_button.vue'
 import SocialLink from '@/components/image_buttons/social_link.vue'
 import ThemeToggle from '@/components/image_buttons/theme_toggle.vue'
@@ -16,10 +18,29 @@ import { onMounted } from 'vue'
 
 const consent = useConsentStore();
 const {
+  allow_first_party_tracking,
   allow_hiding_consent_banner,
   allow_saving_user_preferences,
   allow_saving_match_three_scorecard,
 } = storeToRefs(consent);
+
+function trackPageview() {
+  if (!allow_first_party_tracking?.value) {
+    return;
+  }
+  const plausible = Plausible({
+    apiHost: 'https://data.adamettenberger.com',
+    domain: 'adamettenberger.com',
+    hashMode: true, // Enables tracking based on URL hash changes.
+    trackLocalhost: false,
+  });
+  plausible.trackPageview({
+    referrer: null,
+    deviceWidth: null,
+  });
+}
+
+useRouter().afterEach(() => trackPageview());
 
 onMounted(() => {
   const consent = useConsentStore();
@@ -27,6 +48,15 @@ onMounted(() => {
   LocalStorageHelper.bind(consent, any_consent_given);
   LocalStorageHelper.bind(useUserPreferencesStore(), allow_saving_user_preferences);
   LocalStorageHelper.bind(useMatchThreeScorecardStore(), allow_saving_match_three_scorecard);
+
+  // Bind after loading from localStorage to prevent handling duplicates
+  // on navigation or refresh.
+  watch(allow_first_party_tracking, (new_value, old_value) => {
+    if (old_value || !new_value) {
+      return;
+    }
+    trackPageview();
+  });
 });
 </script>
 

@@ -1,7 +1,5 @@
 import { createWebHistory, createRouter } from 'vue-router'
 import { useScrollAffectingContentWaiterStore } from '@/stores/scroll_affecting_content_waiter'
-import { useConsentStore } from '@/stores/consent'
-import Plausible from 'plausible-tracker'
 
 const routes = [
   {
@@ -106,20 +104,6 @@ var router = createRouter({
     });
     return store.wait.then(() => savedPosition);
   },
-});
-
-router.afterEach(() => {
-  const consent = useConsentStore();
-  if (!consent.allow_first_party_tracking) {
-    return;
-  }
-  // const plausible = Plausible({
-  //   apiHost: 'https://127.0.0.1',
-  //   domain: 'adamettenberger.com',
-  //   hashMode: true, // Enables tracking based on URL hash changes.
-  //   trackLocalhost: false,
-  // });
-  // plausible.trackPageview();
 });
 
 export default router;
