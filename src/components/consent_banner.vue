@@ -17,13 +17,13 @@ const dialog_state = ref(ConsentDialogState.Default);
 function onConsentDialogComplete(consent_given: Boolean, remember_choice: Boolean) {
   dialog_state.value = ConsentDialogState.Hidden;
   if (remember_choice) {
-    consent.allow_hiding_consent_banner.value = true;
+    consent.allow_hiding_consent_banner = true;
   }
   if (!consent_given) {
     return;
   }
-  consent.allow_first_party_tracking.value = true;
-  consent.allow_saving_user_preferences.value = true;
+  consent.allow_first_party_tracking = true;
+  consent.allow_saving_user_preferences = true;
 }
 
 function onUserConsentRejectAllRememberMeOption(remember_choice) {
@@ -45,7 +45,7 @@ function onUserConsentGiven() {
       </div>
       <div class="row">
         <Button class="button" text="Learn More" route="/privacy_statement" />
-        <Button class="button" text="Reject All" @click="dialog_state.value = ConsentDialogState.ShowAskToRememberChoice" />
+        <Button class="button" text="Reject All" @click="dialog_state = ConsentDialogState.ShowAskToRememberChoice" />
         <Button class="button" text="Settings" route="/settings" />
         <Button class="button" text="Ok" @click="onUserConsentGiven" />
       </div>
