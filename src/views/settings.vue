@@ -28,7 +28,7 @@ const {
 
 const consent_properties = ref(new PropertyBuilder()
     .addToggle('consent.allow_hiding_consent_banner', 'Hide consent banner', allow_hiding_consent_banner)
-    .addToggle('consent.allow_first_party_tracking', 'First-party tracking', allow_first_party_tracking)
+    .addToggle('consent.allow_first_party_tracking', 'Allow first-party tracking', allow_first_party_tracking)
     .addToggle('consent.allow_saving_user_preferences', 'Save User Preferences', allow_saving_user_preferences)
     .addToggle('consent.allow_saving_match_three_scorecard', 'Save Match-3 Scorecard', allow_saving_match_three_scorecard)
     .build());
@@ -43,7 +43,7 @@ const user_preferences_properties = ref(new PropertyBuilder()
     .build());
 
 const match_three_scorecard_properties = ref(new PropertyBuilder()
-    .addToggle('consent.allow_saving_match_three_scorecard', 'Save Match-3 Scorecard', allow_saving_match_three_scorecard)
+    .addToggle('consent.allow_saving_match_three_scorecard', 'Save Match-3 Personal Scorecard', allow_saving_match_three_scorecard)
     .build());
 </script>
 
