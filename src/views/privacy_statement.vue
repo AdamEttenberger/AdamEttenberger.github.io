@@ -28,7 +28,7 @@ const emails = useEmailTemplateStore();
     <Section heading="Summary">
       <p>
         I strongly believe that privacy is a fundamental human right.
-        As such I will never use this website to collect private user information beyond what's required to operate the website.
+        This website will not be used to collect private user information beyond what's required to operate the website.
         Raw telemetry data collected by this website will never by sold and will never be shared unless required to operate the website or compelled by applicable laws or a warrant.
         Anonymized aggregate date, including but not limited to "(annual || monthly) visitors" or "(most || least) popular (page || game)", may either be shared on this website upon reaching significant milestones or while interviewing with potential employers.
       </p>
