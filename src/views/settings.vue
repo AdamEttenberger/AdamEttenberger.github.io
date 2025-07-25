@@ -56,9 +56,22 @@ function onPropertyButtonClick(name) {
 }
 
 function onDeleteAllLocalStorage() {
+  // Calling $reset ensures the website behaves reactively since
+  // neither localStorage.clear() or localStorage.removeItem()
+  // trigger 'storage' events.
   consent.$reset();
   user_preferences.$reset();
   match_three_scorecard.$reset();
+  // If anything was left behind, call localStorage.clear().
+  // During development I've observed both Edge and Chrome failing
+  // on their first attempt to delete particular localStorage keys.
+  // Arbitrarily limit attempts (3) to safeguard against infinite loops
+  // for any situation where a key cannot be deleted; either because the
+  // browser refuses to delete it or something is injecting localStorage
+  // keys unexpectedly.
+  for (var i = 0; localStorage.length > 0 && i < 3; ++i) {
+    localStorage.clear();
+  }
 }
 </script>
 
