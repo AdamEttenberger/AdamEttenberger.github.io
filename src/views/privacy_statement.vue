@@ -38,7 +38,7 @@ const emails = useEmailTemplateStore();
       </p>
       <br />
       <p>
-        This website isn't concerned with "who" in particular is visiting, only a rough gauge of website performance such as which pages receive traffic, how many pages were visited before leaving or refreshing the website, the bounce (navigating away from a page within 10 seconds) rate for articles to help identify issues, and any feedback you may have on an any articles or demos which include a feedback mechanism (either some form of voting button, or pre-selected statements).
+        This website isn't concerned with "who" in particular is visiting, only a rough gauge of website performance such as which pages receive traffic, how many pages were visited before leaving or refreshing the website, the bounce (navigating away from a page within 10 seconds) rate for articles to help identify issues, first and largest page load/paint latency, coarse geolocation information, and any feedback you may have on an any articles or demos which include a feedback mechanism (either some form of voting button, or pre-selected statements).
       </p>
       <br />
       <p>
@@ -47,7 +47,7 @@ const emails = useEmailTemplateStore();
       </p>
       <br />
       <p>
-        Additionally <b>with your consent</b>, this website will store your consent selections and website preferences in localStorage, to re-apply after reloading or visiting the app again from the same device.
+        Additionally <b>with your consent</b>, this website will store your consent selections and website preferences in browser local storage, to re-apply after reloading or visiting the app again from the same device.
         As a bonus feature, if a user has multiple instances of this website open within the same browser and device, then the browser local storage events paired with reactive bindings enables automatic synchronization of preferences between tabs.
       </p>
     </Section>
