@@ -29,8 +29,26 @@ const emails = useEmailTemplateStore();
       <p>
         I strongly believe that privacy is a fundamental human right.
         This website will not be used to collect private user information beyond what's required to operate the website.
-        Raw telemetry data collected by this website will never by sold and will never be shared unless required to operate the website or compelled by applicable laws or a warrant.
+      </p>
+      <br />
+      <p>
+        However, <b>with your consent</b>, the website would like to collect some information regarding which pages receive traffic.
+        Setting aside privacy laws, integrating page tracking as an opt-in feature was important to me because it's plausible to correlate "spontaneous" traffic with an individual or organization.
+        While this information would provide valuable insights into website traffic, it's technically not essential for the website to operate.
+      </p>
+      <br />
+      <p>
+        This website isn't concerned with "who" in particular is visiting, only a rough gauge of website performance such as which pages receive traffic, how many pages were visited before leaving or refreshing the website, the bounce (navigating away from a page within 10 seconds) rate for articles to help identify issues, first and largest page load/paint latency, coarse geolocation information, and any feedback you may have on an any articles or demos which include a feedback mechanism (either some form of voting button, or pre-selected statements).
+      </p>
+      <br />
+      <p>
+        Raw telemetry data collected by this website will never by sold, and data collected will never be shared beyond the extent required to operate the website and process the data collected, or if compelled by applicable laws or a warrant.
         Anonymized aggregate date, including but not limited to "(annual || monthly) visitors" or "(most || least) popular (page || game)", may either be shared on this website upon reaching significant milestones or while interviewing with potential employers.
+      </p>
+      <br />
+      <p>
+        Additionally <b>with your consent</b>, this website will store your consent selections and website preferences in browser local storage, to re-apply after reloading or visiting the app again from the same device.
+        As a bonus feature, if a user has multiple instances of this website open within the same browser and device, then the browser local storage events paired with reactive bindings enables automatic synchronization of preferences between tabs.
       </p>
     </Section>
 
@@ -58,54 +76,49 @@ const emails = useEmailTemplateStore();
 
     <Section heading="Email Policy">
       <p>
-        The email domain "@adamettenberger.com" will only be used for receiving and responding to inquiries and feedback.
-        The email domain will <b>never</b> be used for unsolicited contact.
-        Should you choose to send an email to any "@adamettenberger.com" address, information shared will be treated as confidential and will not be shared beyond the requirements to facilitate communication through relevant third-party email services, or when compelled by applicable laws or a warrant.
+        The email domain "@adamettenberger.com" will only be used to receive email, responding to inquiries and feedback, or to apply for a new opportunity.
+        Should you choose to send an email to any "@adamettenberger.com" address, information shared will be treated as confidential and will not be shared without consent beyond what's required to send and receive email through relevant third-party email services, or if compelled by applicable laws or a warrant.
       </p>
       <br />
-      <p>
-        Should you choose to send an email to any "@adamettenberger.com" address, your email address will not be used to include you in any mailing list(s).
-      </p>
-      <br />
-      <p>
-        If you're a company hiring manager or recruiter seeking to hire me through the alias <EmailLink :mailto="emails.hiring" />, I will aim to respond within 1-5 business days.
-      </p>
-      <br />
-      <p>
-        If you raise a concern through the alias <EmailLink :mailto="emails.feedback" />, I will aim to respond only when necessary and within 1-5 business days depending on the severity of the concern.
-      </p>
-      <br />
-      <p>
-        Unless given express written consent through an email, any  email address will not be used for any other purpose.
-      </p>
+      <ul>
+        <li>If you're a company hiring manager or recruiter seeking to hire me through the alias <EmailLink :mailto="emails.hiring" />, I will aim to respond within 1-5 business days.</li>
+        <li>If you raise a concern through the alias <EmailLink :mailto="emails.feedback" />, I will aim to respond only when necessary and within 1-5 business days depending on the severity of the concern.</li>
+        <li>Unless given express written consent, your email address will not be used for any other purpose.</li>
+      </ul>
     </Section>
 
     <Section heading="Third-party Processing">
       <p>
-        This website is hosted by <ExternalLink to="https://pages.github.com/">GitHub Pages</ExternalLink>, and therefore handling of traffic to this website is subject to their terms and conditions, including but not limited to applicable data handling, retention, and privacy policies.
+        This website is built with the help of some third-party services and is subject to applicable terms and conditions, including but not limited to data handling, retention, and privacy policies.
+        For example:
       </p>
       <br />
-      <p>
-        Any emails sent to or from this domain name ("@adamettenberger.com") are processed by a third-party proxy service and hosted by a third-party email service, in part to aid with filtering potential spam and malware and are subject to their terms and conditions, including but not limited to applicable data handling, retention, and privacy policies.
-      </p>
+      <ul>
+        <li>This website is hosted by <ExternalLink to="https://pages.github.com/">GitHub Pages</ExternalLink>.</li>
+        <li>This website will, <b>with your consent</b>, collect anonymized telemetry with <ExternalLink to="https://posthog.com/">PostHog Cloud</ExternalLink> and route traffic through a proxy as recommended.</li>
+      </ul>
     </Section>
 
     <Section heading="First-party Analytics">
       <p>
-        This website would like to collect some anonymized telemetry using a self-hosted instance of <ExternalLink to="https://plausible.io/self-hosted-web-analytics">Plausible Community Edition</ExternalLink>, a website analytics tool which claims to be General Data Protection Regulation (GDPR) and California Consumer Privacy Act (CCPA) compliant by not using cookies, only sending anonymized data, and doesn't support cross-domain or cross-device user tracking.
-        The server which hosts the analytics platform, and both collects and processes telemetry, is located within the United States of America (USA).
+        This website would like to collect some anonymized telemetry with the help of <ExternalLink to="https://posthog.com/">PostHog Cloud</ExternalLink>, which among its many offerings includes anonymized cookieless website analytics and may be configured to be General Data Protection Regulation (GDPR) and California Consumer Privacy Act (CCPA) compliant.
+        The PostHog Cloud server which hosts and processes the collected analytics is located in the United States of America (USA).
+        The account will only process traffic to this domain name, and both the client and server configurations has been configured to be more privacy preserving (e.g., discarding client IP data, disabling session replay).
       </p>
       <br />
       <p>
-        Should you consent to first-party [metrics, telemetry, analytics, data collection], any data collected will be treated with care and only ever shared in aggregate form.
+        The client configuration may be found at <ExternalLink to="https://raw.githubusercontent.com/AdamEttenberger/AdamEttenberger.github.io/refs/heads/main/src/plugins/posthog.js">'@/plugins/posthog.js'</ExternalLink>.
+      </p>
+      <br />
+      <p>
+        Should you consent to first-party [metrics, telemetry, analytics, data collection], any data collected will only ever shared in aggregate form as mentioned on this page.
         Examples of "aggregate form" include but are not limited to; "(annual || monthly) visitors", "(most || least) popular (page || game)".
-        Data collected will <b>never</b> be sold or shared with advertisers.
-        Data collected will only be used for the purpose of making informed decisions about the website, or for sharing in aggregated form as mentioned.
+        Data collected will <b>never</b> be sold or shared with for advertising.
       </p>
       <br />
       <p>
         If you selected "Ok" on the dialog shown to new visitors at the top of the page, you have consented to collecting first-party analytics data.
-        If you would like to change your selection, you may do so by visiting "/settings" by pressing the <SettingsButton class="inline-button" /> near the top of the page.
+        If you would like to change this selection, open the settings menu by pressing the settings button ( <SettingsButton class="inline-button" /> ) to the right of the page header.
       </p>
       <br />
       <p>
@@ -115,18 +128,26 @@ const emails = useEmailTemplateStore();
       <Code lang="text"
             caption="Example of a first-party analytics API call."
             text="
-        # Request URL
-        'https://data.adamettenberger.com/api/event'
+        # Telemetry event URL
+        'https://posthog-data.adamettenberger.com/i/v0/e/?ip=0&_={ANTI_CACHE_TIMESTAMP}&ver={VERSION}&compression=gzip-js'
 
-        # POST Payload
+        # POST Payload (an example uncompressed event entry)
+        # RANDOM_HYPHENATED_32_BYTE_VALUE_NAME and RANDOM_HYPHENATED_32_BYTE_VALUE_ID
+        # generated when the single page app is first loaded or when reloaded.
+        # Associates page visits until leaving (or reloaded) the website.
         {
-          name: 'pageview',
-          domain: 'adamettenberger.com',
-          url: 'https://adamettenberger.com/about',
-          hashMode: 1,
-          referrer: null,
-          deviceWidth: null,
-        }
+          'event': '$autocapture',
+          'Person': {
+              'display_name': '{RANDOM_HYPHENATED_32_BYTE_VALUE_NAME}',
+              'id': '{RANDOM_HYPHENATED_32_BYTE_VALUE_ID}'
+          },
+          'Url / Screen': 'https://adamettenberger.com/#/projects/match_three',
+          'properties.$lib': 'web',
+          'timestamp': '{TIMESTAMP}'
+        },
+
+        # PostHog local storage token to opt-in to collection.
+        __ph_opt_in_out_{DOMAIN_TOKEN}
       " />
     </Section>
   </Column>
