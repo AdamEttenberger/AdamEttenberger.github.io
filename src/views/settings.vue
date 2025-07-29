@@ -88,7 +88,7 @@ function onDeleteAllLocalStorage() {
       </p>
       <br />
       <p>
-        For more details, please review the <RouterLink to="/privacy_statement">privacy statement</RouterLink>.
+        For more details, please review the <RouterLink to="/privacy">privacy statement</RouterLink>.
       </p>
     </Section>
 

@@ -70,7 +70,7 @@ const emails = useEmailTemplateStore();
     <Section heading="Feedback">
       <p>
         If you have critical feedback that is both specific and actionable such as a security or privacy concern, please use the following email template including as much detail as possible and I will attempt to mitigate or resolve concerns in a timely manner.
-        Please review the <RouterLink to="/privacy_statement">privacy statement</RouterLink> which includes sections on providing feedback and email policy.
+        Please review the <RouterLink to="/privacy">privacy statement</RouterLink> which includes sections on providing feedback and email policy.
       </p>
       <br />
       <Button class="feedback" :mailto="emails.feedback" />

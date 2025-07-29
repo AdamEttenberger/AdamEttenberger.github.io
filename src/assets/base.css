@@ -80,7 +80,7 @@
   --size-padding-round: var(--size-border-radius);
   --size-padding-hard: calc(var(--size-padding-round) / 2);
   --size-list-indentation: 1.5rem;
-  --size-column-padding: 1rem 1.5rem;
+  --size-column-padding: 0.25rem 1.5rem;
 }
 
 /* animation variables */

@@ -44,7 +44,7 @@ function onUserConsentGiven() {
         Games played on this website may write to device local storage for behavior such as a personal high-scores or save files.
       </div>
       <div class="row">
-        <Button class="button" text="Learn More" route="/privacy_statement" />
+        <Button class="button" text="Learn More" route="/privacy" />
         <Button class="button" text="Reject All" @click="dialog_state = ConsentDialogState.ShowAskToRememberChoice" />
         <Button class="button" text="Settings" route="/settings" />
         <Button class="button" text="Ok" @click="onUserConsentGiven" />

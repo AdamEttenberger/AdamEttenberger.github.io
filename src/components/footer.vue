@@ -5,11 +5,13 @@ import Column from '@/components/column.vue'
 <template>
   <footer>
     <Column class="column">
-      <div class="copyright">&copy;&nbsp;{{ new Date().getFullYear() }} Adam Ettenberger</div>
-      &nbsp;&middot;
-      <RouterLink to="/privacy_statement">privacy statement</RouterLink>
-      &nbsp;&middot;
-      <RouterLink to="/about">about</RouterLink>
+      <div>
+        <RouterLink to="/about">About</RouterLink>
+        &middot;
+        <RouterLink to="/privacy">Privacy</RouterLink>
+        &middot;
+      </div>
+      <div class="copyright">&nbsp;&copy;&nbsp;{{ new Date().getFullYear() }} Adam Ettenberger</div>
     </Column>
   </footer>
 </template>
@@ -20,9 +22,13 @@ footer > .column {
   flex-direction: row;
   justify-content: center;
   align-items: center;
-  font-size: medium;
-  height: 2.5rem;
-  border-radius: var(--size-border-radius);
-  background-color: var(--color-background-soft);
+  text-align: center;
+}
+
+@media only screen and (max-width: 22rem) {
+  footer > .column {
+    display: flex;
+    flex-direction: column;
+  }
 }
 </style>

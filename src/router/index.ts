@@ -11,8 +11,8 @@ const routes = [
     component: () => import('@/views/about.vue'),
   },
   {
-    path: "/privacy_statement/",
-    component: () => import('@/views/privacy_statement.vue'),
+    path: "/privacy/",
+    component: () => import('@/views/privacy.vue'),
   },
   {
     path: "/projects/",
