@@ -19,6 +19,10 @@ details:open > *:not(summary) {
 summary{
   cursor: pointer;
   font-size: medium;
-  color: var(--color-text-heading);
+  background-color: var(--color-background-button);
+  color: var(--color-text-button);
+  border-radius: var(--size-border-radius);
+  padding: 0 var(--size-padding-round);
+  margin: var(--size-property-grid-gap) 0;
 }
 </style>
