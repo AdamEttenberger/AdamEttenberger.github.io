@@ -20,9 +20,6 @@ const emails = useEmailTemplateStore();
   <Button v-else-if="type === 'hire-me'" title="E-mail, hire me!"
           alt="E-mail, hire me!" :icon="['fas', 'envelope']"
           :mailto="emails.hiring" />
-  <Button v-else-if="type === 'resume'" title="Resume"
-          alt="Resume" :icon="['fas', 'file-pdf']"
-          to="/docs/resume.pdf" />
   <Button v-else-if="type === 'about'" title="About me"
           alt="About me" :icon="['fas', 'question']"
           route="/about" />

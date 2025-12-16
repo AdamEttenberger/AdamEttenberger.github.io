@@ -45,7 +45,6 @@ onMounted(() => {
             <SocialLink type="hire-me" />
             <SocialLink type="linkedin" />
             <SocialLink type="github" />
-            <SocialLink type="resume" />
           </div>
           <div class="controls">
             <ThemeToggle />
