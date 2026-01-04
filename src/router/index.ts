@@ -39,8 +39,8 @@ const routes = [
     },
   },
   {
-    path: "/projects/webgl_proto_engine/",
-    component: () => import('@/views/projects/webgl_proto_engine.vue'),
+    path: "/projects/proto_engine/",
+    component: () => import('@/views/projects/proto_engine.vue'),
     props: {
       title: "WebGL Proto-Engine",
       date: new Date('2012/09/01'),
@@ -49,8 +49,8 @@ const routes = [
     },
   },
   {
-    path: "/projects/webgl_flocking/",
-    component: () => import('@/views/projects/webgl_flocking.vue'),
+    path: "/projects/flocking/",
+    component: () => import('@/views/projects/flocking.vue'),
     props: {
       title: "WebGL Flocking",
       date: new Date('2012/10/05'),
@@ -59,8 +59,8 @@ const routes = [
     },
   },
   {
-    path: "/projects/webgl_metaballs/",
-    component: () => import('@/views/projects/webgl_metaballs.vue'),
+    path: "/projects/metaballs/",
+    component: () => import('@/views/projects/metaballs.vue'),
     props: {
       title: "WebGL Metaballs",
       date: new Date('2012/10/08'),

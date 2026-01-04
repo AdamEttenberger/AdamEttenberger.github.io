@@ -7,7 +7,7 @@ const website_lastmod = ref(__BUILD_TIMESTAMP__);
 
 <template>
   <ProjectCard title="Match-3 Game"
-               image="/images/projects/tile_match.png"
+               image="/images/projects/match_three/icon.png"
                route="/projects/match_three"
                :date="new Date('2025/05/27')"
                :lastmod="new Date('2025/07/14')">
@@ -17,7 +17,7 @@ const website_lastmod = ref(__BUILD_TIMESTAMP__);
   </ProjectCard>
 
   <ProjectCard title="This Website"
-               image="/images/projects/website.png"
+               image="/images/projects/website/icon.png"
                route="/projects/website"
                :date="new Date('2012/09/19')"
                :lastmod="new Date(website_lastmod)">
@@ -29,7 +29,7 @@ const website_lastmod = ref(__BUILD_TIMESTAMP__);
   </ProjectCard>
 
   <ProjectCard title="RENU - Imagine Cup 2013 @ RIT"
-               image="/images/projects/renu.png"
+               image="/images/projects/renu/icon.png"
                route="/projects/renu"
                :date="new Date('2012/12/01')"
                :lastmod="new Date('2012/12/01')">
@@ -40,8 +40,8 @@ const website_lastmod = ref(__BUILD_TIMESTAMP__);
   </ProjectCard>
 
   <ProjectCard title="WebGL Metaballs"
-               image="/images/projects/metaballs.png"
-               route="/projects/webgl_metaballs"
+               image="/images/projects/metaballs/icon.png"
+               route="/projects/metaballs"
                :date="new Date('2012/10/08')"
                :lastmod="new Date('2025/06/18')">
     <p>
@@ -51,8 +51,8 @@ const website_lastmod = ref(__BUILD_TIMESTAMP__);
   </ProjectCard>
 
   <ProjectCard title="WebGL Flocking"
-               image="/images/projects/flocking.png"
-               route="/projects/webgl_flocking"
+               image="/images/projects/flocking/icon.png"
+               route="/projects/flocking"
                :date="new Date('2012/10/05')"
                :lastmod="new Date('2025/07/07')">
     <p>
@@ -62,8 +62,8 @@ const website_lastmod = ref(__BUILD_TIMESTAMP__);
   </ProjectCard>
 
   <ProjectCard title="WebGL Proto-Engine"
-               image="/images/projects/proto_engine.png"
-               route="/projects/webgl_proto_engine"
+               image="/images/projects/proto_engine/icon.png"
+               route="/projects/proto_engine"
                :date="new Date('2012/09/01')"
                :lastmod="new Date('2025/06/26')">
     <p>
