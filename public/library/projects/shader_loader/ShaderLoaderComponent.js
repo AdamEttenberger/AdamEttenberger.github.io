@@ -39,7 +39,6 @@ function ShaderLoaderComponent( )
         ].flat(), 1),
       ];
     }
-    this.loadShaderProgram();
   }
 
   this.draw = function( gl )
