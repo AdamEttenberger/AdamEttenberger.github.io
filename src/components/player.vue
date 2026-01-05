@@ -19,6 +19,10 @@ const props = defineProps({
 
 const player_frame = ref();
 const requested_play = ref(false);
+
+defineExpose({
+  player_frame
+});
 </script>
 
 <template>
