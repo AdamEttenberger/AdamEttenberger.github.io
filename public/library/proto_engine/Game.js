@@ -86,60 +86,6 @@ function Game(canvas)
     }
   }
 
-  this.loadShaderProgramAsync = function(vertexShaderFile, fragmentShaderFile)
-  {
-    var loadVSContent = LoadFileAsync('GET', vertexShaderFile)
-    .then(xhr => {
-      var vsContents = xhr.responseText;
-      var vs_shader = gl.createShader(gl.VERTEX_SHADER);
-      gl.shaderSource(vs_shader, vsContents);
-      gl.compileShader(vs_shader);
-      if ( !gl.getShaderParameter(vs_shader, gl.COMPILE_STATUS) )
-      {
-        console.log(gl.getShaderInfoLog(vs_shader));
-        throw "GL_SHADER_ERROR";
-      }
-      return vs_shader;
-    })
-    .catch( e => Game.ExceptionHandler(e) );
-
-    var loadFSContent = LoadFileAsync('GET', fragmentShaderFile)
-    .then(xhr => {
-      var fsContents = xhr.responseText;
-      var fs_shader = gl.createShader(gl.FRAGMENT_SHADER);
-      gl.shaderSource(fs_shader, fsContents);
-      gl.compileShader(fs_shader);
-      if ( !gl.getShaderParameter(fs_shader, gl.COMPILE_STATUS) )
-      {
-        console.log(gl.getShaderInfoLog(fs_shader));
-        throw "GL_SHADER_ERROR";
-      }
-      return fs_shader;
-    })
-    .catch( e => Game.ExceptionHandler(e) );;
-
-    return Promise.all([loadVSContent, loadFSContent])
-    .then(function(values) {
-      var vs_shader = values[0];
-      var fs_shader = values[1];
-      var shaderProgram = gl.createProgram();
-      gl.attachShader(shaderProgram, vs_shader);
-      gl.attachShader(shaderProgram, fs_shader);
-      gl.linkProgram(shaderProgram);
-
-      if ( !gl.getProgramParameter(shaderProgram, gl.LINK_STATUS) )
-      {
-        console.log("Could not initialise shaders");
-        throw "GL_SHADER_PROGRAM_ERROR";
-      }
-
-      gl.useProgram(shaderProgram);
-
-      return shaderProgram;
-    })
-    .catch( e => Game.ExceptionHandler(e) );;
-  }
-
   this.exit = function()
   {
     if (this.running)
@@ -163,7 +109,6 @@ function Game(canvas)
   }
 }
 
-Game.shaderProgram = null;
 Game.clearColor = vec4.fromValues( 0.392156862745098, 0.5843137254901961, 0.9294117647058824, 1.0 );
 Game.mMatrix = mat4.create();
 Game.vMatrix = mat4.create();
