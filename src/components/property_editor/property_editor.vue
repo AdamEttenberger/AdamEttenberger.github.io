@@ -20,6 +20,7 @@ function onPropertyChanged(name, new_value) {
     <PropertyRow v-for="(value, key) in properties"
                  :name="key"
                  :disabled="value.disabled"
+                 :collapsed="value.collapsed"
                  :label="value.label"
                  :type="value.type"
                  :options="value.options"

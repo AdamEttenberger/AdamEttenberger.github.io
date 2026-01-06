@@ -34,6 +34,7 @@ export type PropertyRowData = {
   label?: any;
   model?: any;
   disabled?: any;
+  collapsed?: any;
 };
 
 export default class PropertyBuilder {
@@ -47,6 +48,6 @@ export default class PropertyBuilder {
   build(): Object {
     var result = this._result;
     this._result = null;
-    return Object.fromEntries(result.entries().map(([name, builder]) => [name, builder.build()]));;
+    return Object.fromEntries(result.entries().map(([name, builder]) => [name, builder.build()]));
   }
 };

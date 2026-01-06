@@ -35,6 +35,14 @@ export default class PropertyRowBuilder<TBuilderImpl extends PropertyRowBuilder<
     return this;
   }
 
+  setCollapsed(collapsed: any): TBuilderImpl {
+    this._result = {
+      ...this._result,
+      collapsed,
+    };
+    return this;
+  }
+
   build(): Object {
     var tmp = this._result;
     this._result = null;

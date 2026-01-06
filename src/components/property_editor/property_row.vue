@@ -13,6 +13,7 @@ const emit = defineEmits([
 const props = defineProps({
   name: { type: String, required: true },
   disabled: { type: Boolean, default: false },
+  collapsed: { type: Boolean, default: false },
   label: { type: String, required: true },
   type: { type: String, required: true },
   options: { type: Object },
@@ -30,7 +31,7 @@ const is_model_changed = computed(() => model.value != (props.options?.initial_v
 </script>
 
 <template>
-  <div class="property-row">
+  <div v-if="!collapsed" class="property-row">
     <label :for="name">{{ label }}</label>
     <Button :class="['undo', is_model_changed ? '' : 'hidden']"
             :name="'undo:' + name"

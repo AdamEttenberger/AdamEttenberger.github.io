@@ -49,8 +49,8 @@ class App {
     var uniforms = e.data.uniforms;
     if (sources) {
       // Need to convert from API string to gl.*_SHADER keys.
-      sources = Object.entries(sources).map(pair => [this.shader_api_key_map.get(pair[0]), pair[1]]);
-      var additional_uniform_key_entries = uniforms ? new Map(uniforms.entries().map(pair => [pair[0], pair[0]])) : null;
+      sources = Object.entries(sources).map(([key, value]) => [this.shader_api_key_map.get(key), value]);
+      var additional_uniform_key_entries = uniforms ? new Map(uniforms.map(([key, value]) => [key, key])) : null;
       await this.shader_loader_component.loadShaderProgram(sources, additional_uniform_key_entries);
     }
     if (uniforms) {
