@@ -64,7 +64,7 @@ function FlockManager()
       vec3.scale(tri.m_transform.position, tri.m_transform.position, 20.0);
 
       tri.m_transform.scale = vec3.fromValues(1.5, 1.5, 1.5);
-      tri.addComponent(new TextureModelComponent().setTexture(Game.loadTexture("/library/projects/flocking/images/ship.png")).setBuffers(triBuffers));
+      tri.addComponent(new TextureModelComponent().setTexture(g_game.loadTexture("/library/projects/flocking/images/ship.png")).setBuffers(triBuffers));
       tri.addComponent(new FlockerComponent());
       this.m_gameObject.addChildGameObject(tri);
     }

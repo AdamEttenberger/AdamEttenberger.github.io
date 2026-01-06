@@ -41,7 +41,7 @@ function ColorTextureModelComponent() {
 
       ColorTextureModelComponent.Shader.setUniform1f(ColorTextureModelComponent.UniformType.alpha, 1.0);
     })
-    .catch( e => Game.ExceptionHandler(e) );
+    .catch(e => g_game.onException(e));
   }
 
   this.setTexture = function(texture) {
@@ -73,9 +73,9 @@ function ColorTextureModelComponent() {
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this.texture);
 
-    ColorTextureModelComponent.Shader.setUniformMat4(ColorTextureModelComponent.UniformType.mMatrix, Game.mMatrix);
-    ColorTextureModelComponent.Shader.setUniformMat4(ColorTextureModelComponent.UniformType.vMatrix, Game.vMatrix);
-    ColorTextureModelComponent.Shader.setUniformMat4(ColorTextureModelComponent.UniformType.pMatrix, Game.pMatrix);
+    ColorTextureModelComponent.Shader.setUniformMat4(ColorTextureModelComponent.UniformType.mMatrix, g_game.mMatrix);
+    ColorTextureModelComponent.Shader.setUniformMat4(ColorTextureModelComponent.UniformType.vMatrix, g_game.vMatrix);
+    ColorTextureModelComponent.Shader.setUniformMat4(ColorTextureModelComponent.UniformType.pMatrix, g_game.pMatrix);
 
     gl.drawElements(gl.TRIANGLES, numItems, gl.UNSIGNED_BYTE, 0);
 
@@ -101,7 +101,7 @@ function ColorTextureModelComponent() {
         reject();
       }
       this.setBuffers(jsonObject.buffers.map(element => new Buffer(gl, element.buffer_type, element.gl_array_type, element.buff, element.item_size)));
-      this.setTexture(Game.loadTexture(jsonObject.texture));
+      this.setTexture(g_game.loadTexture(jsonObject.texture));
       resolve(this);
     });
   }

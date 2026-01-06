@@ -61,12 +61,12 @@ function ShaderLoaderComponent( )
     });
 
     // Vertex Uniforms
-    this.shader.setUniformMat4(ShaderLoaderComponent.UniformType.mMatrix, Game.mMatrix);
-    this.shader.setUniformMat4(ShaderLoaderComponent.UniformType.vMatrix, Game.vMatrix);
-    this.shader.setUniformMat4(ShaderLoaderComponent.UniformType.pMatrix, Game.pMatrix);
+    this.shader.setUniformMat4(ShaderLoaderComponent.UniformType.mMatrix, g_game.mMatrix);
+    this.shader.setUniformMat4(ShaderLoaderComponent.UniformType.vMatrix, g_game.vMatrix);
+    this.shader.setUniformMat4(ShaderLoaderComponent.UniformType.pMatrix, g_game.pMatrix);
 
     // Fragment Uniforms
-    this.shader.setUniform3f(ShaderLoaderComponent.UniformType.resolution, gl.viewportWidth, gl.viewportHeight, gl.viewportWidth / gl.viewportHeight);
+    this.shader.setUniform3f(ShaderLoaderComponent.UniformType.resolution, g_game.canvas_width, g_game.canvas_height, g_game.aspect);
     this.shader.setUniform1f(ShaderLoaderComponent.UniformType.time, (Date.now() - startTime) / 1000.0);
 
     gl.drawElements(gl.TRIANGLES, numItems, gl.UNSIGNED_BYTE, 0);
@@ -113,8 +113,8 @@ function ShaderLoaderComponent( )
     });
   }
 
-  this.handleMessage = function( message ) {
-    this.loadShaderProgram( message );
+  this.handleMessage = function(e) {
+    this.loadShaderProgram(e.overrides);
   }
 
   this.serialize = async function() {

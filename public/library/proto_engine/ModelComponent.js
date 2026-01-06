@@ -35,7 +35,7 @@ function ModelComponent() {
 
       ModelComponent.Shader.setUniform1f(ModelComponent.UniformType.alpha, 1.0);
     })
-    .catch( e => Game.ExceptionHandler(e) );
+    .catch(e => g_game.onException(e));
   }
 
   this.setBuffers = function(buffers) {
@@ -57,9 +57,9 @@ function ModelComponent() {
       }
     });
 
-    ModelComponent.Shader.setUniformMat4(ModelComponent.UniformType.mMatrix, Game.mMatrix);
-    ModelComponent.Shader.setUniformMat4(ModelComponent.UniformType.vMatrix, Game.vMatrix);
-    ModelComponent.Shader.setUniformMat4(ModelComponent.UniformType.pMatrix, Game.pMatrix);
+    ModelComponent.Shader.setUniformMat4(ModelComponent.UniformType.mMatrix, g_game.mMatrix);
+    ModelComponent.Shader.setUniformMat4(ModelComponent.UniformType.vMatrix, g_game.vMatrix);
+    ModelComponent.Shader.setUniformMat4(ModelComponent.UniformType.pMatrix, g_game.pMatrix);
 
     gl.drawElements(gl.TRIANGLES, numItems, gl.UNSIGNED_BYTE, 0);
 

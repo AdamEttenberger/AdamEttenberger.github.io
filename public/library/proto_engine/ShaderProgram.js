@@ -72,7 +72,7 @@ function ShaderProgram() {
       }
       gl.attachShader(_program, shader);
     })
-    .catch( e => Game.ExceptionHandler(e) );
+    .catch(e => g_game.onException(e));
   }
 
   this.linkProgram = function( )

@@ -1,52 +1,49 @@
 window.addEventListener("load", main, true);
-window.addEventListener("message", handleMessage);
 
-var game;
-var metaball_component;
-
-function main()
-{
-  var canvas = document.querySelector("canvas");
-
-  canvas.style.minWidth = 800;
-  canvas.style.minHeight = 600;
-
-  try {
-    game = new Game(canvas);
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
-  }
-  catch(e)
-  {
-    document.querySelector("canvas.game").html(Game.ExceptionToMessage(e));
-    return;
-  }
-
+function main() {
   // Expects to be run from an iframe.
   // e.g., <iframe src="/library/projects/metaballs/main.html?mode=WebFigure1"></iframe>
   const url_params = new URLSearchParams(window.location.search);
-  initScene(url_params.get('mode'));
-
-  mat4.ortho(Game.pMatrix, -2.0, 2.0, -2.0, 2.0, 0.0, 1000.0);
-  mat4.fromTranslation(Game.mMatrix, vec3.fromValues(0.0, 0.0, -100.0));
-
-  game.start();
+  new App(document.querySelector("canvas"))
+    .initScene(url_params.get('mode'))
+    .setupCamera()
+    .start();
 }
 
-function initScene(mode)
-{
-  game.m_managers.push( ParticleManager.Instance() );
-
-  var plane = new GameObject();
-  metaball_component = new MetaballComponent(mode);
-  plane.addComponent( metaball_component );
-
-  game.m_root.addChildGameObject( plane );
-}
-
-function handleMessage( event ) {
-  if (event.origin !== window.location.origin) {
-    return;
+class App {
+  constructor(canvas) {
+    this.game = new Game(canvas);
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    gl.enable(gl.BLEND);
+    window.addEventListener("message", e => this.handleMessage(e));
   }
 
-  metaball_component.handleMessage( event.data );
+  initScene(mode) {
+    this.game.m_managers.push( ParticleManager.Instance() );
+
+    var plane = new GameObject();
+    this.metaball_component = new MetaballComponent(mode);
+    plane.addComponent(this.metaball_component);
+
+    this.game.m_root.addChildGameObject( plane );
+    return this;
+  }
+
+  setupCamera() {
+    mat4.ortho(this.game.pMatrix, -2.0, 2.0, -2.0, 2.0, 0.0, 1000.0);
+    mat4.fromTranslation(this.game.mMatrix, vec3.fromValues(0.0, 0.0, -100.0));
+    return this;
+  }
+
+  start() {
+    this.game.start();
+    return this;
+  }
+
+  handleMessage(e) {
+    if (e.origin !== window.location.origin) {
+      return;
+    }
+    this.metaball_component.handleMessage( e.data );
+  }
 }
