@@ -11,6 +11,10 @@ class App {
   constructor(canvas) {
     this.game = new Game(canvas);
     this.game.clear_color = vec4.fromValues( 0.0, 0.0, 0.0, 1.0 );
+    this.shader_api_key_map = new Map([
+      ['vert', gl.VERTEX_SHADER],
+      ['frag', gl.FRAGMENT_SHADER],
+    ]);
     window.addEventListener("message", e => this.handleMessage(e));
   }
 
@@ -37,10 +41,20 @@ class App {
     return this;
   }
 
-  handleMessage(e) {
+  async handleMessage(e) {
     if (e.origin !== window.location.origin || !e.data) {
       return;
     }
-    this.shader_loader_component.handleMessage(e.data);
+    var sources = e.data.sources;
+    var uniforms = e.data.uniforms;
+    if (sources) {
+      // Need to convert from API string to gl.*_SHADER keys.
+      sources = Object.entries(sources).map(pair => [this.shader_api_key_map.get(pair[0]), pair[1]]);
+      var additional_uniform_key_entries = uniforms ? new Map(uniforms.entries().map(pair => [pair[0], pair[0]])) : null;
+      await this.shader_loader_component.loadShaderProgram(sources, additional_uniform_key_entries);
+    }
+    if (uniforms) {
+      this.shader_loader_component.bulkUpdateUniforms(uniforms);
+    }
   }
 }

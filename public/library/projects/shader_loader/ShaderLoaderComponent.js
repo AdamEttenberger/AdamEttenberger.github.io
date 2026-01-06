@@ -74,47 +74,49 @@ function ShaderLoaderComponent( )
     ShaderLoaderComponent.buffers.forEach(element => this.shader.unbindBuffer(element));
   }
 
-  this.loadShaderProgram = function( overrides ) {
-    var files = {
-      vert: "/library/projects/shader_loader/shaders/default.vert",
-      frag: "/library/projects/shader_loader/shaders/default.frag",
-    };
-    if (overrides) {
-      for (var slot in files) {
-        if (files[slot] && overrides[slot]) {
-          files[slot] = overrides[slot];
-        }
+  /**
+   *
+   * @param {Object} sources Object containing any keys to override ['vert', 'frag'] with Object containing a string with either key ['file', 'source']. 'file' streams the source from a URL, 'source' compiles the string as-is.
+   */
+  this.loadShaderProgram = async function(sources, additional_uniform_key_entries) {
+    this.shader = new ShaderProgram();
+    for (const [shader_type, args] of sources) {
+      if (args.file) {
+        await this.shader.attachShader(args.file, shader_type);
+      } else if (args.source) {
+        await this.shader.attachShaderSource(args.source, shader_type);
       }
     }
+    this.shader.linkProgram();
+    this.shader.apply();
+    this.shader.registerVertexAttributes(new Map([
+      [Buffer.POSITION, "aVertexPosition"],
+      [Buffer.TEXTURE, "aTextureCoord"],
+    ]));
+    additional_uniform_key_entries = additional_uniform_key_entries ?? new Map();
+    this.shader.registerUniformLocations(new Map([
+      // Vertex Uniforms
+      [ShaderLoaderComponent.UniformType.mMatrix, "mMatrix"],
+      [ShaderLoaderComponent.UniformType.vMatrix, "vMatrix"],
+      [ShaderLoaderComponent.UniformType.pMatrix, "pMatrix"],
+      // Fragment Uniforms
+      [ShaderLoaderComponent.UniformType.resolution, "uResolution"],
+      [ShaderLoaderComponent.UniformType.time, "uTime"],
 
-    var shader = new ShaderProgram( );
-    Promise.all([
-      shader.attachShader(files.vert, gl.VERTEX_SHADER),
-      shader.attachShader(files.frag, gl.FRAGMENT_SHADER),
-    ])
-    .then(() => {
-      shader.linkProgram();
-      shader.apply();
-      shader.registerVertexAttributes(new Map([
-        [Buffer.POSITION, "aVertexPosition"],
-        [Buffer.TEXTURE, "aTextureCoord"],
-      ]));
-      shader.registerUniformLocations(new Map([
-        // Vertex Uniforms
-        [ShaderLoaderComponent.UniformType.mMatrix, "mMatrix"],
-        [ShaderLoaderComponent.UniformType.vMatrix, "vMatrix"],
-        [ShaderLoaderComponent.UniformType.pMatrix, "pMatrix"],
-        // Fragment Uniforms
-        [ShaderLoaderComponent.UniformType.resolution, "uResolution"],
-        [ShaderLoaderComponent.UniformType.time, "uTime"],
-      ]));
-
-      this.shader = shader;
-    });
+      ...additional_uniform_key_entries,
+    ]));
   }
 
-  this.handleMessage = function(e) {
-    this.loadShaderProgram(e.overrides);
+  this.bulkUpdateUniforms = function(updates) {
+    for (const [key, uniform] of updates) {
+      switch (uniform.type) {
+        case 'float': this.shader.setUniform1f(key, uniform.value); break;
+        case 'vec2': this.shader.setUniform2f(key, uniform.value[0], uniform.value[1]); break;
+        case 'vec3': this.shader.setUniform3f(key, uniform.value[0], uniform.value[1], uniform.value[2]); break;
+        case 'vec4': this.shader.setUniform4f(key, uniform.value[0], uniform.value[1], uniform.value[2], uniform.value[3]); break;
+        case 'mat4': this.shader.setUniformMat4(key, uniform.value); break;
+      }
+    }
   }
 
   this.serialize = async function() {
