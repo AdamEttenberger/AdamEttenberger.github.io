@@ -4,7 +4,6 @@ import Column from '@/components/column.vue'
 import Details from '@/components/details.vue'
 import ExternalLink from '@/components/external_link.vue'
 import Figure from '@/components/figure.vue'
-import Math from '@/components/math.vue'
 import Player from '@/components/player.vue'
 import Section from '@/components/section.vue'
 const props = defineProps({

@@ -4,7 +4,7 @@ import Code from '@/components/code.vue'
 import Column from '@/components/column.vue'
 import ExternalLink from '@/components/external_link.vue'
 import Figure from '@/components/figure.vue'
-import Math from '@/components/math.vue'
+import Formula from '@/components/formula.vue'
 import Player from '@/components/player.vue'
 import PropertyBuilder, { PropertyNumberRangeBuilder, PropertyComboBoxBuilder } from '@/util/property_editor/property_builder'
 import PropertyEditor from '@/components/property_editor/property_editor.vue'
@@ -172,12 +172,12 @@ function onPropertyChanged(name, new_value) {
         gl.disable(gl.DEPTH_TEST);
       "></Code>
 
-      <Math>
+      <Formula>
         \begin{aligned}
         R_{rgb} &=& \Big[(S_{rgb} \cdot S_a) &+& (D_{rgb} \cdot (1 - S_a))\Big] \\
         R_a     &=& \Big[(S_a \cdot 1) &+& (D_a \cdot (1 - S_a))\Big] \\
         \end{aligned}
-      </Math>
+      </Formula>
       <br />
       <p>
         Each particle is shaded into the base texture after updating its per-particle uniform values.
