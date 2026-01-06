@@ -54,6 +54,7 @@ const is_model_changed = computed(() => model.value != (props.options?.initial_v
                  :min_value="options.min_value"
                  :max_value="options.max_value"
                  :step_value="options.step_value"
+                 :as_scalar="options.as_scalar"
                  v-model="model" />
     <Toggle v-if="type === 'toggle'"
             :name="name"

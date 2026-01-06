@@ -4,6 +4,7 @@ export type PropertyNumberRangeOptions = {
   min_value: any;
   max_value: any;
   step_value: any;
+  as_scalar: any;
 };
 
 export default class PropertyNumberRangeBuilder extends PropertyRowBuilder<PropertyNumberRangeBuilder> {
@@ -40,6 +41,13 @@ export default class PropertyNumberRangeBuilder extends PropertyRowBuilder<Prope
     this.options = {
       ...this.options,
       step_value,
+    };
+    return this;
+  }
+  setScalar(as_scalar): PropertyNumberRangeBuilder {
+    this.options = {
+      ...this.options,
+      as_scalar,
     };
     return this;
   }

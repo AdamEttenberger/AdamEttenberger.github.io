@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from 'vue'
 /**
  * Emits `name: String, new_value: Number`
  */
@@ -10,6 +11,7 @@ const props = defineProps({
   min_value: { type: Number, required: true },
   max_value: { type: Number, required: true },
   step_value: { type: Number, required: true },
+  as_scalar: { type: Boolean, default: false }, // display as a normalized scalar value; [0.0, 1.0]
 });
 
 const model = defineModel({
@@ -21,6 +23,22 @@ const model = defineModel({
     return new_value;
   },
 });
+
+const display_min = computed(() => !props.as_scalar ? props.min_value : 0.0);
+const display_max = computed(() => !props.as_scalar ? props.max_value : 1.0);
+const display_step = computed(() => !props.as_scalar ? props.step_value : (props.step_value / (props.max_value - props.min_value).toFixed(2)));
+const display_model = computed({
+  get() {
+    return !props.as_scalar
+        ? model.value
+        : (model.value - props.min_value) / (props.max_value - props.min_value);
+  },
+  set(value) {
+    model.value = !props.as_scalar
+        ? value
+        : props.min_value + value * (props.max_value - props.min_value);
+  },
+});
 </script>
 
 <template>
@@ -28,16 +46,16 @@ const model = defineModel({
     <input :name="name" type="number"
            :disabled="disabled"
            inputmode="decimal"
-           :min="min_value"
-           :max="max_value"
-           :step="step_value"
-           v-model.number.lazy="model" />
+           :min="display_min"
+           :max="display_max"
+           :step="display_step"
+           v-model.number.lazy="display_model" />
     <input :name="name" type="range"
            :disabled="disabled"
-           :min="min_value"
-           :max="max_value"
-           :step="step_value"
-           v-model.number="model" />
+           :min="display_min"
+           :max="display_max"
+           :step="display_step"
+           v-model.number="display_model" />
   </div>
 </template>
 
