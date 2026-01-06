@@ -88,7 +88,7 @@ class ShaderProgram {
     gl.linkProgram(this.#program);
 
     if (!gl.getProgramParameter(this.#program, gl.LINK_STATUS)) {
-      console.log("Could not initialise shaders");
+      console.log(gl.getProgramInfoLog(this.#program));
       throw "GL_SHADER_PROGRAM_ERROR";
     }
 
