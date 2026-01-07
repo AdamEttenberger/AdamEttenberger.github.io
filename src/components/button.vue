@@ -18,7 +18,7 @@ defineProps({
 </script>
 
 <template>
-  <button class="image_button" @click="$emit('click')">
+  <button class="image_button" @click="$emit('click')" :disabled="disabled">
     <RouterLink v-if="route" class="router" :to="route">
       <div :class="{'animator': true, 'transparent': transparent}">
         <slot v-if="$slots.default"></slot>
@@ -53,8 +53,11 @@ defineProps({
   padding: 0;
   margin: 0;
   background-color: transparent;
-  cursor: pointer;
   font-size: 1.2rem;
+}
+
+.image_button:not([disabled]) {
+  cursor: pointer;
 }
 
 .animator {
@@ -94,6 +97,10 @@ defineProps({
   }
   &:active {
     background-color: var(--color-background-button-active);
+  }
+  &:disabled,
+  [disabled] & {
+    background-color: var(--color-background-button-disabled);
   }
 }
 

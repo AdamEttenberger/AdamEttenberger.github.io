@@ -26,6 +26,7 @@ const model = defineModel({
   <div class="toggle">
     <Button class="button"
             :icon="model ? (icon ?? ['fas', 'xmark']) : undefined"
+            :disabled="disabled"
             @click="model = !model" />
   </div>
 </template>

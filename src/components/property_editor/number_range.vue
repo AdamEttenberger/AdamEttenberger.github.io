@@ -83,6 +83,9 @@ input[type=number] {
   &:active {
     background-color: var(--color-background-button-active);
   }
+  &:disabled {
+    background-color: var(--color-background-button-disabled);
+  }
   &::-webkit-outer-spin-button,
   &::-webkit-inner-spin-button {
     -webkit-appearance: none;
@@ -112,6 +115,9 @@ input[type=range] {
   }
   &:active {
     accent-color: var(--color-background-button-active);
+  }
+  &:disabled {
+    accent-color: var(--color-background-button-disabled);
   }
 }
 </style>

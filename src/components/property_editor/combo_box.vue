@@ -58,6 +58,9 @@ select {
   &:active {
     background-color: var(--color-background-button-active);
   }
+  &:disabled {
+    background-color: var(--color-background-button-disabled);
+  }
 }
 
 option {
@@ -75,6 +78,9 @@ option {
   }
   &:checked {
     background-color: var(--color-background-button-selected);
+  }
+  &:disabled {
+    background-color: var(--color-background-button-disabled);
   }
 }
 </style>
