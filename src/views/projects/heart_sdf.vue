@@ -6,7 +6,7 @@ import Details from '@/components/details.vue'
 import ExternalLink from '@/components/external_link.vue'
 import Figure from '@/components/figure.vue'
 import Player from '@/components/player.vue'
-import PropertyBuilder, { PropertyNumberRangeBuilder, PropertyComboBoxBuilder } from '@/util/property_editor/property_builder'
+import PropertyBuilder, { PropertyNumberRangeBuilder, PropertyComboBoxBuilder, PropertyToggleBuilder } from '@/util/property_editor/property_builder'
 import PropertyEditor from '@/components/property_editor/property_editor.vue'
 import Section from '@/components/section.vue'
 //
@@ -123,6 +123,7 @@ function createSdfShader(uniforms: Array<Uniform>, sdf_function) {
       const vec3 outside = vec3(0.0, 0.0, 1.0);
       vec3 color = (sdf > 0.0) ? outside : inside;
 
+      // Flat stepped gradient falloff brightest at the border of the shape.
       float band = ceil(abs(sdf) / bandsize) * bandsize;
       color = mix(color, vec3(0.0), band);
       return vec4(color, 1.0);
@@ -144,24 +145,63 @@ const shader_definitions = new Map([
     'heart', {
       label: "Heart",
       uniforms: [
-        new Uniform(UniformType.float, 'uRadius'),
+        new Uniform(UniformType.float, 'uAnimate'),
+        new Uniform(UniformType.float, 'uAnimationAmplitude'),
+        new Uniform(UniformType.float, 'uBlendToCircle'),
       ],
       sdf_function: `
+        const float kMinRadius = 0.28;
+        const float kMaxRadius = 0.5;
         p.x = abs(p.x);
+        float r;
+        if (uAnimate == 0.0) {
+          r = mix(kMinRadius, kMaxRadius, uBlendToCircle);
+        } else {
+          float rate = 4.0;
+          float t1 = 0.5+0.5*cos(uTime * rate);
+          float t2 = 0.5+0.5*cos(uTime * rate * 2.0);
+          float t = min(t1, t2);
+          r = mix(kMinRadius, mix(kMinRadius, kMaxRadius, uAnimationAmplitude), t);
+        }
         const vec2 a = vec2(0.0, -0.5);
-        vec2 c = vec2(0.5 - uRadius);
-        float k = sqrt(uRadius - 0.25);
+        vec2 c = vec2(0.5 - r);
+        float k = sqrt(r - 0.25);
         vec2 d = vec2(0.0, c.y + k);
         float s = length(c - a);
-        float normal_angle = atan(a.y - c.y, a.x - c.x) + acos(uRadius / s); // = angle_from_c_to_a - angle_to_tangent
+        float normal_angle = atan(a.y - c.y, a.x - c.x) + acos(r / s); // = angle_from_c_to_a - angle_to_tangent
         vec2 n = vec2(cos(normal_angle), sin(normal_angle));
         if (dot(p - d, uv_rot90_ccw(d - c)) > 0.0 &&
             dot(p - c, uv_rot90_cw(n)) > 0.0) {
-          return length(p - c) - uRadius;
+          return length(p - c) - r;
         }
         float sdf_a = length(p - d);
         float sdf_b = dot(p - a, -n);
         return -min(sdf_a, sdf_b);
+      `,
+    }
+  ],
+  [
+    'eye', {
+      label: "Eye",
+      uniforms: [
+        new Uniform(UniformType.float, 'uSize1'),
+        new Uniform(UniformType.float, 'uSize2'),
+      ],
+      sdf_function: `
+        vec2 p2 = abs(p);
+        float l = length(p);
+        float la = length(p2);
+        vec2 s = vec2(cos(p2.x), sin(p2.y));
+
+        float horizontal_out = -(s.y + l - 0.66);
+        float horizontal_mid = -(1.0-(s.y + l + 0.4));
+        float horizontal_in = (1.0-(s.y + l + 0.45));
+        return max(horizontal_in, min(horizontal_out, horizontal_mid));
+
+        // float horizontal = (length(p2) + sin(p2.y)) + 0.5;
+        // float vertical = -(length(p2 * vec2(2.0, 1.0)) + sin(p2.x)/3.0);
+        // float pupil = length(p - vec2(cos(uTime)*0.125, 0.0)) - 0.5;
+        // return -min(pupil - vertical, 1.0 - horizontal);
       `,
     }
   ],
@@ -212,11 +252,15 @@ const shader_selection = ref(new PropertyBuilder()
           }
       ])
     )))
+    .addProperty('heart.uAnimate', new PropertyToggleBuilder().setLabel("Animate").setModel(true).setCollapsed(computed(() => shader_selection.value.program.model !== 'heart')))
+    .addProperty('heart.uAnimationAmplitude', new PropertyNumberRangeBuilder().setLabel("Animation Amplitude").setModel(1.0).setOptions(0.0, 1.0, 0.01).setDisabled(computed(() => !shader_selection.value['heart.uAnimate'].model)).setCollapsed(computed(() => shader_selection.value.program.model !== 'heart')))
+    .addProperty('heart.uBlendToCircle', new PropertyNumberRangeBuilder().setLabel("Blend To Circle").setModel(0.0).setOptions(0.0, 1.0, 0.01).setDisabled(computed(() => shader_selection.value['heart.uAnimate'].model)).setCollapsed(computed(() => shader_selection.value.program.model !== 'heart')))
     .addProperty('circle.uRadius', new PropertyNumberRangeBuilder().setLabel("Radius").setModel(0.5).setOptions(0.0, 1.0, 0.01).setCollapsed(computed(() => shader_selection.value.program.model !== 'circle')))
-    .addProperty('heart.uRadius', new PropertyNumberRangeBuilder().setLabel("Blend To Circle").setModel(0.28).setOptions(0.28, 0.5, 0.0022).setScalar(true).setCollapsed(computed(() => shader_selection.value.program.model !== 'heart')))
     .addProperty('plane.uNormal', new PropertyNumberRangeBuilder().setLabel("Normal Degrees").setModel(0.0).setOptions(0.0, 360.0, 1.0).setCollapsed(computed(() => shader_selection.value.program.model !== 'plane')))
     .addProperty('plane.uDistanceFromOrigin', new PropertyNumberRangeBuilder().setLabel("Distance From Origin").setModel(0.0).setOptions(-0.5, 0.5, 0.01).setCollapsed(computed(() => shader_selection.value.program.model !== 'plane')))
     .addProperty('square.uSize', new PropertyNumberRangeBuilder().setLabel("Size").setModel(0.5).setOptions(0.0, 1.0, 0.01).setCollapsed(computed(() => shader_selection.value.program.model !== 'square')))
+    .addProperty('eye.uSize1', new PropertyNumberRangeBuilder().setLabel("Size1").setModel(0.25).setOptions(0.0, 0.5, 0.01).setCollapsed(computed(() => shader_selection.value.program.model !== 'eye')))
+    .addProperty('eye.uSize2', new PropertyNumberRangeBuilder().setLabel("Size2").setModel(0.5).setOptions(0.0, 0.5, 0.01).setCollapsed(computed(() => shader_selection.value.program.model !== 'eye')))
     .build());
 
 function getShaderProgram(key) {
@@ -273,8 +317,33 @@ function onPropertyChanged(name, new_value) {
       <PropertyEditor :properties="shader_selection"
                       @property-changed="onPropertyChanged" />
     </Section>
-  </Column>
-  <Column>
-    <UnderConstruction />
+
+    <Section heading="What is a signed-distance function?">
+      <UnderConstruction />
+    </Section>
+
+    <Section heading="Example Shapes">
+      <UnderConstruction />
+    </Section>
+
+    <Section heading="Insets and Outsets">
+      <UnderConstruction />
+    </Section>
+
+    <Section heading="Combining Shapes">
+      <UnderConstruction />
+    </Section>
+
+    <Section heading="Compositing a Heart">
+      <UnderConstruction />
+    </Section>
+
+    <Section heading="Adding Effects">
+      <UnderConstruction />
+    </Section>
+
+    <Section heading="Adding Animations">
+      <UnderConstruction />
+    </Section>
   </Column>
 </template>
