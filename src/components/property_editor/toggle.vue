@@ -1,24 +1,11 @@
-<script setup>
+<script setup lang="ts">
 import Button from '@/components/button.vue'
+import { ButtonOptions, ToggleOptions } from '@/util/property_editor/property_interfaces';
 
-const emit = defineEmits([
-  'property-changed', // (name: String, new_value: boolean)
-]);
-
-const props = defineProps({
-  name: { type: String, required: true },
-  disabled: { type: Boolean, required: true },
-  icon: { type: Array, default: null },
-});
-
+const options = defineProps<ToggleOptions>();
 const model = defineModel({
   type: Boolean,
   required: true,
-  default: false,
-  set(value) {
-    emit('property-changed', props.name, value);
-    return value;
-  },
 });
 </script>
 

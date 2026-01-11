@@ -6,11 +6,14 @@ import Details from '@/components/details.vue'
 import ExternalLink from '@/components/external_link.vue'
 import Figure from '@/components/figure.vue'
 import Player from '@/components/player.vue'
-import PropertyBuilder, { PropertyNumberRangeBuilder, PropertyComboBoxBuilder, PropertyToggleBuilder } from '@/util/property_editor/property_builder'
+import { PropertyKind } from '@/util/property_editor/property_interfaces'
 import PropertyEditor from '@/components/property_editor/property_editor.vue'
 import Section from '@/components/section.vue'
 //
 import UnderConstruction from '@/components/under_construction.vue'
+
+const main_editor = useTemplateRef('main_editor_ref');
+const main_player = useTemplateRef('main_player_ref');
 
 const frames = {};
 
@@ -85,11 +88,6 @@ class FrameState {
   }
 }
 
-const main_player = useTemplateRef('main_player_ref');
-function getMainPlayerFrame() {
-  return main_player.value?.player_frame;
-}
-
 defineProps({
   title: { type: String, required: true },
   date: { type: Date, required: true },
@@ -106,6 +104,9 @@ function createSdfShader(uniforms: Array<Uniform>, sdf_function) {
     // ShaderLoaderComponent Uniforms
     uniform vec3 uResolution; // = {width, height, aspect}
     uniform float uTime;
+
+    // Shared Uniforms
+    ${shared_uniforms.map(uniform => `uniform ${uniform.type} ${uniform.name};`).join('\n    ')}
 
     // Shape Uniforms
     ${uniforms.map(uniform => `uniform ${uniform.type} ${uniform.name};`).join('\n    ')}
@@ -133,6 +134,7 @@ function createSdfShader(uniforms: Array<Uniform>, sdf_function) {
       vec2 p = UV;
       p -= vec2(0.5);       // translate to center the circle in the view.
       p.x *= uResolution.z; // scale to the aspect ratio of the container, to fit vertically.
+      p *= vec2(uScale);    // apply camera zoom.
 
       float sdf = sdf_function(p);
       gl_FragColor = gradient_bands(sdf, 0.1);
@@ -140,7 +142,11 @@ function createSdfShader(uniforms: Array<Uniform>, sdf_function) {
   `;
 }
 
-const shader_definitions = new Map([
+const shared_uniforms = [
+  new Uniform(UniformType.float, 'uScale'),
+];
+
+const shader_templates = new Map([
   [
     'heart', {
       label: "Heart",
@@ -238,37 +244,137 @@ const shader_definitions = new Map([
   ],
 ]);
 
-const shader_selection = ref(new PropertyBuilder()
-    .addProperty('program', new PropertyComboBoxBuilder().setLabel('Shader').setModel('heart').setValues(
-      Object.fromEntries(shader_definitions.entries().map(([key, value]) => [
-          key,
-          {
-            label: value.label,
-            uniforms: value.uniforms,
-            sources: {
-              vert: {file: "/library/projects/shader_loader/shaders/default.vert"},
-              frag: {source: createSdfShader(value.uniforms, value.sdf_function)},
-            }
-          }
-      ])
-    )))
-    .addProperty('heart.uAnimate', new PropertyToggleBuilder().setLabel("Animate").setModel(true).setCollapsed(computed(() => shader_selection.value.program.model !== 'heart')))
-    .addProperty('heart.uAnimationAmplitude', new PropertyNumberRangeBuilder().setLabel("Animation Amplitude").setModel(1.0).setOptions(0.0, 1.0, 0.01).setDisabled(computed(() => !shader_selection.value['heart.uAnimate'].model)).setCollapsed(computed(() => shader_selection.value.program.model !== 'heart')))
-    .addProperty('heart.uBlendToCircle', new PropertyNumberRangeBuilder().setLabel("Blend To Circle").setModel(0.0).setOptions(0.0, 1.0, 0.01).setDisabled(computed(() => shader_selection.value['heart.uAnimate'].model)).setCollapsed(computed(() => shader_selection.value.program.model !== 'heart')))
-    .addProperty('circle.uRadius', new PropertyNumberRangeBuilder().setLabel("Radius").setModel(0.5).setOptions(0.0, 1.0, 0.01).setCollapsed(computed(() => shader_selection.value.program.model !== 'circle')))
-    .addProperty('plane.uNormal', new PropertyNumberRangeBuilder().setLabel("Normal Degrees").setModel(0.0).setOptions(0.0, 360.0, 1.0).setCollapsed(computed(() => shader_selection.value.program.model !== 'plane')))
-    .addProperty('plane.uDistanceFromOrigin', new PropertyNumberRangeBuilder().setLabel("Distance From Origin").setModel(0.0).setOptions(-0.5, 0.5, 0.01).setCollapsed(computed(() => shader_selection.value.program.model !== 'plane')))
-    .addProperty('square.uSize', new PropertyNumberRangeBuilder().setLabel("Size").setModel(0.5).setOptions(0.0, 1.0, 0.01).setCollapsed(computed(() => shader_selection.value.program.model !== 'square')))
-    .addProperty('eye.uSize1', new PropertyNumberRangeBuilder().setLabel("Size1").setModel(0.25).setOptions(0.0, 0.5, 0.01).setCollapsed(computed(() => shader_selection.value.program.model !== 'eye')))
-    .addProperty('eye.uSize2', new PropertyNumberRangeBuilder().setLabel("Size2").setModel(0.5).setOptions(0.0, 0.5, 0.01).setCollapsed(computed(() => shader_selection.value.program.model !== 'eye')))
-    .build());
+const shader_definitions = Object.fromEntries(shader_templates.entries().map(([shader_key, value]) =>
+  [
+    shader_key,
+    {
+      label: value.label,
+      uniforms: value.uniforms,
+      sources: {
+        vert: {file: "/library/projects/shader_loader/shaders/default.vert"},
+        frag: {source: createSdfShader(value.uniforms, value.sdf_function)},
+      }
+    }
+  ]
+));
 
-function getShaderProgram(key) {
-  var sources = shader_selection.value.program.options.values[key]?.sources;
-  if (!sources) {
-    return {};
-  }
-  return toRaw(sources);
+const selected_shader = ref('heart');
+const play_animation = ref(true);
+const shader_properties = [
+  {
+    kind: PropertyKind.ComboBox,
+    name: 'program',
+    label: 'Shader',
+    values: Object.entries(shader_definitions).map(([key, value]) => [key, value.label]),
+    default_value: 'heart',
+    model: selected_shader,
+  },
+  {
+    kind: PropertyKind.NumberRange,
+    name: 'uScale',
+    label: 'Scale',
+    min_value: 1.0,
+    max_value: 10.0,
+    step_value: 0.25,
+    as_scalar: true,
+    default_value: 1.0,
+  },
+  {
+    kind: PropertyKind.Toggle,
+    name: 'heart.uAnimate',
+    label: 'Animate',
+    collapsed: computed(() => selected_shader.value !== 'heart'),
+    default_value: true,
+    model: play_animation,
+  },
+  {
+    kind: PropertyKind.NumberRange,
+    name: 'heart.uAnimationAmplitude',
+    label: 'Animation Amplitude',
+    disabled: computed(() => !play_animation.value),
+    collapsed: computed(() => selected_shader.value !== 'heart'),
+    min_value: 0.0,
+    max_value: 1.0,
+    step_value: 0.01,
+    as_scalar: true,
+    default_value: 1.0,
+  },
+  {
+    kind: PropertyKind.NumberRange,
+    name: 'heart.uBlendToCircle',
+    label: 'Blend To Circle',
+    disabled: computed(() => play_animation.value),
+    collapsed: computed(() => selected_shader.value !== 'heart'),
+    min_value: 0.0,
+    max_value: 1.0,
+    step_value: 0.01,
+    as_scalar: true,
+    default_value: 0.0,
+  },
+  {
+    kind: PropertyKind.NumberRange,
+    name: 'circle.uRadius',
+    label: 'Radius',
+    collapsed: computed(() => selected_shader.value !== 'circle'),
+    min_value: 0.0,
+    max_value: 1.0,
+    step_value: 0.01,
+    default_value: 0.5,
+  },
+  {
+    kind: PropertyKind.NumberRange,
+    name: 'plane.uNormal',
+    label: 'Normal Degrees',
+    collapsed: computed(() => selected_shader.value !== 'plane'),
+    min_value: 0.0,
+    max_value: 360.0,
+    step_value: 1.0,
+    default_value: 0.0,
+  },
+  {
+    kind: PropertyKind.NumberRange,
+    name: 'plane.uDistanceFromOrigin',
+    label: 'Distance From Origin',
+    collapsed: computed(() => selected_shader.value !== 'plane'),
+    min_value: -0.5,
+    max_value: 0.5,
+    step_value: 0.01,
+    default_value: 0.0,
+  },
+  {
+    kind: PropertyKind.NumberRange,
+    name: 'square.uSize',
+    label: 'Size',
+    collapsed: computed(() => selected_shader.value !== 'square'),
+    min_value: 0.0,
+    max_value: 1.0,
+    step_value: 0.01,
+    default_value: 0.5,
+  },
+  {
+    kind: PropertyKind.NumberRange,
+    name: 'eye.uSize1',
+    label: 'Size1',
+    collapsed: computed(() => selected_shader.value !== 'eye'),
+    min_value: 0.0,
+    max_value: 0.5,
+    step_value: 0.01,
+    default_value: 0.25,
+  },
+  {
+    kind: PropertyKind.NumberRange,
+    name: 'eye.uSize2',
+    label: 'Size2',
+    collapsed: computed(() => selected_shader.value !== 'eye'),
+    min_value: 0.0,
+    max_value: 0.5,
+    step_value: 0.01,
+    default_value: 0.5,
+  },
+];
+
+function getShaderProgram(shader_key) {
+  return shader_definitions[shader_key].sources;
 }
 
 function degToVec2(deg) {
@@ -276,13 +382,17 @@ function degToVec2(deg) {
   return [Math.cos(rad), Math.sin(rad)];
 }
 
-function getShaderUniformTypes(key) {
-  return shader_selection.value.program.options.values[key].uniforms;
-}
-
-function getShaderUniformsForMessage(key) {
-  return getShaderUniformTypes(key).map(uniform => {
-    var value = toRaw(shader_selection.value[`${key}.${uniform.name}`].model);
+function getShaderUniformsForMessage(shader_key) {
+  const shader_uniforms = [
+    ...shared_uniforms,
+    ...shader_definitions[shader_key].uniforms,
+  ];
+  return shader_uniforms.map(uniform => {
+    var value = main_editor.value.get(uniform.name);
+    if (value === undefined) {
+      value = main_editor.value.get(`${shader_key}.${uniform.name}`);
+    }
+    value = toRaw(value);
     // Until vector editors are implemented, display vec2 values as angles.
     if (uniform.type === UniformType.vec2) {
       value = degToVec2(value);
@@ -292,14 +402,14 @@ function getShaderUniformsForMessage(key) {
 }
 
 function onPlayerLoaded(frame) {
-  FrameState.get(frame).setKey(shader_selection.value.program.model, UPDATE.Now);
+  FrameState.get(frame).setKey(selected_shader.value, UPDATE.Now);
 }
 
-function onPropertyChanged(name, new_value) {
+function onMainFramePropertyChanged(name) {
   if (name === 'program') {
-    FrameState.get(getMainPlayerFrame()).setKey(new_value);
+    FrameState.get(main_player.value?.player_frame).setKey(selected_shader.value);
   } else {
-    FrameState.get(getMainPlayerFrame()).update(UPDATE.Schedule);
+    FrameState.get(main_player.value?.player_frame).update(UPDATE.Schedule);
   }
 }
 </script>
@@ -314,8 +424,9 @@ function onPropertyChanged(name, new_value) {
           @load="(e) => onPlayerLoaded(e)" />
   <Column>
     <Section heading="Controls">
-      <PropertyEditor :properties="shader_selection"
-                      @property-changed="onPropertyChanged" />
+      <PropertyEditor ref="main_editor_ref"
+                      :properties="shader_properties"
+                      @property-changed="onMainFramePropertyChanged" />
     </Section>
 
     <Section heading="What is a signed-distance function?">

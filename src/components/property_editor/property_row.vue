@@ -1,67 +1,67 @@
-<script setup>
-import { computed, ref } from 'vue'
+<script setup lang="ts" generic="T extends AnyPropertyOptions">
+import { computed, unref, nextTick } from 'vue'
+
+import { AnyPropertyOptions, ButtonOptions, ComboBoxOptions, NumberRangeOptions, PropertyKind, PropertyValueOptions, ToggleOptions } from '@/util/property_editor/property_interfaces'
+
 import Button from '@/components/button.vue'
 import ComboBox from '@/components/property_editor/combo_box.vue'
 import Toggle from '@/components/property_editor/toggle.vue'
 import NumberRange from '@/components/property_editor/number_range.vue'
 
 const emit = defineEmits([
-  'property-changed', // (name: String, new_value: any)
-  'property-click',   // (name: String)
+  'property-changing', // (new_value: any)
+  'property-changed', // ()
+  'property-click',   // ()
 ]);
 
-const props = defineProps({
-  name: { type: String, required: true },
-  disabled: { type: Boolean, default: false },
-  collapsed: { type: Boolean, default: false },
-  label: { type: String, required: true },
-  type: { type: String, required: true },
-  options: { type: Object },
-});
+const props = defineProps<{
+  options: T,
+}>();
 
 const model = defineModel({
-  default: null,
   set(new_value) {
-    emit('property-changed', props.name, new_value);
+    emit('property-changing', new_value);
+    nextTick(() => {
+      emit('property-changed');
+    });
     return new_value;
   }
 });
-const initial_value = ref(props.options?.initial_value ?? model.value);
-const is_model_changed = computed(() => model.value != (props.options?.initial_value ?? initial_value.value));
+const is_model_changed = computed(() => unref(model) != unref((props.options as PropertyValueOptions)?.default_value));
+
+const kind = computed(() => unref(props.options.kind));
+const name = computed(() => unref(props.options.name));
+const label = computed(() => unref(props.options.label));
+const disabled = computed(() => unref(props.options.disabled));
+const visible = computed(() => !unref(props.options.collapsed));
 </script>
 
 <template>
-  <div v-if="!collapsed" class="property-row">
+  <div v-if="visible" class="property-row">
     <label :for="name">{{ label }}</label>
     <Button :class="['undo', is_model_changed ? '' : 'hidden']"
             :name="'undo:' + name"
             :disabled="disabled"
             :icon="['fas', 'rotate-left']"
-            @click="model = (options?.initial_value ?? initial_value)" />
+            @click="model = unref((props.options as PropertyValueOptions)?.default_value)" />
     <!-- Filter by property control type -->
-    <Button v-if="type === 'button'"
+    <Button v-if="kind === PropertyKind.Button"
             :name="name"
-            :disabled="disabled"
-            :text="options.text"
-            @click="$emit('property-click', name)" />
-    <ComboBox v-if="type === 'combobox'"
+            v-bind="options as ButtonOptions"
+            @click="$emit('property-click')" />
+    <ComboBox v-if="kind === PropertyKind.ComboBox"
               :name="name"
-              :disabled="disabled"
-              :options="options.values"
+              v-bind="options as ComboBoxOptions"
               v-model="model" />
-    <NumberRange v-if="type === 'range'"
+    <NumberRange v-if="kind === PropertyKind.NumberRange"
                  :name="name"
-                 :disabled="disabled"
-                 :min_value="options.min_value"
-                 :max_value="options.max_value"
-                 :step_value="options.step_value"
-                 :as_scalar="options.as_scalar"
+                 v-bind="options as NumberRangeOptions"
                  v-model="model" />
-    <Toggle v-if="type === 'toggle'"
+    <Toggle v-if="kind === PropertyKind.Toggle"
             :name="name"
-            :disabled="disabled"
+            v-bind="options as ToggleOptions"
             v-model="model"
-            @click="$emit('property-click', name)" />
+            @click="$emit('property-click')" />
   </div>
 </template>
 

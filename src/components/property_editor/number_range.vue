@@ -1,42 +1,29 @@
-<script setup>
-import { computed } from 'vue'
-/**
- * Emits `name: String, new_value: Number`
- */
-const emit = defineEmits(['property-changed']);
+<script setup lang="ts">
+import { computed, unref } from 'vue'
+import { NumberRangeOptions } from '@/util/property_editor/property_interfaces';
 
-const props = defineProps({
-  name: { type: String, required: true },
-  disabled: { type: Boolean, required: true },
-  min_value: { type: Number, required: true },
-  max_value: { type: Number, required: true },
-  step_value: { type: Number, required: true },
-  as_scalar: { type: Boolean, default: false }, // display as a normalized scalar value; [0.0, 1.0]
-});
-
+const options = defineProps<NumberRangeOptions>();
 const model = defineModel({
   type: Number,
   required: true,
   set(value) {
-    var new_value = Math.min(Math.max(value, props.min_value), props.max_value);
-    emit('property-changed', props.name, new_value);
-    return new_value;
+    return Math.min(Math.max(value, options.min_value), options.max_value);
   },
 });
 
-const display_min = computed(() => !props.as_scalar ? props.min_value : 0.0);
-const display_max = computed(() => !props.as_scalar ? props.max_value : 1.0);
-const display_step = computed(() => !props.as_scalar ? props.step_value : (props.step_value / (props.max_value - props.min_value).toFixed(2)));
+const display_min = computed(() => !options.as_scalar ? options.min_value : 0.0);
+const display_max = computed(() => !options.as_scalar ? options.max_value : 1.0);
+const display_step = computed(() => !options.as_scalar ? options.step_value : (options.step_value / (options.max_value - options.min_value).toFixed(2)));
 const display_model = computed({
   get() {
-    return !props.as_scalar
+    return !options.as_scalar
         ? model.value
-        : (model.value - props.min_value) / (props.max_value - props.min_value);
+        : (model.value - options.min_value) / (options.max_value - options.min_value);
   },
   set(value) {
-    model.value = !props.as_scalar
+    model.value = !options.as_scalar
         ? value
-        : props.min_value + value * (props.max_value - props.min_value);
+        : options.min_value + value * (options.max_value - options.min_value);
   },
 });
 </script>
@@ -44,14 +31,14 @@ const display_model = computed({
 <template>
   <div class="number-range">
     <input :name="name" type="number"
-           :disabled="disabled"
+           :disabled="unref(disabled)"
            inputmode="decimal"
            :min="display_min"
            :max="display_max"
            :step="display_step"
            v-model.number.lazy="display_model" />
     <input :name="name" type="range"
-           :disabled="disabled"
+           :disabled="unref(disabled)"
            :min="display_min"
            :max="display_max"
            :step="display_step"

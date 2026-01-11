@@ -1,32 +1,49 @@
-<script setup>
+<script setup lang="ts">
+import { ref, unref } from 'vue'
 import PropertyRow from '@/components/property_editor/property_row.vue'
+import { AnyPropertyOptions, PropertyValueOptions } from '@/util/property_editor/property_interfaces';
 
-defineProps({
-  properties: { type: Object, required: true },
+const props = defineProps({
+  properties: { type: Array<AnyPropertyOptions>, required: true },
 });
+for (const options of props.properties) {
+  var value_option = options as PropertyValueOptions;
+  if (!value_option || unref(value_option.model) !== undefined) {
+    continue;
+  }
+  value_option.model = ref(unref(value_option.default_value));
+}
 
 const emit = defineEmits([
-  'property-changed', // (name: String, new_value: any)
+  'property-changing', // (name: String, new_value: any)
+  'property-changed', // (name: String)
   'property-click',   // (name: String)
 ]);
 
-function onPropertyChanged(name, new_value) {
-  emit('property-changed', name, new_value);
+const models = ref(Object.fromEntries(props.properties.map(options => [options.name, (options as PropertyValueOptions)?.model])));
+
+function set(name: string, new_value: any) {
+  models.value[name] = new_value;
 }
+
+function get(name: string) {
+  return models.value[name];
+}
+
+defineExpose({
+  set,
+  get,
+});
 </script>
 
 <template>
   <div class="framed property-editor">
-    <PropertyRow v-for="(value, key) in properties"
-                 :name="key"
-                 :disabled="value.disabled"
-                 :collapsed="value.collapsed"
-                 :label="value.label"
-                 :type="value.type"
-                 :options="value.options"
-                 v-model="value.model"
-                 @property-changed="onPropertyChanged"
-                 @property-click="$emit('property-click', key)" />
+    <PropertyRow v-for="options in properties"
+                 :options="options"
+                 v-model="models[options.name]"
+                 @property-changing="new_value => $emit('property-changing', options.name, new_value)"
+                 @property-changed="$emit('property-changed', options.name)"
+                 @property-click="$emit('property-click', options.name)" />
   </div>
 </template>
 
