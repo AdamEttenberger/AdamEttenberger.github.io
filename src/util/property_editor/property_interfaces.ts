@@ -10,6 +10,7 @@ export enum PropertyKind {
  */
 export type PropertyOptions = {
   kind: PropertyKind;
+  classes?: any; /* Array of string HTML class names to append to the row item */
   name: any;
   label: any;
   disabled?: any;

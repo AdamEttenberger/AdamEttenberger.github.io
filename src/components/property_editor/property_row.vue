@@ -30,6 +30,7 @@ const model = defineModel({
 const is_model_changed = computed(() => unref(model) != unref((props.options as PropertyValueOptions)?.default_value));
 
 const kind = computed(() => unref(props.options.kind));
+const classes = computed(() => unref(props.options.classes) ?? []);
 const name = computed(() => unref(props.options.name));
 const label = computed(() => unref(props.options.label));
 const disabled = computed(() => unref(props.options.disabled));
@@ -37,7 +38,7 @@ const visible = computed(() => !unref(props.options.collapsed));
 </script>
 
 <template>
-  <div v-if="visible" class="property-row">
+  <div v-if="visible" :class="['property-row', ...classes]">
     <label :for="name">{{ label }}</label>
     <Button :class="['undo', is_model_changed ? '' : 'hidden']"
             :name="'undo:' + name"

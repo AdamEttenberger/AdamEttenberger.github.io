@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import { unref } from 'vue'
 import Button from '@/components/button.vue'
-import { ButtonOptions, ToggleOptions } from '@/util/property_editor/property_interfaces';
+import { ToggleOptions } from '@/util/property_editor/property_interfaces';
 
 const options = defineProps<ToggleOptions>();
 const model = defineModel({
@@ -13,7 +14,7 @@ const model = defineModel({
   <div class="toggle">
     <Button class="button"
             :icon="model ? (icon ?? ['fas', 'xmark']) : undefined"
-            :disabled="disabled"
+            :disabled="unref(disabled)"
             @click="model = !model" />
   </div>
 </template>

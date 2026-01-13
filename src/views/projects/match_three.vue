@@ -1,21 +1,34 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import Column from '@/components/column.vue'
 import Player from '@/components/player.vue'
 import PropertyEditor from '@/components/property_editor/property_editor.vue'
 import UnderConstruction from '@/components/under_construction.vue'
-import PropertyBuilder, { PropertyButtonBuilder, PropertyToggleBuilder } from '@/util/property_editor/property_builder'
+import { PropertyKind } from '@/util/property_editor/property_interfaces'
 import Section from '@/components/section.vue'
 import { useMatchThreeScorecardStore } from '@/stores/match_three_scorecard'
 import { useConsentStore } from '@/stores/consent'
-const scorecard = useMatchThreeScorecardStore();
+const gamedata = useMatchThreeScorecardStore();
 const { allow_saving_match_three_scorecard } = storeToRefs(useConsentStore());
 
-const match_three_scorecard_properties = ref(new PropertyBuilder()
-    .addProperty('consent.allow_saving_match_three_scorecard', new PropertyToggleBuilder().setLabel('Save Match-3 Personal Scorecard').setModel(allow_saving_match_three_scorecard))
-    .addProperty('action.delete_match_three_scorecard', new PropertyButtonBuilder().setLabel('Delete personal scorecard').setText("Delete"))
-    .build());
+const editor_properties = [
+  {
+    kind: PropertyKind.Toggle,
+    name: 'consent.allow_saving_match_three_scorecard',
+    label: 'Save Match-3 Personal Scorecard',
+    default_value: false,
+    model: allow_saving_match_three_scorecard,
+  },
+  {
+    kind: PropertyKind.Button,
+    classes: ['delete'],
+    name: 'action.delete_match_three_scorecard',
+    label: 'Delete personal scorecard',
+    text: 'Delete',
+    disabled: computed(() => !gamedata?.scorecard),
+  },
+];
 
 defineProps({
   title: { type: String, required: true },
@@ -37,12 +50,12 @@ function bindGodotBridge(frame) {
     }
     switch (event.data.type) {
       case 'ready':
-        if (scorecard.scorecard) {
-          frame.contentWindow.postMessage({'scorecard': JSON.stringify(scorecard.scorecard)}, window.location.origin);
+        if (gamedata.scorecard) {
+          frame.contentWindow.postMessage({'scorecard': JSON.stringify(gamedata.scorecard)}, window.location.origin);
         }
         break;
       case 'scorecard':
-        scorecard.scorecard = JSON.parse(event.data.scorecard);
+        gamedata.scorecard = JSON.parse(event.data.scorecard);
         break;
     }
   });
@@ -51,7 +64,7 @@ function bindGodotBridge(frame) {
 function onPropertyButtonClick(name) {
   switch (name) {
     case 'action.delete_match_three_scorecard':
-      scorecard.scorecard = null;
+      gamedata.scorecard = null;
       break;
   }
 }
@@ -69,7 +82,7 @@ function onPropertyButtonClick(name) {
         This game supports saving your personal scorecard to device local storage.
       </p>
       <br />
-      <PropertyEditor :properties="match_three_scorecard_properties"
+      <PropertyEditor :properties="editor_properties"
                       @property-click="onPropertyButtonClick" />
     </Section>
   </Column>
