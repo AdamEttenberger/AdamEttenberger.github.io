@@ -112,8 +112,10 @@ function createSdfShader(uniforms: Array<Uniform>, sdf_function) {
     ${uniforms.map(uniform => `uniform ${uniform.type} ${uniform.name};`).join('\n    ')}
 
     // Helper methods
-    vec2 uv_rot90_cw(vec2 p) { return vec2(-p.y, p.x); }
-    vec2 uv_rot90_ccw(vec2 p) { return vec2(p.y, -p.x); }
+    vec2 rot90_ccw(vec2 p) { return vec2(-p.y, p.x); }
+    vec2 rot90_cw(vec2 p) { return vec2(p.y, -p.x); }
+    float sdf_union(float a, float b) { return min(a, b); }
+    float sdf_intersection(float a, float b) { return max(a, b); }
 
     float sdf_function(vec2 p) {
       ${sdf_function}
@@ -125,7 +127,7 @@ function createSdfShader(uniforms: Array<Uniform>, sdf_function) {
       vec3 color = (sdf > 0.0) ? outside : inside;
 
       // Flat stepped gradient falloff brightest at the border of the shape.
-      float band = ceil(abs(sdf) / bandsize) * bandsize;
+      float band = floor(abs(sdf) / bandsize) * bandsize;
       color = mix(color, vec3(0.0), band);
       return vec4(color, 1.0);
     }
@@ -156,9 +158,54 @@ const shader_templates = new Map([
         new Uniform(UniformType.float, 'uBlendToCircle'),
       ],
       sdf_function: `
+        /*
+         * Renders a heart shape that fits within 1 unit using 3 SDF functions.
+         * 1. A circle around vector <C> with radius <R> in the upper-right corner which is mirrored horizontally forming the heart lobes.
+         * 2. A circle around vector <D> with no radius which is collinear with the mirror axis forming the upward curve below vector <D>.
+         * 3. A plane that connects vector <A> and vector <T> with the normal <N> pointing towards the 4th quadrant, mirrored horizontally.
+         *
+         * <A> = <vec2> @ lower point of the heart shape centered at the bottom of the image.
+         * <C> = <vec2> @ center point of circle with radius <R> which is mirrored horizontally.
+         * <D> = <vec2> @ top intersection point between mirrored circles around <C> with radius <R>.
+         * <T> = <vec2> @ tangent between point <A> and circle <C>.
+         * <N> = normalized <vec2> pointing towards the 4th quadrant which is perpendicular to the vector between <C> and tangent <T>.
+         *
+         * R = radius of circle <C>.
+         * H = vertical distance between <C> and <D>; half the distance between the intersection points between the two mirrored circles.
+         * K = horizontal offset of circle <C> from the center of the image; half distance between mirrored circles <C>.
+         * S = distance between point <A> and the center of circle <C>.
+         * Q = distance between point <A> and the tangent <T> of circle <C>; length of the tangent edge.
+         *
+         *  |=============================================|
+         *  |            <D>                              |
+         *  |           / | \                             |
+         *  |         /   |   \                           |
+         *  |       R     H     R                         |
+         *  |     /       |       \                       |
+         *  |    /        |        \                      |
+         *  |   *----K----*----K---<C>                    |
+         *  |    \        |        /| \                   |
+         *  |     \       |       / |  \                  |
+         *  |       R     H     R   /   R                 |
+         *  |         \   |   /     |    \                |
+         *  |           \ | /      /      \               |
+         *  |             *       /       <T>             |
+         *  |             |      S        /  \            |
+         *  |             |     /       /      \          |
+         *  |             |    /      /          <N>      |
+         *  |             |   /     Q              \      |
+         *  |             |  |    /                 _\/   |
+         *  |             | /   /                         |
+         *  |             | | /                           |
+         *  |             |//                             |
+         *  |            <A>                              |
+         *  |=============================================|
+         */
         const float kMinRadius = 0.28;
         const float kMaxRadius = 0.5;
         p.x = abs(p.x);
+
+        // Switch between user control and custom animation.
         float r;
         if (uAnimate == 0.0) {
           r = mix(kMinRadius, kMaxRadius, uBlendToCircle);
@@ -169,20 +216,44 @@ const shader_templates = new Map([
           float t = min(t1, t2);
           r = mix(kMinRadius, mix(kMinRadius, kMaxRadius, uAnimationAmplitude), t);
         }
+
         const vec2 a = vec2(0.0, -0.5);
         vec2 c = vec2(0.5 - r);
-        float k = sqrt(r - 0.25);
-        vec2 d = vec2(0.0, c.y + k);
-        float s = length(c - a);
-        float normal_angle = atan(a.y - c.y, a.x - c.x) + acos(r / s); // = angle_from_c_to_a - angle_to_tangent
-        vec2 n = vec2(cos(normal_angle), sin(normal_angle));
-        if (dot(p - d, uv_rot90_ccw(d - c)) > 0.0 &&
-            dot(p - c, uv_rot90_cw(n)) > 0.0) {
-          return length(p - c) - r;
+
+        // Compute the lengths between vector <A> and vectors <C> and <T>.
+        vec2 c_to_a = a - c;
+        float s_squared = dot(c_to_a, c_to_a);
+        float s = sqrt(s_squared);
+        float q = sqrt(s_squared - r*r);
+
+        // Create normalized vector pointing from <C> to <A>.
+        vec2 unit_c_to_a = c_to_a / s;
+        vec2 unit_c_to_a_perpendicular = rot90_ccw(unit_c_to_a);
+
+        // Create a unit vector pointing from <C> to <T> by rotating the unit vector
+        // from <C> to <A> towards its perpendicular. In this context, theta is the
+        // angle between points ACT.
+        float cos_theta = r/s;
+        float sin_theta = q/s;
+        vec2 n = (unit_c_to_a * cos_theta) + (unit_c_to_a_perpendicular * sin_theta);
+
+        // Compute the signed-distance, branching the render between two parts; the heart lobes and the point.
+        // This is important for preventing the plane which forms the lower point from drawing over the lobes.
+        float h = sqrt(r - 0.25);
+        vec2 d = vec2(0.0, c.y + h);
+        vec2 d_to_p = p - d;
+        vec2 c_to_p = p - c;
+        if (dot(d_to_p, rot90_cw(d - c)) > 0.0 &&
+            dot(c_to_p, rot90_ccw(n)) > 0.0) {
+          // An SDF circle which forms the right half of the mirrored heart lobes.
+          return length(c_to_p) - r;
         }
-        float sdf_a = length(p - d);
-        float sdf_b = dot(p - a, -n);
-        return -min(sdf_a, sdf_b);
+        // An inverted SDF point which forms the upward curve between the lobes of the heart, only values <= 0.
+        float sdf_circle_inverted = -length(d_to_p);
+        // An SDF plane, collinear with points <A> and <T>, with the positive side towards the 4th quadrant away from the shape.
+        float sdf_plane_outward = dot(p - a, n);
+        // Combining the two shapes, taking the intersection so they blend smoothly.
+        return sdf_intersection(sdf_circle_inverted, sdf_plane_outward);
       `,
     }
   ],
@@ -429,8 +500,7 @@ function onMainFramePropertyChanged(name) {
                       @property-changed="onMainFramePropertyChanged" />
     </Section>
 
-    <Section heading="What is a signed-distance function?">
-      <UnderConstruction />
+    <Section heading="What is a signed-distance function (SDF)?">
     </Section>
 
     <Section heading="Example Shapes">
@@ -454,6 +524,10 @@ function onMainFramePropertyChanged(name) {
     </Section>
 
     <Section heading="Adding Animations">
+      <UnderConstruction />
+    </Section>
+
+    <Section heading="References">
       <UnderConstruction />
     </Section>
   </Column>
