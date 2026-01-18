@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 import Figure from '@/components/figure.vue'
 import ProjectLabel from '@/components/project_label.vue'

@@ -41,14 +41,15 @@ function FlockManager()
   // Creates a virtual GameObject because managers aren't
   // attached to the scene tree.
   this.m_gameObject = new GameObject();
+  this.m_cache = new Set();
   this.draw = function(gl) { this.m_gameObject.draw(gl); }
   this.update = function(dt) { this.m_gameObject.update(dt); }
 
-  this.count = function() {
-    return this.m_gameObject.children.length;
+  this.count = function(spawner) {
+    return spawner.children.length;
   }
 
-  this.spawn = function(count = 1) {
+  this.spawn = function(spawner, count = 1) {
     for (var i = 0; i < count; ++i) {
       var tri = new GameObject();
 
@@ -66,21 +67,23 @@ function FlockManager()
       tri.m_transform.scale = vec3.fromValues(1.5, 1.5, 1.5);
       tri.addComponent(new TextureModelComponent().setTexture(g_game.loadTexture("/library/projects/flocking/images/ship.png")).setBuffers(triBuffers));
       tri.addComponent(new FlockerComponent());
-      this.m_gameObject.addChildGameObject(tri);
+      spawner.addChildGameObject(tri);
+      this.m_cache.add(tri);
     }
   }
 
-  this.despawn = function(count = 1) {
-    if (count > this.m_gameObject.children.length) {
-      count = this.m_gameObject.children.length;
+  this.despawn = function(spawner, count = 1) {
+    if (count > spawner.children.length) {
+      count = spawner.children.length;
     }
     for (var i = 0; i < count; ++i) {
-      this.m_gameObject.removeChildGameObject(this.m_gameObject.children.at(this.m_gameObject.children.length - 1));
+      var removed = spawner.removeChildGameObject(spawner.children.at(spawner.children.length - 1));
+      this.m_cache.delete(removed);
     }
   }
 
   this.forEach = function(fn) {
-    this.m_gameObject.children.forEach(fn);
+    this.m_cache.forEach(fn)
   }
 
   this.serialize = async function() {

@@ -1,53 +1,66 @@
 <script setup lang="ts">
 import { computed, unref } from 'vue'
-import { NumberRangeOptions } from '@/util/property_editor/property_interfaces';
+import { IPropertyNumberRangeOptions } from '@/util/property_editor/property_interfaces';
 
-const options = defineProps<NumberRangeOptions>();
+const options = defineProps<IPropertyNumberRangeOptions>();
 const model = defineModel({
   type: Number,
   required: true,
   set(value) {
-    return Math.min(Math.max(value, options.min_value), options.max_value);
+    return Math.min(Math.max(value, options.range.min), options.range.max);
   },
 });
 
-const display_min = computed(() => !options.as_scalar ? options.min_value : 0.0);
-const display_max = computed(() => !options.as_scalar ? options.max_value : 1.0);
-const display_step = computed(() => !options.as_scalar ? options.step_value : (options.step_value / (options.max_value - options.min_value).toFixed(2)));
+const display_range = computed(() => {
+  if (options.converter) {
+    var a = options.converter.toView(options, options.range.min);
+    var b = options.converter.toView(options, options.range.max);
+    return {
+      min: Math.min(a, b),
+      max: Math.max(a, b),
+    };
+  }
+  return options.range;
+});
+
+const display_step = computed(() => {
+  var result = options.step;
+  if (options.converter) {
+    result = (result / (options.range.max - options.range.min)) * (display_range.value.max - display_range.value.min);
+  }
+  return result;
+});
+
 const display_model = computed({
   get() {
-    return !options.as_scalar
-        ? model.value
-        : (model.value - options.min_value) / (options.max_value - options.min_value);
+    return options.converter?.toView(options, model.value) ?? model.value;
   },
-  set(value) {
-    model.value = !options.as_scalar
-        ? value
-        : options.min_value + value * (options.max_value - options.min_value);
+  set(new_value) {
+    model.value = options.converter?.toModel(options, new_value) ?? new_value;
   },
 });
 </script>
 
 <template>
-  <div class="number-range">
+  <div class="property-editor-number-range">
     <input :name="name" type="number"
            :disabled="unref(disabled)"
            inputmode="decimal"
-           :min="display_min"
-           :max="display_max"
+           :min="display_range.min"
+           :max="display_range.max"
            :step="display_step"
            v-model.number.lazy="display_model" />
     <input :name="name" type="range"
            :disabled="unref(disabled)"
-           :min="display_min"
-           :max="display_max"
+           :min="display_range.min"
+           :max="display_range.max"
            :step="display_step"
            v-model.number="display_model" />
   </div>
 </template>
 
 <style scoped>
-.number-range {
+.property-editor-number-range {
   display: flex;
   flex-direction: row;
   gap: var(--size-property-grid-gap);

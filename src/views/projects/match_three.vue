@@ -5,29 +5,19 @@ import Column from '@/components/column.vue'
 import Player from '@/components/player.vue'
 import PropertyEditor from '@/components/property_editor/property_editor.vue'
 import UnderConstruction from '@/components/under_construction.vue'
-import { PropertyKind } from '@/util/property_editor/property_interfaces'
 import Section from '@/components/section.vue'
+import {
+  ButtonOptions,
+  ToggleOptions,
+} from '@/util/property_editor/property_types'
 import { useMatchThreeScorecardStore } from '@/stores/match_three_scorecard'
 import { useConsentStore } from '@/stores/consent'
 const gamedata = useMatchThreeScorecardStore();
 const { allow_saving_match_three_scorecard } = storeToRefs(useConsentStore());
 
 const editor_properties = [
-  {
-    kind: PropertyKind.Toggle,
-    name: 'consent.allow_saving_match_three_scorecard',
-    label: 'Save Match-3 Personal Scorecard',
-    default_value: false,
-    model: allow_saving_match_three_scorecard,
-  },
-  {
-    kind: PropertyKind.Button,
-    classes: ['delete'],
-    name: 'action.delete_match_three_scorecard',
-    label: 'Delete personal scorecard',
-    text: 'Delete',
-    disabled: computed(() => !gamedata?.scorecard),
-  },
+  new ToggleOptions('consent.allow_saving_match_three_scorecard', 'Save Match-3 Personal Scorecard', false).setModel(allow_saving_match_three_scorecard),
+  new ButtonOptions('action.delete_match_three_scorecard', 'Delete Scorecard').setClasses(['delete']).setDisabled(computed(() => !gamedata?.scorecard)),
 ];
 
 defineProps({

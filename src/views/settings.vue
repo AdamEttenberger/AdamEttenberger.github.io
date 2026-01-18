@@ -9,7 +9,11 @@ import Section from '@/components/section.vue'
 import { useConsentStore } from '@/stores/consent'
 import { useUserPreferencesStore } from '@/stores/user_preferences'
 import { useMatchThreeScorecardStore } from '@/stores/match_three_scorecard'
-import { PropertyKind } from '@/util/property_editor/property_interfaces'
+import {
+  ButtonOptions,
+  ComboBoxOptions,
+  ToggleOptions,
+} from '@/util/property_editor/property_types'
 
 const consent = useConsentStore();
 const user_preferences = useUserPreferencesStore();
@@ -27,75 +31,24 @@ const {
 } = storeToRefs(user_preferences);
 
 const consent_properties = [
-  {
-    kind: PropertyKind.Toggle,
-    name: 'consent.allow_hiding_consent_banner',
-    label: 'Hide consent banner',
-    default_value: false,
-    model: allow_hiding_consent_banner,
-  },
-  {
-    kind: PropertyKind.Toggle,
-    name: 'consent.allow_first_party_tracking',
-    label: 'Allow first-party tracking',
-    default_value: false,
-    model: allow_first_party_tracking,
-  },
-  {
-    kind: PropertyKind.Toggle,
-    name: 'consent.allow_saving_user_preferences',
-    label: 'Save User Preferences',
-    default_value: false,
-    model: allow_saving_user_preferences,
-  },
-  {
-    kind: PropertyKind.Toggle,
-    name: 'consent.allow_saving_match_three_scorecard',
-    label: 'Save Match-3 Scorecard',
-    default_value: false,
-    model: allow_saving_match_three_scorecard,
-  },
-
+  new ToggleOptions('consent.allow_hiding_consent_banner', 'Hide consent banner', false).setModel(allow_hiding_consent_banner),
+  new ToggleOptions('consent.allow_first_party_tracking', 'Allow first-party tracking', false).setModel(allow_first_party_tracking),
+  new ToggleOptions('consent.allow_saving_user_preferences', 'Save User Preferences', false).setModel(allow_saving_user_preferences),
+  new ToggleOptions('consent.allow_saving_match_three_scorecard', 'Save Match-3 Scorecard', false).setModel(allow_saving_match_three_scorecard),
 ];
 
 const user_preferences_properties = [
-  {
-    kind: PropertyKind.Toggle,
-    name: 'consent.allow_saving_user_preferences',
-    label: 'Save User Preferences',
-    default_value: false,
-    model: allow_saving_user_preferences,
-  },
-  {
-    kind: PropertyKind.ComboBox,
-    name: 'user.color_scheme',
-    label: 'Color Scheme',
-    values: [
-      ['normal', 'System Default'],
-      ['dark', 'Dark'],
-      ['light', 'Light'],
-    ],
-    default_value: 'normal',
-    model: color_scheme,
-  },
+  new ToggleOptions('consent.allow_saving_user_preferences', 'Save User Preferences', false).setModel(allow_saving_user_preferences),
+  new ComboBoxOptions('user.color_scheme', 'Color Scheme', 'normal', [
+    ['normal', 'System Default'],
+    ['dark', 'Dark'],
+    ['light', 'Light'],
+  ]).setModel(color_scheme),
 ];
 
 const match_three_scorecard_properties = [
-  {
-    kind: PropertyKind.Toggle,
-    name: 'consent.allow_saving_match_three_scorecard',
-    label: 'Save Match-3 Personal Scorecard',
-    default_value: false,
-    model: allow_saving_match_three_scorecard,
-  },
-  {
-    kind: PropertyKind.Button,
-    classes: ['delete'],
-    name: 'action.delete_match_three_scorecard',
-    label: 'Delete personal scorecard',
-    text: 'Delete',
-    disabled: computed(() => !match_three_scorecard?.scorecard),
-  },
+  new ToggleOptions('consent.allow_saving_match_three_scorecard', 'Save Match-3 Personal Scorecard', false).setModel(allow_saving_match_three_scorecard),
+  new ButtonOptions('action.delete_match_three_scorecard', 'Delete Scorecard').setClasses(['delete']).setDisabled(computed(() => !match_three_scorecard?.scorecard)),
 ];
 
 function onPropertyButtonClick(name) {

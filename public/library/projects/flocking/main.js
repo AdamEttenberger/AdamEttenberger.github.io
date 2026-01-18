@@ -130,8 +130,10 @@ class App {
 
     //
     this.game.m_managers.push( FlockManager.Instance() );
+    this.m_spawner = new GameObject();
 
-    this.game.m_root.addComponent(new RotateComponent().pushEuler(0, 15, 0));
+    this.game.m_root.addComponent(new RotateComponent().pushEuler(0, 5, 0));
+    this.game.m_root.addChildGameObject(this.m_spawner);
 
     var cube = new GameObject();
     vec3.multiply( cube.m_transform.scale, cube.m_transform.scale, vec3.fromValues( 65, 65, 65 ) )
@@ -140,7 +142,7 @@ class App {
 
     this.game.m_root.addChildGameObject( cube );
 
-    FlockManager.Instance().spawn(150);
+    FlockManager.Instance().spawn(this.m_spawner, 150);
     return this;
   }
 
@@ -159,11 +161,11 @@ class App {
     if (e.origin !== window.location.origin) {
       return;
     }
-    if (e.data.reload || e.data.count) {
-      var old_count = FlockManager.Instance().count();
+    if (e.data.reload || typeof e.data.count === 'number') {
+      var old_count = FlockManager.Instance().count(this.m_spawner);
       var new_count = e.data.count ?? old_count;
-      FlockManager.Instance().despawn(e.data.reload ? old_count : old_count - new_count);
-      FlockManager.Instance().spawn(new_count - FlockManager.Instance().count());
+      FlockManager.Instance().despawn(this.m_spawner, e.data.reload ? old_count : old_count - new_count);
+      FlockManager.Instance().spawn(this.m_spawner, new_count - FlockManager.Instance().count(this.m_spawner));
     }
     if (e.data.speed !== undefined) {
       FlockerComponent.maxSpeed = e.data.speed;

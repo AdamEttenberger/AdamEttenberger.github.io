@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import Column from '@/components/column.vue'
 </script>
 

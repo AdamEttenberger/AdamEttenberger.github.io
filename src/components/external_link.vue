@@ -1,5 +1,5 @@
-<script setup>
-const props = defineProps({
+<script setup lang="ts">
+defineProps({
   to: { type: String, required: true },
   show_ext: { type: Boolean, default: true }
 })

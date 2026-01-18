@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import Button from '@/components/button.vue'
 import { useEmailTemplateStore } from '@/stores/email_template'
 

@@ -1,11 +1,14 @@
-<script setup>
+<script setup lang="ts">
 import { ref, useTemplateRef } from 'vue'
 import Column from '@/components/column.vue'
 import Player from '@/components/player.vue'
 import PropertyEditor from '@/components/property_editor/property_editor.vue'
 import Section from '@/components/section.vue'
 import UnderConstruction from '@/components/under_construction.vue'
-import { PropertyKind } from '@/util/property_editor/property_interfaces'
+import {
+  ButtonOptions,
+  NumberRangeOptions,
+} from '@/util/property_editor/property_types'
 
 const main_editor = useTemplateRef('main_editor_ref');
 const main_player = useTemplateRef('main_player_ref');
@@ -18,111 +21,17 @@ defineProps({
 })
 
 const editor_properties = [
-  {
-    kind: PropertyKind.Button,
-    name: 'reload',
-    label: 'Reload',
-    text: 'Restart Scene',
-  },
-  {
-    kind: PropertyKind.NumberRange,
-    name: 'count',
-    label: 'Count',
-    min_value: 1,
-    max_value: 500,
-    step_value: 1,
-    default_value: 150,
-  },
-  {
-    kind: PropertyKind.NumberRange,
-    name: 'speed',
-    label: 'Max Speed',
-    min_value: 1,
-    max_value: 100,
-    step_value: 1,
-    as_scalar: true,
-    default_value: 12,
-  },
-  {
-    kind: PropertyKind.NumberRange,
-    name: 'force',
-    label: 'Max Steer Force',
-    min_value: 10,
-    max_value: 30,
-    step_value: 1,
-    as_scalar: true,
-    default_value: 20,
-  },
-  {
-    kind: PropertyKind.NumberRange,
-    name: 'alignment',
-    label: 'Alignment',
-    min_value: 0,
-    max_value: 20,
-    step_value: 1,
-    as_scalar: true,
-    default_value: 9,
-  },
-  {
-    kind: PropertyKind.NumberRange,
-    name: 'separation',
-    label: 'Separation',
-    min_value: 0,
-    max_value: 20,
-    step_value: 1,
-    as_scalar: true,
-    default_value: 15,
-  },
-  {
-    kind: PropertyKind.NumberRange,
-    name: 'cohesion',
-    label: 'Cohesion',
-    min_value: 0,
-    max_value: 20,
-    step_value: 1,
-    as_scalar: true,
-    default_value: 7,
-  },
-  {
-    kind: PropertyKind.NumberRange,
-    name: 'containment',
-    label: 'Containment',
-    min_value: 0,
-    max_value: 100,
-    step_value: 1,
-    as_scalar: true,
-    default_value: 100,
-  },
-  {
-    kind: PropertyKind.NumberRange,
-    name: 'sight_radius',
-    label: 'Sight Radius',
-    min_value: 0,
-    max_value: 35,
-    step_value: 1,
-    as_scalar: true,
-    default_value: 8,
-  },
-  {
-    kind: PropertyKind.NumberRange,
-    name: 'separation_radius',
-    label: 'Separation Radius',
-    min_value: 0,
-    max_value: 35,
-    step_value: 1,
-    as_scalar: true,
-    default_value: 3,
-  },
-  {
-    kind: PropertyKind.NumberRange,
-    name: 'containment_radius',
-    label: 'Containment Radius',
-    min_value: 0,
-    max_value: 35,
-    step_value: 1,
-    as_scalar: true,
-    default_value: 30,
-  },
+  new ButtonOptions('reload', 'Restart Scene'),
+  new NumberRangeOptions('count', 'Count', 150, 0, 500, 1),
+  new NumberRangeOptions('speed', 'Max Speed', 12, 0, 100, 1).asScalar(),
+  new NumberRangeOptions('force', 'Max Steer Force', 20, 10, 30, 1).asScalar(),
+  new NumberRangeOptions('alignment', 'Alignment', 9, 0, 20, 1).asScalar(),
+  new NumberRangeOptions('separation', 'Separation', 15, 0, 20, 1).asScalar(),
+  new NumberRangeOptions('cohesion', 'Cohesion', 7, 0, 20, 1).asScalar(),
+  new NumberRangeOptions('containment', 'Containment', 100, 0, 100, 1).asScalar(),
+  new NumberRangeOptions('sight_radius', 'Sight Radius', 8, 0, 35, 1).asScalar(),
+  new NumberRangeOptions('separation_radius', 'Separation Radius', 3, 0, 35, 1).asScalar(),
+  new NumberRangeOptions('containment_radius', 'Containment Radius', 30, 0, 35, 1).asScalar(),
 ];
 
 function onPlayerLoaded(target_frame) {

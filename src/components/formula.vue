@@ -1,6 +1,9 @@
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, useSlots } from 'vue'
 import Figure from '@/components/figure.vue'
+import { useScrollAffectingContentWaiterStore } from '@/stores/scroll_affecting_content_waiter'
+
+const scrollAffectingContentWaiter = useScrollAffectingContentWaiterStore();
 
 const slots = useSlots();
 const mathml_parent = ref();
@@ -42,12 +45,13 @@ function getTextAsync() {
 }
 
 onMounted(() => {
-  getTextAsync().then((text) => {
+  var task = getTextAsync().then((text) => {
     mathml_parent.value.replaceChildren(TeXZilla.toMathML(text));
   }).catch((e) => {
     console.log(e)
     init_failed.value = true
-  })
+  });
+  scrollAffectingContentWaiter.add(task);
 });
 </script>
 

@@ -62,8 +62,9 @@ function GameObject()
     var i = this.children.indexOf(child);
     if (i != -1)
     {
-      this.children.splice(i, 1);
+      const removed = this.children.splice(i, 1);
       child.parent = null;
+      return removed[0];
     }
   }
 

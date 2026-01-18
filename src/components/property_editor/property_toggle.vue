@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { unref } from 'vue'
 import Button from '@/components/button.vue'
-import { ToggleOptions } from '@/util/property_editor/property_interfaces';
+import { IPropertyToggleOptions } from '@/util/property_editor/property_interfaces';
 
-const options = defineProps<ToggleOptions>();
+defineProps<IPropertyToggleOptions>();
 const model = defineModel({
   type: Boolean,
   required: true,
@@ -11,23 +10,23 @@ const model = defineModel({
 </script>
 
 <template>
-  <div class="toggle">
+  <div class="property-editor-toggle">
     <Button class="button"
             :icon="model ? (icon ?? ['fas', 'xmark']) : undefined"
-            :disabled="unref(disabled)"
+            :disabled="disabled"
             @click="model = !model" />
   </div>
 </template>
 
 <style scoped>
-.toggle {
+.property-editor-toggle {
   display: flex;
   flex-direction: row-reverse;
   height: 1lh;
-}
 
-.button {
-  aspect-ratio: 1;
-  width: auto;
+  & .button {
+    aspect-ratio: 1;
+    width: auto;
+  }
 }
 </style>

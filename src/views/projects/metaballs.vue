@@ -9,7 +9,10 @@ import Player from '@/components/player.vue'
 import PropertyEditor from '@/components/property_editor/property_editor.vue'
 import Quote from '@/components/quote.vue'
 import Section from '@/components/section.vue'
-import { PropertyKind } from '@/util/property_editor/property_interfaces'
+import {
+  ComboBoxOptions,
+  NumberRangeOptions,
+} from '@/util/property_editor/property_types'
 
 const main_editor = useTemplateRef('main_editor_ref');
 
@@ -48,45 +51,12 @@ const presets = {
 };
 
 const selected_preset = ref('default');
+// Intentionally setup so each editor is synchronized.
 const editor_properties = [
-  {
-    kind: PropertyKind.NumberRange,
-    name: 'count',
-    label: 'Count',
-    min_value: 1,
-    max_value: 100,
-    step_value: 1,
-    default_value: computed(() => presets[selected_preset.value]?.count),
-    model: ref(presets[selected_preset.value].count),
-  },
-  {
-    kind: PropertyKind.NumberRange,
-    name: 'radius',
-    label: 'Radius',
-    min_value: 0.01,
-    max_value: 0.2,
-    step_value: 0.01,
-    default_value: computed(() => presets[selected_preset.value]?.radius),
-    model: ref(presets[selected_preset.value].radius),
-  },
-  {
-    kind: PropertyKind.NumberRange,
-    name: 'threshold',
-    label: 'Min-Mass',
-    min_value: 0.01,
-    max_value: 0.99,
-    step_value: 0.01,
-    default_value: computed(() => presets[selected_preset.value]?.threshold),
-    model: ref(presets[selected_preset.value].threshold),
-  },
-  {
-    kind: PropertyKind.ComboBox,
-    name: 'preset',
-    label: 'Preset',
-    values: Object.entries(presets).map(([key, value]) => [key, value.label]),
-    default_value: 'default',
-    model: selected_preset,
-  },
+  new NumberRangeOptions('count', 'Count', computed(() => presets[selected_preset.value]?.count), 0, 100, 1).setModel(ref(presets[selected_preset.value].count)),
+  new NumberRangeOptions('radius', 'Radius', computed(() => presets[selected_preset.value]?.radius), 0.01, 0.2, 0.01).setModel(ref(presets[selected_preset.value].radius)),
+  new NumberRangeOptions('threshold', 'Min-Mass', computed(() => presets[selected_preset.value]?.threshold), 0.01, 0.99, 0.01).setModel(ref(presets[selected_preset.value].threshold)),
+  new ComboBoxOptions('preset', 'Preset', 'default', Object.entries(presets).map(([key, value]) => [key, value.label])).setModel(selected_preset),
 ];
 
 function onPlayerLoaded(target_frame) {
