@@ -40,6 +40,33 @@ class ShaderProgram {
   setUniform4f(key, value1, value2, value3, value4) {
     gl.uniform4f(this.getUniformLocation(key), value1, value2, value3, value4);
   }
+
+  setUniform1i(key, value) {
+    gl.uniform1i(this.getUniformLocation(key), value);
+  }
+  setUniform2i(key, value1, value2) {
+    gl.uniform2i(this.getUniformLocation(key), value1, value2);
+  }
+  setUniform3i(key, value1, value2, value3) {
+    gl.uniform3i(this.getUniformLocation(key), value1, value2, value3);
+  }
+  setUniform4i(key, value1, value2, value3, value4) {
+    gl.uniform4i(this.getUniformLocation(key), value1, value2, value3, value4);
+  }
+
+  setUniform1ui(key, value) {
+    gl.uniform1ui(this.getUniformLocation(key), value);
+  }
+  setUniform2ui(key, value1, value2) {
+    gl.uniform2ui(this.getUniformLocation(key), value1, value2);
+  }
+  setUniform3ui(key, value1, value2, value3) {
+    gl.uniform3ui(this.getUniformLocation(key), value1, value2, value3);
+  }
+  setUniform4ui(key, value1, value2, value3, value4) {
+    gl.uniform4ui(this.getUniformLocation(key), value1, value2, value3, value4);
+  }
+
   setUniformMat4(key, value) {
     gl.uniformMatrix4fv(this.getUniformLocation(key), false, value);
   }

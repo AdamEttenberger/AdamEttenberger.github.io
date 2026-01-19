@@ -33,10 +33,22 @@ const UPDATE = {
 };
 
 enum UniformType {
+  bool = 'bool',
   float = 'float',
+  int = 'int',
+  uint = 'uint',
   vec2 = 'vec2',
   vec3 = 'vec3',
   vec4 = 'vec4',
+  bvec2 = 'bvec2',
+  bvec3 = 'bvec3',
+  bvec4 = 'bvec4',
+  ivec2 = 'ivec2',
+  ivec3 = 'ivec3',
+  ivec4 = 'ivec4',
+  uvec2 = 'uvec2',
+  uvec3 = 'uvec3',
+  uvec4 = 'uvec4',
   mat4 = 'mat4',
 };
 
@@ -112,19 +124,21 @@ defineProps({
 })
 
 function createSdfShader(uniforms: Array<Uniform>, sdf_function) {
-  return `
+  return `#version 300 es
     precision mediump float;
 
     // Constants
     const float EPSILON = 0.001;
     const float PI = 3.1415926535897932384626433832795;
     const float TAU = 6.283185307179586476925286766559;
-    const float kAxisSize = 0.00125;
+    const float kAxisSize = 0.001875;
     const float kReticleMinor = 0.0025;
     const float kReticleMajor = 0.025;
     const float kAnimationFrequency = 0.7;
 
-    varying vec2 UV;
+    in vec2 UV;
+
+    out vec4 vColor;
 
     // ShaderLoaderComponent Uniforms
     uniform vec3 uResolution; // = {width, height, aspect}
@@ -145,7 +159,7 @@ function createSdfShader(uniforms: Array<Uniform>, sdf_function) {
     vec2 rot90_cw(vec2 p) { return vec2(p.y, -p.x); }
     float sdf_union(float a, float b) { return min(a, b); }
     float sdf_intersection(float a, float b) { return max(a, b); }
-    float sdf_subtraction(float a, float b) { return max(-a, b); }
+    float sdf_subtraction(float a, float b) { return max(a, -b); }
 
     float sdf_circle(vec2 p, float inflate) {
       return length(p) - inflate;
@@ -155,16 +169,16 @@ function createSdfShader(uniforms: Array<Uniform>, sdf_function) {
       return len - inflate;
     }
 
-    float sdf_ring(vec2 p, float r, float inflate) {
+    float sdf_torus(vec2 p, float r, float inflate) {
       return abs(sdf_circle(p, r)) - inflate;
     }
 
-    float sdf_ring(float len, float r, float inflate) {
+    float sdf_torus(float len, float r, float inflate) {
       return abs(sdf_circle(len, r)) - inflate;
     }
 
-    float sdf_plane(vec2 p, vec2 direction, float distance_from_origin) {
-      return dot(p, direction) - distance_from_origin;
+    float sdf_plane(vec2 p, vec2 unit_direction) {
+      return dot(p, unit_direction);
     }
 
     float sdf_rectangle(vec2 p, vec2 inflate) {
@@ -178,12 +192,16 @@ function createSdfShader(uniforms: Array<Uniform>, sdf_function) {
       float sdf_plus = sdf_union(sdf_rectangle(p, vec2(kReticleMinor, kReticleMajor)),
                                  sdf_rectangle(p, vec2(kReticleMajor, kReticleMinor)));
       float sdf_square = max(p.x, p.y) - (0.5 * kReticleMajor);
-      return sdf_subtraction(sdf_square, sdf_plus);
+      return sdf_subtraction(sdf_plus, sdf_square);
     }
 
     float sdf_axis(vec2 p, float inflate) {
-      p = abs(p / uScale) - vec2(inflate);
+      p = abs(p / uScale);
       return min(p.x, p.y) - inflate;
+    }
+
+    float sdf_line(vec2 p, vec2 unit_direction, float stroke_width) {
+      return abs(sdf_plane(p, unit_direction)) - (stroke_width * 0.5);
     }
 
     float sdf_function(vec2 p) {
@@ -214,30 +232,30 @@ function createSdfShader(uniforms: Array<Uniform>, sdf_function) {
       p -= vec2(uPositionX, uPositionY);  // camera translation
       p = rotate2d(uRotation) * p;        // camera rotation
 
-      if (uShowReticle != 0.0) {
+      if (uShowReticle) {
         float reticle = sdf_reticle(p);
         if (abs(reticle) <= kReticleMinor) {
-          gl_FragColor = vec4(vec3((reticle <= 0.0) ? 1.0 : 0.0), 1.0);
+          vColor = vec4(vec3((reticle <= 0.0) ? 1.0 : 0.0), 1.0);
           return;
         }
       }
-      if (uShowAxis != 0.0) {
+      if (uShowAxis) {
         float sdf = sdf_axis(p, kAxisSize * 0.5);
         if (abs(sdf) <= kAxisSize) {
           float smooth_sdf = smoothstep((kAxisSize * 0.5)-EPSILON, (kAxisSize * 0.5), sdf);
-          gl_FragColor = vec4(mix(vec3(1.0), vec3(0.0), smooth_sdf), 1.0);
+          vColor = vec4(mix(vec3(1.0), vec3(0.0), smooth_sdf), 1.0);
           return;
         }
       }
       float sdf = sdf_function(p);
-      gl_FragColor = gradient_bands(draw(sdf), sdf, 0.1);
+      vColor = gradient_bands(draw(sdf), sdf, 0.1);
     }
   `;
 }
 
 const shared_uniforms = [
-  new Uniform(UniformType.float, 'uShowReticle'),
-  new Uniform(UniformType.float, 'uShowAxis'),
+  new Uniform(UniformType.bool, 'uShowReticle'),
+  new Uniform(UniformType.bool, 'uShowAxis'),
   new Uniform(UniformType.float, 'uPositionX'),
   new Uniform(UniformType.float, 'uPositionY'),
   new Uniform(UniformType.float, 'uRotation', degToRad), // TBD angle editor
@@ -255,7 +273,7 @@ const shader_templates = new Map([
     'heart', {
       label: "Heart",
       uniforms: [
-        new Uniform(UniformType.float, 'uAnimate'),
+        new Uniform(UniformType.bool, 'uAnimate'),
         new Uniform(UniformType.float, 'uAnimationAmplitude'),
         new Uniform(UniformType.float, 'uBlendToCircle'),
       ],
@@ -311,14 +329,14 @@ const shader_templates = new Map([
 
         // Switch between user control and custom animation.
         float r;
-        if (uAnimate == 0.0) {
-          r = mix(kMinRadius, kMaxRadius, uBlendToCircle);
-        } else {
+        if (uAnimate) {
           float animation_time = (uTime * TAU) * kAnimationFrequency;
           float wave1 = 0.5 + 0.5 * cos(animation_time);
           float wave2 = 0.5 + 0.5 * cos(animation_time * 2.0);
           float t = min(wave1, wave2);
           r = mix(kMinRadius, mix(kMinRadius, kMaxRadius, uAnimationAmplitude), t);
+        } else {
+          r = mix(kMinRadius, kMaxRadius, uBlendToCircle);
         }
 
         const vec2 a = vec2(0.0, -0.5);
@@ -355,7 +373,7 @@ const shader_templates = new Map([
         // An inverted SDF point which forms the upward curve between the lobes of the heart, only values <= 0.
         float sdf_circle_inverted = -sdf_circle(d_to_p, 0.0);
         // An SDF plane, collinear with points <A> and <T>, with the positive side towards the 4th quadrant away from the shape.
-        float sdf_plane_outward = sdf_plane(p - a, n, 0.0);
+        float sdf_plane_outward = sdf_plane(p - a, n);
         // Combining the two shapes, taking the intersection so they blend smoothly.
         return sdf_intersection(sdf_circle_inverted, sdf_plane_outward);
       `,
@@ -366,51 +384,115 @@ const shader_templates = new Map([
       label: "Circle",
       uniforms: [
         new Uniform(UniformType.float, 'uRadius'),
+        new Uniform(UniformType.int, 'uMode'),
+        new Uniform(UniformType.float, 'uRingStrokeWidth'),
       ],
-      sdf_function: 'return length(p) - uRadius;',
+      sdf_function: `
+        float sdf = length(p) - uRadius;
+        switch (uMode) {
+          case 0:
+          default: // Circle
+            break;
+          case 1: // Ring (Within Radius)
+            float half_extent = uRingStrokeWidth * 0.5;
+            sdf = abs(sdf + half_extent) - half_extent;
+            break;
+          case 2: // Ring (Centered on Radius)
+            sdf = abs(sdf) - (uRingStrokeWidth * 0.5);
+            break;
+        }
+        return sdf;
+      `,
     }
   ],
   [
     'plane', {
       label: "Plane",
       uniforms: [
+        new Uniform(UniformType.bool, 'uMirror'),
         new Uniform(UniformType.vec2, 'uNormal', degToVec2), // TBD vector editor
         new Uniform(UniformType.float, 'uDistanceFromOrigin'),
       ],
-      sdf_function: 'return dot(p, uNormal) - uDistanceFromOrigin;',
+      sdf_function: `
+        float sdf = dot(p, uNormal);
+        if (uMirror) {
+          sdf = abs(sdf);
+        }
+        return sdf - uDistanceFromOrigin;
+      `,
+    }
+  ],
+  [
+    'capsule', {
+      label: "Capsule",
+      uniforms: [
+        new Uniform(UniformType.bool, 'uInvertPlane'),
+        new Uniform(UniformType.float, 'uRadius'),
+        new Uniform(UniformType.float, 'uLength'),
+      ],
+      sdf_function: `
+        p = abs(p);
+        vec2 extent = vec2(0.0, uLength * 0.5);
+        if (p.y <= extent.y) {
+          float invert = (uInvertPlane ? -1.0 : 1.0);
+          return (sdf_plane(p, vec2(1.0, 0.0)) - uRadius) * invert;
+        } else {
+          return sdf_circle(p - extent, uRadius);
+        }
+      `,
+    }
+  ],
+  [
+    'venn-diagram', {
+      label: "Venn Diagram",
+      uniforms: [
+        new Uniform(UniformType.int, 'uOp'),
+      ],
+      sdf_function: `
+        float left = sdf_circle(p + vec2(0.25, 0.0), 0.4);
+        float right = sdf_circle(p - vec2(0.25, 0.0), 0.4);
+
+        switch (uOp) {
+          case 0: return min(left, right);                          // union
+          case 1: return max(left, right);                          // intersection
+          case 2: return max(left, -right);                         // subtraction
+          case 3: return max(min(left, right), -max(left, right));  // Xor
+        }
+      `,
     }
   ],
   [
     'mirror', {
       label: "Mirrors",
       uniforms: [
-        new Uniform(UniformType.float, 'uShape',),
-        new Uniform(UniformType.float, 'uHorizontalMirror'),
-        new Uniform(UniformType.float, 'uVerticalMirror'),
+        new Uniform(UniformType.int, 'uShape',),
+        new Uniform(UniformType.bool, 'uHorizontalMirror'),
+        new Uniform(UniformType.bool, 'uVerticalMirror'),
       ],
       sdf_function: `
-        if (uHorizontalMirror != 0.0) {
+        if (uHorizontalMirror) {
           p.x = abs(p.x);
         }
-        if (uVerticalMirror != 0.0) {
+        if (uVerticalMirror) {
           p.y = abs(p.y);
         }
         const float cos45 = 0.70710678118654752440084436210485;
-        if (uShape == 0.0) {
-          const float ring_core = 0.4;
-          const float ring_inflate = 0.025;
-          const float dot_size = 0.075;
+        switch (uShape) {
+          case 0: // Ring and Circles
+            const float ring_core = 0.4;
+            const float ring_inflate = 0.025;
+            const float dot_size = 0.075;
 
-          float t = uTime * TAU * 0.25;
-          vec2 path = vec2(cos(t), sin(t)) * ring_core;
-          float ring = sdf_ring(p, ring_core, ring_inflate);
-          float orbital = sdf_circle(p - path, dot_size);
-          float stationary =
-              sdf_circle(p - vec2(cos45) * ring_core, dot_size);
-          return sdf_union(sdf_union(ring, orbital), stationary);
-        }
-        if (uShape == 1.0) {
-          return sdf_plane(p, vec2(cos45, -cos45), 0.0);
+            float t = uTime * TAU * 0.25;
+            vec2 path = vec2(cos(t), sin(t)) * ring_core;
+
+            float sdf = sdf_torus(p, ring_core, ring_inflate);
+            sdf = sdf_union(sdf, sdf_circle(p - path, dot_size));
+            sdf = sdf_union(sdf, sdf_rectangle(p - rot90_cw(path), vec2(dot_size)));
+            sdf = sdf_union(sdf, sdf_circle(p - vec2(cos45) * ring_core, dot_size));
+            return sdf;
+          case 1: // Plane
+            return sdf_plane(p, vec2(cos45, -cos45));
         }
       `,
     }
@@ -445,6 +527,7 @@ function getShaderProperties(shader_key, property_overlay) {
   const group_colors_open = ref(null);
   const group_border_open = ref(null);
   const camera_scale = ref(null);
+  const circle_mode = ref(null);
   var local_properties = [
     new DividerOptions('divider-common', 'Common'),
     new GroupOptions('group-overlays', 'Overlays', false).setModel(group_overlays_open),
@@ -481,14 +564,42 @@ function getShaderProperties(shader_key, property_overlay) {
         ...local_properties,
         new DividerOptions('divider-circle', 'SDF Circle'),
         new NumberRangeOptions('circle.uRadius', 'Radius', 0.5, 0, 1, 0.01),
+        new ComboBoxOptions('circle.uMode', 'Mode', 0, [
+          [0, 'Circle'],
+          [1, 'Ring (Within Radius)'],
+          [2, 'Ring (Centered on Radius)'],
+        ]).setModel(circle_mode),
+        new NumberRangeOptions('circle.uRingStrokeWidth', 'Ring Radius', 0.1, 0, 1, 0.01).setDisabled(computed(() => circle_mode.value == 0)),
       ];
       break;
     case 'plane':
       local_properties = [
         ...local_properties,
         new DividerOptions('divider-plane', 'SDF Plane'),
+        new ToggleOptions('plane.uMirror', 'Mirror Plane', false),
         new NumberRangeOptions('plane.uNormal', 'Normal Angle', 0.0, 0, 360, 1),
         new NumberRangeOptions('plane.uDistanceFromOrigin', 'Distance From Origin', 0.0, -0.5, 0.5, 0.01),
+      ];
+      break;
+    case 'capsule':
+      local_properties = [
+        ...local_properties,
+        new DividerOptions('divider-capsule', 'SDF Capsule'),
+        new ToggleOptions('capsule.uInvertPlane', 'Invert Plane SDF', true),
+        new NumberRangeOptions('capsule.uRadius', 'Radius', 0.2, 0.0, 1.0, 0.01),
+        new NumberRangeOptions('capsule.uLength', 'Length', 0.55, 0.0, 1.0, 0.01),
+      ];
+      break;
+    case 'venn-diagram':
+      local_properties = [
+        ...local_properties,
+        new DividerOptions('divider-venn-diagram', 'SDF Capsule'),
+        new ComboBoxOptions('venn-diagram.uOp', 'Function', 0, [
+          [0, 'Union'],
+          [1, 'Intersection'],
+          [2, 'Subtraction'],
+          [3, 'Xor'],
+        ]),
       ];
       break;
     case 'mirror':
@@ -564,7 +675,7 @@ function onPlayerPropertyChanged(frame: HTMLIFrameElement, name: string) {
           :lastmod="lastmod"
           :frame="frame"
           :paused="false"
-          @load="(frame) => onPlayerLoaded(frame, editors.main, 'heart')" />
+          @load="(frame) => onPlayerLoaded(frame, editors['main'], 'heart')" />
   <Column>
     <Section heading="Controls">
       <PropertyEditor :ref="editorRef('main')"
@@ -574,7 +685,7 @@ function onPlayerPropertyChanged(frame: HTMLIFrameElement, name: string) {
                         'uOutsideColor': { default_value: [0.0, 0.0, 1.0] },
                         'heart.uAnimate': { default_value: true },
                       })"
-                      @property-changed="(name) => onPlayerPropertyChanged(players.main.player_frame, name)" />
+                      @property-changed="(name) => onPlayerPropertyChanged(players['main'].player_frame, name)" />
     </Section>
 
     <Section heading="What is a signed-distance function (SDF)?">
@@ -613,7 +724,7 @@ function onPlayerPropertyChanged(frame: HTMLIFrameElement, name: string) {
                   The value is lowest (negative) at 'P', zero at the boundary 'R', and extending outward towards positive infinity from the boundary where the value will be the highest." />
     </Section>
 
-    <Section heading="Points and Circles">
+    <Section heading="Points, Circles, and Rings">
       <p>
         The easiest shape to implement is likely a point, or its inflated 2D/3D forms (circle, sphere) which are offsets of the point function.
         Intuitively the signed-distance from a point is either <b>0</b> at the exact center or <b>>0</b>.
@@ -630,17 +741,25 @@ function onPlayerPropertyChanged(frame: HTMLIFrameElement, name: string) {
               :lastmod="lastmod"
               :frame="frame"
               :paused="false"
-              @load="(frame) => onPlayerLoaded(frame, editors.circle, 'circle')" />
+              @load="(frame) => onPlayerLoaded(frame, editors['circle'], 'circle')" />
       <br />
       <PropertyEditor :ref="editorRef('circle')"
                       :properties="getShaderProperties('circle')"
-                      @property-changed="(name) => onPlayerPropertyChanged(players.circle.player_frame, name)" />
+                      @property-changed="(name) => onPlayerPropertyChanged(players['circle'].player_frame, name)" />
       </Section>
 
-      <Section heading="Planes">
+      <Section heading="Planes and Lines">
       <p>
-        Next is a plane, which could be defined with a unit vector, and an optional offset from the origin along the normal.
-        The offset is optional because applying transformations to the UV coordinate could also orient and pivot the plane around any target point, demonstrated by adjusting the shader's <b>Camera</b> settings.
+        Next is a plane, defined with a <b>unit vector normal</b> and an amount to offset the plane from the origin along the normal.
+        The signed-distance between a point and a plane is the projected length onto the <b><u>unit</u> vector</b> using the <ExternalLink to="https://en.wikipedia.org/wiki/Dot_product">vector dot product</ExternalLink>.
+        Creating a region of positive values on the side the <b>normal</b> vector is pointing, and negative values in the opposite direction.
+      </p>
+      <br />
+      <p>
+        A plane can be transformed into a line by taking the absolute value of the signed-distance, then subtract half the line width to <b>inflate</b> the shape boundary.
+        This process is similar to how the signed-distance of a point can be <b>inflated</b> into a circle or sphere, or how the absolute distance field of a circle inflates into a torus.
+        Taking the absolute value makes the lowest value in the distance field <b>zero</b> while maintaining distance to the boundary of the shape.
+        Subtracting from the distance field <b>inflates</b> the boundary of the shape by shifting the field uniformly <b>away from the boundary</b>.
       </p>
       <br />
       <Code lang="cpp"
@@ -653,11 +772,11 @@ function onPlayerPropertyChanged(frame: HTMLIFrameElement, name: string) {
               :lastmod="lastmod"
               :frame="frame"
               :paused="false"
-              @load="(frame) => onPlayerLoaded(frame, editors.plane, 'plane')" />
+              @load="(frame) => onPlayerLoaded(frame, editors['plane'], 'plane')" />
       <br />
       <PropertyEditor :ref="editorRef('plane')"
                       :properties="getShaderProperties('plane')"
-                      @property-changed="(name) => onPlayerPropertyChanged(players.plane.player_frame, name)" />
+                      @property-changed="(name) => onPlayerPropertyChanged(players['plane'].player_frame, name)" />
     </Section>
 
     <Section heading="Symmetry">
@@ -690,7 +809,58 @@ function onPlayerPropertyChanged(frame: HTMLIFrameElement, name: string) {
                       @property-changed="(name) => onPlayerPropertyChanged(players['mirror'].player_frame, name)" />
     </Section>
 
-    <Section heading="Insets and Outsets">
+    <Section heading="Combining Shapes">
+      <p>
+        Distance fields can be combined by slicing the render into different draw regions, or through boolean shape operators.
+      </p>
+      <br />
+      <Details summary="Aligned Capsule: Draw Regions">
+        <Code lang="cpp"
+              caption="Aligned capsule signed-distance function. Draws a circle and plane, mirrored across both axis, with two draw regions."
+              :text="shader_templates.get('capsule').sdf_function" />
+      </Details>
+      <br />
+      <Player :ref="playerRef('capsule')"
+              title="Aligned Capsule"
+              :date="date"
+              :lastmod="lastmod"
+              :frame="frame"
+              :paused="false"
+              @load="(frame) => onPlayerLoaded(frame, editors['capsule'], 'capsule')" />
+      <br />
+      <PropertyEditor :ref="editorRef('capsule')"
+                      :properties="getShaderProperties('capsule', {
+                        'uShowReticle': { default_value: false },
+                        'uShowAxis': { default_value: true },
+                        'uInsetWidth': { default_value: 0.01 },
+                        'uOutsetWidth': { default_value: 0.01 },
+                      })"
+                      @property-changed="(name) => onPlayerPropertyChanged(players['capsule'].player_frame, name)" />
+      <br />
+      <Details summary="Venn Diagram: Boolean Operators">
+        <Code lang="cpp"
+              caption="SDF Venn Diagram boolean operators."
+              :text="shader_templates.get('venn-diagram').sdf_function" />
+      </Details>
+      <br />
+      <Player :ref="playerRef('venn-diagram')"
+              title="Venn Diagram"
+              :date="date"
+              :lastmod="lastmod"
+              :frame="frame"
+              :paused="false"
+              @load="(frame) => onPlayerLoaded(frame, editors['venn-diagram'], 'venn-diagram')" />
+      <br />
+      <PropertyEditor :ref="editorRef('venn-diagram')"
+                      :properties="getShaderProperties('venn-diagram', {
+                        'uShowReticle': { default_value: false },
+                        'uInsetWidth': { default_value: 0.01 },
+                        'uOutsetWidth': { default_value: 0.01 },
+                      })"
+                      @property-changed="(name) => onPlayerPropertyChanged(players['venn-diagram'].player_frame, name)" />
+    </Section>
+
+    <Section heading="Boundaries, Insets, and Outsets">
       <p>
         Outlines can easily be rendered by creating a value band near zero, the boundary of the shape.
         This can be further discriminated by treating negative values as insets and positive values as outsets.
@@ -712,12 +882,6 @@ function onPlayerPropertyChanged(frame: HTMLIFrameElement, name: string) {
       " />
     </Section>
 
-    <Section heading="Combining Shapes">
-      <p>
-        <UnderConstruction />
-      </p>
-    </Section>
-
     <Section heading="Compositing a Heart">
       <p>
         <UnderConstruction />
@@ -735,11 +899,11 @@ function onPlayerPropertyChanged(frame: HTMLIFrameElement, name: string) {
           :lastmod="lastmod"
           :frame="frame"
           :paused="false"
-          @load="(frame) => onPlayerLoaded(frame, editors.heart, 'heart')" />
+          @load="(frame) => onPlayerLoaded(frame, editors['heart'], 'heart')" />
       <br />
       <PropertyEditor :ref="editorRef('heart')"
                       :properties="getShaderProperties('heart')"
-                      @property-changed="(name) => onPlayerPropertyChanged(players.heart.player_frame, name)" />
+                      @property-changed="(name) => onPlayerPropertyChanged(players['heart'].player_frame, name)" />
     </Section>
 
     <Section heading="Adding Animations">

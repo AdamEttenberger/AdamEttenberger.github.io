@@ -114,6 +114,21 @@ function ShaderLoaderComponent( )
         case 'vec2': this.shader.setUniform2f(key, uniform.value[0], uniform.value[1]); break;
         case 'vec3': this.shader.setUniform3f(key, uniform.value[0], uniform.value[1], uniform.value[2]); break;
         case 'vec4': this.shader.setUniform4f(key, uniform.value[0], uniform.value[1], uniform.value[2], uniform.value[3]); break;
+
+        case 'bool':
+        case 'int': this.shader.setUniform1i(key, uniform.value); break;
+        case 'bvec2':
+        case 'ivec2': this.shader.setUniform2i(key, uniform.value[0], uniform.value[1]); break;
+        case 'bvec3':
+        case 'ivec3': this.shader.setUniform3i(key, uniform.value[0], uniform.value[1], uniform.value[2]); break;
+        case 'bvec4':
+        case 'ivec4': this.shader.setUniform4i(key, uniform.value[0], uniform.value[1], uniform.value[2], uniform.value[3]); break;
+
+        case 'uint': this.shader.setUniform1u(key, uniform.value); break;
+        case 'uvec2': this.shader.setUniform2u(key, uniform.value[0], uniform.value[1]); break;
+        case 'uvec3': this.shader.setUniform3u(key, uniform.value[0], uniform.value[1], uniform.value[2]); break;
+        case 'uvec4': this.shader.setUniform4u(key, uniform.value[0], uniform.value[1], uniform.value[2], uniform.value[3]); break;
+
         case 'mat4': this.shader.setUniformMat4(key, uniform.value); break;
       }
     }
