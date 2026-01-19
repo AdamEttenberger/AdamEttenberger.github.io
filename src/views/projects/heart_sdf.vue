@@ -116,8 +116,13 @@ function createSdfShader(uniforms: Array<Uniform>, sdf_function) {
     precision mediump float;
 
     // Constants
+    const float EPSILON = 0.001;
+    const float PI = 3.1415926535897932384626433832795;
+    const float TAU = 6.283185307179586476925286766559;
+    const float kAxisSize = 0.00125;
     const float kReticleMinor = 0.0025;
     const float kReticleMajor = 0.025;
+    const float kAnimationFrequency = 0.7;
 
     varying vec2 UV;
 
@@ -142,13 +147,29 @@ function createSdfShader(uniforms: Array<Uniform>, sdf_function) {
     float sdf_intersection(float a, float b) { return max(a, b); }
     float sdf_subtraction(float a, float b) { return max(-a, b); }
 
-    float sdf_function(vec2 p) {
-      ${sdf_function}
+    float sdf_circle(vec2 p, float inflate) {
+      return length(p) - inflate;
     }
 
-    float sdf_rectangle(vec2 p, vec2 half_extent) {
+    float sdf_circle(float len, float inflate) {
+      return len - inflate;
+    }
+
+    float sdf_ring(vec2 p, float r, float inflate) {
+      return abs(sdf_circle(p, r)) - inflate;
+    }
+
+    float sdf_ring(float len, float r, float inflate) {
+      return abs(sdf_circle(len, r)) - inflate;
+    }
+
+    float sdf_plane(vec2 p, vec2 direction, float distance_from_origin) {
+      return dot(p, direction) - distance_from_origin;
+    }
+
+    float sdf_rectangle(vec2 p, vec2 inflate) {
       // https://iquilezles.org/articles/distfunctions2d/
-      vec2 d = abs(p) - half_extent;
+      vec2 d = abs(p) - inflate;
       return length(max(d, 0.0)) + min(max(d.x, d.y), 0.0);
     }
 
@@ -158,6 +179,15 @@ function createSdfShader(uniforms: Array<Uniform>, sdf_function) {
                                  sdf_rectangle(p, vec2(kReticleMajor, kReticleMinor)));
       float sdf_square = max(p.x, p.y) - (0.5 * kReticleMajor);
       return sdf_subtraction(sdf_square, sdf_plus);
+    }
+
+    float sdf_axis(vec2 p, float inflate) {
+      p = abs(p / uScale) - vec2(inflate);
+      return min(p.x, p.y) - inflate;
+    }
+
+    float sdf_function(vec2 p) {
+      ${sdf_function}
     }
 
     vec4 gradient_bands(vec4 color, float sdf, float bandsize) {
@@ -191,6 +221,14 @@ function createSdfShader(uniforms: Array<Uniform>, sdf_function) {
           return;
         }
       }
+      if (uShowAxis != 0.0) {
+        float sdf = sdf_axis(p, kAxisSize * 0.5);
+        if (abs(sdf) <= kAxisSize) {
+          float smooth_sdf = smoothstep((kAxisSize * 0.5)-EPSILON, (kAxisSize * 0.5), sdf);
+          gl_FragColor = vec4(mix(vec3(1.0), vec3(0.0), smooth_sdf), 1.0);
+          return;
+        }
+      }
       float sdf = sdf_function(p);
       gl_FragColor = gradient_bands(draw(sdf), sdf, 0.1);
     }
@@ -199,6 +237,7 @@ function createSdfShader(uniforms: Array<Uniform>, sdf_function) {
 
 const shared_uniforms = [
   new Uniform(UniformType.float, 'uShowReticle'),
+  new Uniform(UniformType.float, 'uShowAxis'),
   new Uniform(UniformType.float, 'uPositionX'),
   new Uniform(UniformType.float, 'uPositionY'),
   new Uniform(UniformType.float, 'uRotation', degToRad), // TBD angle editor
@@ -275,10 +314,10 @@ const shader_templates = new Map([
         if (uAnimate == 0.0) {
           r = mix(kMinRadius, kMaxRadius, uBlendToCircle);
         } else {
-          float rate = 4.0;
-          float t1 = 0.5+0.5*cos(uTime * rate);
-          float t2 = 0.5+0.5*cos(uTime * rate * 2.0);
-          float t = min(t1, t2);
+          float animation_time = (uTime * TAU) * kAnimationFrequency;
+          float wave1 = 0.5 + 0.5 * cos(animation_time);
+          float wave2 = 0.5 + 0.5 * cos(animation_time * 2.0);
+          float t = min(wave1, wave2);
           r = mix(kMinRadius, mix(kMinRadius, kMaxRadius, uAnimationAmplitude), t);
         }
 
@@ -311,12 +350,12 @@ const shader_templates = new Map([
         if (dot(d_to_p, rot90_cw(d - c)) > 0.0 &&
             dot(c_to_p, rot90_ccw(n)) > 0.0) {
           // An SDF circle which forms the right half of the mirrored heart lobes.
-          return length(c_to_p) - r;
+          return sdf_circle(c_to_p, r);
         }
         // An inverted SDF point which forms the upward curve between the lobes of the heart, only values <= 0.
-        float sdf_circle_inverted = -length(d_to_p);
+        float sdf_circle_inverted = -sdf_circle(d_to_p, 0.0);
         // An SDF plane, collinear with points <A> and <T>, with the positive side towards the 4th quadrant away from the shape.
-        float sdf_plane_outward = dot(p - a, n);
+        float sdf_plane_outward = sdf_plane(p - a, n, 0.0);
         // Combining the two shapes, taking the intersection so they blend smoothly.
         return sdf_intersection(sdf_circle_inverted, sdf_plane_outward);
       `,
@@ -356,12 +395,22 @@ const shader_templates = new Map([
         if (uVerticalMirror != 0.0) {
           p.y = abs(p.y);
         }
+        const float cos45 = 0.70710678118654752440084436210485;
         if (uShape == 0.0) {
-          const float cos_theta = 0.70710678118654752440084436210485;
-          return dot(p, vec2(cos_theta, -cos_theta));
+          const float ring_core = 0.4;
+          const float ring_inflate = 0.025;
+          const float dot_size = 0.075;
+
+          float t = uTime * TAU * 0.25;
+          vec2 path = vec2(cos(t), sin(t)) * ring_core;
+          float ring = sdf_ring(p, ring_core, ring_inflate);
+          float orbital = sdf_circle(p - path, dot_size);
+          float stationary =
+              sdf_circle(p - vec2(cos45) * ring_core, dot_size);
+          return sdf_union(sdf_union(ring, orbital), stationary);
         }
         if (uShape == 1.0) {
-          return length(p - vec2(0.3, 0.3)) - 0.3;
+          return sdf_plane(p, vec2(cos45, -cos45), 0.0);
         }
       `,
     }
@@ -391,13 +440,16 @@ const shader_definitions = Object.fromEntries(shader_templates.entries().map(([s
  * @param property_overlay Object containing key-value pairs ([uniform_key, IPropertyOptions_instance_overrides]). The key names the uniform which will be overridden, and the value is an object which partially implements the derived IPropertyOptions type containing which key/value pairs to override.
  */
 function getShaderProperties(shader_key, property_overlay) {
+  const group_overlays_open = ref(null);
   const group_camera_open = ref(null);
   const group_colors_open = ref(null);
   const group_border_open = ref(null);
   const camera_scale = ref(null);
   var local_properties = [
     new DividerOptions('divider-common', 'Common'),
-    new ToggleOptions('uShowReticle', 'Show Origin Reticle', true),
+    new GroupOptions('group-overlays', 'Overlays', false).setModel(group_overlays_open),
+    new ToggleOptions('uShowReticle', 'Show Origin Reticle', true).setCollapsed(computed(() => !group_overlays_open.value)),
+    new ToggleOptions('uShowAxis', 'Show Cardinal Axis', false).setCollapsed(computed(() => !group_overlays_open.value)),
     new GroupOptions('group-camera', 'Camera', false).setModel(group_camera_open),
     new NumberRangeOptions('uPositionX', 'Position X', 0.0, -1.0, 1.0, 0.01).setCollapsed(computed(() => !group_camera_open.value)),
     new NumberRangeOptions('uPositionY', 'Position Y', 0.0, -1.0, 1.0, 0.01).setCollapsed(computed(() => !group_camera_open.value)),
@@ -444,11 +496,11 @@ function getShaderProperties(shader_key, property_overlay) {
         ...local_properties,
         new DividerOptions('divider-mirror', 'Mirrored Plane'),
         new ComboBoxOptions('mirror.uShape', 'Shape', 0, [
-          [0, 'Plane'],
-          [1, 'Circle'],
+          [0, 'Ring and Circles'],
+          [1, 'Plane'],
         ]),
-        new ToggleOptions('mirror.uHorizontalMirror', 'Mirror Horizontally', true),
-        new ToggleOptions('mirror.uVerticalMirror', 'Mirror Vertically', true),
+        new ToggleOptions('mirror.uHorizontalMirror', 'Mirror Horizontally', false),
+        new ToggleOptions('mirror.uVerticalMirror', 'Mirror Vertically', false),
       ];
       break;
     default:
@@ -611,12 +663,14 @@ function onPlayerPropertyChanged(frame: HTMLIFrameElement, name: string) {
     <Section heading="Symmetry">
       <p>
         When a shape can be mirrored, centering the shape along the origin may simplify the math involved.
-        For example, mirroring across the horizontal or vertical axis can be achieved by taking the absolute value of their respective UV component when the shape is centered at the origin.
+        For example, mirroring across the horizontal or vertical axis can be achieved by taking the absolute value of their respective UV component when the shape is centered at the origin and drawn on the <b>positive</b> side of each mirrored axis.
       </p>
       <br />
-      <Code lang="cpp"
-            caption="Mirrored shapes signed-distance function."
-            :text="shader_templates.get('mirror').sdf_function" />
+      <Details summary="Mirrored Shapes Signed-distance Function">
+        <Code lang="cpp"
+              caption="Mirrored shapes signed-distance function."
+              :text="shader_templates.get('mirror').sdf_function" />
+      </Details>
       <br />
       <Player :ref="playerRef('mirror')"
               title="Mirrored Shapes"
@@ -627,7 +681,10 @@ function onPlayerPropertyChanged(frame: HTMLIFrameElement, name: string) {
               @load="(frame) => onPlayerLoaded(frame, editors['mirror'], 'mirror')" />
       <br />
       <PropertyEditor :ref="editorRef('mirror')"
-                      :properties="getShaderProperties('mirror')"
+                      :properties="getShaderProperties('mirror', {
+                        'uShowReticle': { default_value: false },
+                        'uShowAxis': { default_value: true },
+                      })"
                       @property-changed="(name) => onPlayerPropertyChanged(players['mirror'].player_frame, name)" />
     </Section>
 
@@ -654,16 +711,20 @@ function onPlayerPropertyChanged(frame: HTMLIFrameElement, name: string) {
     </Section>
 
     <Section heading="Combining Shapes">
-      <UnderConstruction />
+      <p>
+        <UnderConstruction />
+      </p>
     </Section>
 
     <Section heading="Compositing a Heart">
-      <UnderConstruction />
+      <p>
+        <UnderConstruction />
+      </p>
       <br />
       <Details summary="Heart Signed-distance Function">
-      <Code lang="cpp"
-            caption="Heart signed-distance function."
-            :text="shader_templates.get('heart').sdf_function" />
+        <Code lang="cpp"
+              caption="Heart signed-distance function."
+              :text="shader_templates.get('heart').sdf_function" />
       </Details>
       <br />
       <Player :ref="playerRef('heart')"
@@ -679,12 +740,20 @@ function onPlayerPropertyChanged(frame: HTMLIFrameElement, name: string) {
                       @property-changed="(name) => onPlayerPropertyChanged(players.heart.player_frame, name)" />
     </Section>
 
-    <Section heading="Adding Effects">
-      <UnderConstruction />
-    </Section>
-
     <Section heading="Adding Animations">
-      <UnderConstruction />
+      <p>
+        <UnderConstruction />
+      </p>
+      <br />
+      <Code lang="cpp"
+            caption="Time based heartbeat animation cycle."
+            text="
+        float animation_time = (uTime * TAU) * kAnimationFrequency;
+        float wave1 = 0.5 + 0.5 * cos(animation_time);
+        float wave2 = 0.5 + 0.5 * cos(animation_time * 2.0);
+        float t = min(wave1, wave2);
+        r = mix(kMinRadius, mix(kMinRadius, kMaxRadius, uAnimationAmplitude), t);
+      " />
     </Section>
 
     <Section heading="References">
