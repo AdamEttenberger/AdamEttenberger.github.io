@@ -684,6 +684,8 @@ function onPlayerPropertyChanged(frame: HTMLIFrameElement, name: string) {
                       :properties="getShaderProperties('mirror', {
                         'uShowReticle': { default_value: false },
                         'uShowAxis': { default_value: true },
+                        'uInsetWidth': { default_value: 0.01 },
+                        'uOutsetWidth': { default_value: 0.01 },
                       })"
                       @property-changed="(name) => onPlayerPropertyChanged(players['mirror'].player_frame, name)" />
     </Section>
