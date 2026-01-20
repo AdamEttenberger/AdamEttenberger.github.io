@@ -19,6 +19,7 @@ import {
 } from '@/util/property_editor/property_types'
 //
 import UnderConstruction from '@/components/under_construction.vue'
+import WebPageCitation from '@/components/citation/web_page_citation.vue'
 
 const players = {};
 const editors = {};
@@ -200,8 +201,8 @@ function createSdfShader(uniforms: Array<Uniform>, sdf_function) {
       return min(p.x, p.y) - inflate;
     }
 
-    float sdf_line(vec2 p, vec2 unit_direction, float stroke_width) {
-      return abs(sdf_plane(p, unit_direction)) - (stroke_width * 0.5);
+    float sdf_line(vec2 p, vec2 unit_normal, float stroke_width) {
+      return abs(sdf_plane(p, unit_normal)) - (stroke_width * 0.5);
     }
 
     float sdf_function(vec2 p) {
@@ -273,9 +274,10 @@ const shader_templates = new Map([
     'heart', {
       label: "Heart",
       uniforms: [
-        new Uniform(UniformType.bool, 'uAnimate'),
+        new Uniform(UniformType.int, 'uMode'),
         new Uniform(UniformType.float, 'uAnimationAmplitude'),
         new Uniform(UniformType.float, 'uBlendToCircle'),
+        new Uniform(UniformType.int, 'uCompositionStep'),
       ],
       sdf_function: `
         /*
@@ -325,18 +327,25 @@ const shader_templates = new Map([
          */
         const float kMinRadius = 0.28;
         const float kMaxRadius = 0.5;
-        p.x = abs(p.x);
+        vec2 mirrored_p = vec2(abs(p.x), p.y);
 
         // Switch between user control and custom animation.
         float r;
-        if (uAnimate) {
-          float animation_time = (uTime * TAU) * kAnimationFrequency;
-          float wave1 = 0.5 + 0.5 * cos(animation_time);
-          float wave2 = 0.5 + 0.5 * cos(animation_time * 2.0);
-          float t = min(wave1, wave2);
-          r = mix(kMinRadius, mix(kMinRadius, kMaxRadius, uAnimationAmplitude), t);
-        } else {
-          r = mix(kMinRadius, kMaxRadius, uBlendToCircle);
+        switch (uMode) {
+          case 0: // Heartbeat Animation
+            float animation_time = (uTime * TAU) * kAnimationFrequency;
+            float wave1 = 0.5 + 0.5 * cos(animation_time);
+            float wave2 = 0.5 + 0.5 * cos(animation_time * 2.0);
+            float t = min(wave1, wave2);
+            r = mix(kMinRadius, mix(kMinRadius, kMaxRadius, uAnimationAmplitude), t);
+            break;
+          case 1: // Step By Step Composition
+            r = mix(kMinRadius, kMaxRadius, uBlendToCircle);
+            break;
+          case 2:
+          default: // Blend To Circle
+            r = mix(kMinRadius, kMaxRadius, uBlendToCircle);
+            break;
         }
 
         const vec2 a = vec2(0.0, -0.5);
@@ -363,19 +372,69 @@ const shader_templates = new Map([
         // This is important for preventing the plane which forms the lower point from drawing over the lobes.
         float h = sqrt(r - 0.25);
         vec2 d = vec2(0.0, c.y + h);
-        vec2 d_to_p = p - d;
-        vec2 c_to_p = p - c;
-        if (dot(d_to_p, rot90_cw(d - c)) > 0.0 &&
-            dot(c_to_p, rot90_ccw(n)) > 0.0) {
-          // An SDF circle which forms the right half of the mirrored heart lobes.
-          return sdf_circle(c_to_p, r);
-        }
+        vec2 d_to_p = mirrored_p - d;
+        vec2 c_to_p = mirrored_p - c;
+
+        // Ordinarily, these SDF calculations would be computed
+        // only within the branch needed. Placing here for demo
+        // purposes, since it makes uCompositionStep easier to
+        // implement.
+
+        // An SDF circle which forms the right half of the mirrored heart lobes.
+        float mirrored_lobes_sdf = sdf_circle(c_to_p, r);
         // An inverted SDF point which forms the upward curve between the lobes of the heart, only values <= 0.
-        float sdf_circle_inverted = -sdf_circle(d_to_p, 0.0);
+        float inverted_point_sdf = -sdf_circle(d_to_p, 0.0);
         // An SDF plane, collinear with points <A> and <T>, with the positive side towards the 4th quadrant away from the shape.
-        float sdf_plane_outward = sdf_plane(p - a, n);
-        // Combining the two shapes, taking the intersection so they blend smoothly.
-        return sdf_intersection(sdf_circle_inverted, sdf_plane_outward);
+        float mirrored_plane_sdf = sdf_plane(mirrored_p - a, n);
+
+        bool heart_lobe_mask = dot(d_to_p, rot90_cw(d - c)) > 0.0 &&
+                               dot(c_to_p, rot90_ccw(n)) > 0.0;
+
+        if (uMode == 1) {
+          switch (uCompositionStep) {
+            case 0: // Mirrored circle heart lobes.
+              return mirrored_lobes_sdf;
+
+            case 1: // Mirrored Plane
+              return mirrored_plane_sdf;
+            case 2: // Circle with (inverted) Plane (for visibility)
+              return sdf_subtraction(mirrored_plane_sdf, mirrored_lobes_sdf);
+            case 3: // Heart Lobe Draw Region
+              if (!heart_lobe_mask) {
+                discard;
+              }
+              return mirrored_lobes_sdf;
+            case 4: // Plane Draw Region
+              if (heart_lobe_mask) {
+                discard;
+              }
+              return mirrored_plane_sdf;
+            case 5: // Incomplete Composition (Without inverted point)
+              return heart_lobe_mask ? mirrored_lobes_sdf : mirrored_plane_sdf;
+            case 6: // Circle and (positive) Point
+              return heart_lobe_mask ? mirrored_lobes_sdf : -inverted_point_sdf;
+            case 7: // Circle and (negative) Point
+              return heart_lobe_mask ? mirrored_lobes_sdf : inverted_point_sdf;
+            case 8: // Plane and (positive) Point
+              return sdf_intersection(inverted_point_sdf, mirrored_plane_sdf);
+            case 9: // Final Shape (without mirroring)
+              bool unmirrored_heart_lobe_mask = dot(p - d, rot90_cw(d - c)) > 0.0 &&
+                                                dot(p - c, rot90_ccw(n)) > 0.0;
+              return unmirrored_heart_lobe_mask
+                  ? sdf_circle(p - c, r)
+                  : sdf_intersection(-sdf_circle(p - d, 0.0), sdf_plane(p - a, n));
+            case 10: // Final Render
+              return heart_lobe_mask
+                  ? mirrored_lobes_sdf
+                  : sdf_intersection(inverted_point_sdf, mirrored_plane_sdf);
+            default:
+              break;
+          }
+        }
+
+        return heart_lobe_mask
+            ? mirrored_lobes_sdf
+            : sdf_intersection(inverted_point_sdf, mirrored_plane_sdf);
       `,
     }
   ],
@@ -531,7 +590,7 @@ function getShaderProperties(shader_key, property_overlay) {
   var local_properties = [
     new DividerOptions('divider-common', 'Common'),
     new GroupOptions('group-overlays', 'Overlays', false).setModel(group_overlays_open),
-    new ToggleOptions('uShowReticle', 'Show Origin Reticle', true).setCollapsed(computed(() => !group_overlays_open.value)),
+    new ToggleOptions('uShowReticle', 'Show Origin Reticle', false).setCollapsed(computed(() => !group_overlays_open.value)),
     new ToggleOptions('uShowAxis', 'Show Cardinal Axis', false).setCollapsed(computed(() => !group_overlays_open.value)),
     new GroupOptions('group-camera', 'Camera', false).setModel(group_camera_open),
     new NumberRangeOptions('uPositionX', 'Position X', 0.0, -1.0, 1.0, 0.01).setCollapsed(computed(() => !group_camera_open.value)),
@@ -544,19 +603,24 @@ function getShaderProperties(shader_key, property_overlay) {
     new Color4Options('uInsetColor', 'Inset Color', [1.0, 1.0, 1.0, 1.0]).setCollapsed(computed(() => !group_colors_open.value)),
     new Color4Options('uOutsetColor', 'Outset Color', [0.0, 0.0, 0.0, 1.0]).setCollapsed(computed(() => !group_colors_open.value)),
     new GroupOptions('group-border', 'Border', false).setModel(group_border_open),
-    new NumberRangeOptions('uInsetWidth', 'Inset Width', 0.0, 0, 0.1, 0.001).setCollapsed(computed(() => !group_border_open.value)),
-    new NumberRangeOptions('uOutsetWidth', 'Outset Width', 0.0, 0, 0.1, 0.001).setCollapsed(computed(() => !group_border_open.value)),
+    new NumberRangeOptions('uInsetWidth', 'Inset Width', 0.01, 0, 0.1, 0.001).setCollapsed(computed(() => !group_border_open.value)),
+    new NumberRangeOptions('uOutsetWidth', 'Outset Width', 0.01, 0, 0.1, 0.001).setCollapsed(computed(() => !group_border_open.value)),
   ];
 
   switch (shader_key) {
     case 'heart':
-      const play_animation = ref(null);
+      const mode = ref(null);
       local_properties = [
         ...local_properties,
         new DividerOptions('divider-heart', 'SDF Heart'),
-        new ToggleOptions('heart.uAnimate', 'Animate', false).setModel(play_animation),
-        new NumberRangeOptions('heart.uAnimationAmplitude', 'Animation Amplitude', 1.0, 0, 1, 0.01).setDisabled(computed(() => !play_animation.value)),
-        new NumberRangeOptions('heart.uBlendToCircle', 'Blend To Circle', 0.0, 0, 1, 0.01).setDisabled(computed(() => play_animation.value)),
+        new ComboBoxOptions('heart.uMode', 'Mode', 0, [
+          [0, 'Heartbeat Animation'],
+          [1, 'Step By Step Composition'],
+          [2, 'Blend To Circle'],
+        ]).setModel(mode),
+        new NumberRangeOptions('heart.uAnimationAmplitude', 'Animation Amplitude', 1.0, 0, 1, 0.01).setCollapsed(computed(() => mode.value !== 0)),
+        new NumberRangeOptions('heart.uBlendToCircle', 'Blend To Circle', 0.0, 0, 1, 0.01).setCollapsed(computed(() => mode.value === 0)),
+        new NumberRangeOptions('heart.uCompositionStep', 'Composition Step', 0, 0, 10, 1).setCollapsed(computed(() => mode.value !== 1)),
       ];
       break;
     case 'circle':
@@ -680,10 +744,10 @@ function onPlayerPropertyChanged(frame: HTMLIFrameElement, name: string) {
     <Section heading="Controls">
       <PropertyEditor :ref="editorRef('main')"
                       :properties="getShaderProperties('heart', {
-                        'uShowReticle': { default_value: false },
                         'uInsideColor': { default_value: [1.0, 0.0, 0.0] },
                         'uOutsideColor': { default_value: [0.0, 0.0, 1.0] },
-                        'heart.uAnimate': { default_value: true },
+                        'uInsetWidth': { default_value: 0.0 },
+                        'uOutsetWidth': { default_value: 0.0 },
                       })"
                       @property-changed="(name) => onPlayerPropertyChanged(players['main'].player_frame, name)" />
     </Section>
@@ -775,7 +839,10 @@ function onPlayerPropertyChanged(frame: HTMLIFrameElement, name: string) {
               @load="(frame) => onPlayerLoaded(frame, editors['plane'], 'plane')" />
       <br />
       <PropertyEditor :ref="editorRef('plane')"
-                      :properties="getShaderProperties('plane')"
+                      :properties="getShaderProperties('plane', {
+                        'uShowReticle': { default_value: true },
+                        'uShowAxis': { default_value: true },
+                      })"
                       @property-changed="(name) => onPlayerPropertyChanged(players['plane'].player_frame, name)" />
     </Section>
 
@@ -801,17 +868,51 @@ function onPlayerPropertyChanged(frame: HTMLIFrameElement, name: string) {
       <br />
       <PropertyEditor :ref="editorRef('mirror')"
                       :properties="getShaderProperties('mirror', {
-                        'uShowReticle': { default_value: false },
                         'uShowAxis': { default_value: true },
-                        'uInsetWidth': { default_value: 0.01 },
-                        'uOutsetWidth': { default_value: 0.01 },
                       })"
                       @property-changed="(name) => onPlayerPropertyChanged(players['mirror'].player_frame, name)" />
     </Section>
 
-    <Section heading="Combining Shapes">
+    <Section heading="Boolean Operations">
       <p>
-        Distance fields can be combined by slicing the render into different draw regions, or through boolean shape operators.
+        Shapes can be combined with an equivalent to boolean operators.
+        These make it easier to create complex shapes, but don't guarantee the signed-distance field is accurate.
+        Accurate signed-distance fields are generally preferred since they're more flexible, but boolean operations can quickly compose a shape when only the shape boundary or mask is needed.
+      </p>
+      <br />
+      <Details summary="Venn Diagram: Boolean Operators">
+        <Code lang="cpp"
+              caption="SDF Venn Diagram boolean operators."
+              :text="shader_templates.get('venn-diagram').sdf_function" />
+      </Details>
+      <br />
+      <Player :ref="playerRef('venn-diagram')"
+              title="Venn Diagram"
+              :date="date"
+              :lastmod="lastmod"
+              :frame="frame"
+              :paused="false"
+              @load="(frame) => onPlayerLoaded(frame, editors['venn-diagram'], 'venn-diagram')" />
+      <br />
+      <PropertyEditor :ref="editorRef('venn-diagram')"
+                      :properties="getShaderProperties('venn-diagram')"
+                      @property-changed="(name) => onPlayerPropertyChanged(players['venn-diagram'].player_frame, name)" />
+    </Section>
+
+    <Section heading="Draw Regions">
+      <p>
+        Another approach to compositing a shape is to slice the render into different draw regions.
+        For example, consider the 2D capsule shape which is effectively an inflated line segment.
+        There's a point at each cap, and a mirrored plane connecting them.
+        Once inflated, the caps naturally form semi-circles that the edges of the two shapes align as they're expanded uniformly.
+      </p>
+      <br />
+      <p>
+        Fortunately this shape is symmetrical, so the function can be reduced to a single point and plane equation drawn in the first quadrant, then mirrored across both axis.
+        However, the plane extends infinitely and will always be "closest" so the two shapes can't be joined with boolean operations.
+        To fix this, the render can be split into two draw regions.
+        The first is a plane drawn for any points between the origin and the end of the line segment.
+        The second is a circle drawn for any points further than the end of the line segment.
       </p>
       <br />
       <Details summary="Aligned Capsule: Draw Regions">
@@ -830,34 +931,9 @@ function onPlayerPropertyChanged(frame: HTMLIFrameElement, name: string) {
       <br />
       <PropertyEditor :ref="editorRef('capsule')"
                       :properties="getShaderProperties('capsule', {
-                        'uShowReticle': { default_value: false },
                         'uShowAxis': { default_value: true },
-                        'uInsetWidth': { default_value: 0.01 },
-                        'uOutsetWidth': { default_value: 0.01 },
                       })"
                       @property-changed="(name) => onPlayerPropertyChanged(players['capsule'].player_frame, name)" />
-      <br />
-      <Details summary="Venn Diagram: Boolean Operators">
-        <Code lang="cpp"
-              caption="SDF Venn Diagram boolean operators."
-              :text="shader_templates.get('venn-diagram').sdf_function" />
-      </Details>
-      <br />
-      <Player :ref="playerRef('venn-diagram')"
-              title="Venn Diagram"
-              :date="date"
-              :lastmod="lastmod"
-              :frame="frame"
-              :paused="false"
-              @load="(frame) => onPlayerLoaded(frame, editors['venn-diagram'], 'venn-diagram')" />
-      <br />
-      <PropertyEditor :ref="editorRef('venn-diagram')"
-                      :properties="getShaderProperties('venn-diagram', {
-                        'uShowReticle': { default_value: false },
-                        'uInsetWidth': { default_value: 0.01 },
-                        'uOutsetWidth': { default_value: 0.01 },
-                      })"
-                      @property-changed="(name) => onPlayerPropertyChanged(players['venn-diagram'].player_frame, name)" />
     </Section>
 
     <Section heading="Boundaries, Insets, and Outsets">
@@ -902,7 +978,11 @@ function onPlayerPropertyChanged(frame: HTMLIFrameElement, name: string) {
           @load="(frame) => onPlayerLoaded(frame, editors['heart'], 'heart')" />
       <br />
       <PropertyEditor :ref="editorRef('heart')"
-                      :properties="getShaderProperties('heart')"
+                      :properties="getShaderProperties('heart', {
+                        'uShowAxis': { default_value: true },
+                        'heart.uMode': { default_value: 1 },
+                        'heart.uBlendToCircle': { default_value: 0.2 },
+                      })"
                       @property-changed="(name) => onPlayerPropertyChanged(players['heart'].player_frame, name)" />
     </Section>
 
@@ -923,7 +1003,18 @@ function onPlayerPropertyChanged(frame: HTMLIFrameElement, name: string) {
     </Section>
 
     <Section heading="References">
-      <UnderConstruction />
+      <WebPageCitation firstname='Inigo' lastname='Quilez'
+                       website_title='Inigo Quilez' webpage_title='Inigo Quilez'
+                       url='https://iquilezles.org/' />
+      <WebPageCitation firstname='Inigo' lastname='Quilez'
+                       website_title='Inigo Quilez' webpage_title='2D Distance Functions'
+                       url='https://iquilezles.org/articles/distfunctions2d/' />
+      <WebPageCitation firstname='Inigo' lastname='Quilez'
+                       website_title='Inigo Quilez' webpage_title='2D Distance and Gradient Functions'
+                       url='https://iquilezles.org/articles/distgradfunctions2d/' />
+      <WebPageCitation firstname='Inigo' lastname='Quilez'
+                       website_title='Inigo Quilez' webpage_title='3D Distance Functions'
+                       url='https://iquilezles.org/articles/distfunctions/' />
     </Section>
   </Column>
 </template>

@@ -8,6 +8,7 @@ import {
   // Interfaces
   IPropertyButtonOptions,
   IPropertyColor3Options,
+  IPropertyColor4Options,
   IPropertyComboBoxOptions,
   IPropertyDividerOptions,
   IPropertyGroupOptions,
