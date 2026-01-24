@@ -18,9 +18,12 @@ NodeList.prototype.html = function(str) {
     }
 }
 
-function LoadFileAsync(method, url) {
+function LoadFileAsync(method, url, responseType) {
   return new Promise(function(resolve) {
     var xhr = new XMLHttpRequest();
+    if (responseType) {
+      xhr.responseType = responseType;
+    }
     xhr.open(method, url, true);
     xhr.onload = function() {
       resolve(xhr);

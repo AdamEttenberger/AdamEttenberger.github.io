@@ -5,6 +5,7 @@ import Details from '@/components/details.vue'
 import ExternalLink from '@/components/external_link.vue'
 import Figure from '@/components/figure.vue'
 import Player from '@/components/player.vue'
+import { PlayerState } from '@/types/player_state'
 import Section from '@/components/section.vue'
 defineProps({
   title: { type: String, required: true },
@@ -29,7 +30,7 @@ function postMessageToFrame(target_frame, filepath) {
           :date="date"
           :lastmod="lastmod"
           :frame="frame"
-          :paused="false" />
+          :state="PlayerState.Playing" />
   <Column>
     <Section heading="What's this?">
       <p>

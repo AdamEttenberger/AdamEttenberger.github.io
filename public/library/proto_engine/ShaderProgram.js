@@ -106,7 +106,7 @@ class ShaderProgram {
   }
 
   attachShader(filename, shader_type) {
-    return LoadFileAsync('GET', filename)
+    return LoadFileAsync('GET', filename, 'text')
     .then(xhr => this.attachShaderSource(xhr.responseText, shader_type))
     .catch(e => g_game.onException(e));
   }

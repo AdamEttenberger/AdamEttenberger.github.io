@@ -2,6 +2,7 @@
 import { ref, useTemplateRef } from 'vue'
 import Column from '@/components/column.vue'
 import Player from '@/components/player.vue'
+import { PlayerState } from '@/types/player_state'
 import PropertyEditor from '@/components/property_editor/property_editor.vue'
 import Section from '@/components/section.vue'
 import UnderConstruction from '@/components/under_construction.vue'
@@ -63,7 +64,7 @@ function scheduleUpdate() {
   }
   clearTimeout(pending_update);
   pending_update = setTimeout(() => {
-    postMessageToFrame(main_player.value.player_frame);
+    postMessageToFrame(main_player.value.inner_frame);
     pending_update = null;
   }, 300);
 }
@@ -87,7 +88,7 @@ function onPropertyButtonClick(name) {
           :date="date"
           :lastmod="lastmod"
           :frame="frame"
-          :paused="false"
+          :state="PlayerState.Playing"
           @load="onPlayerLoaded" />
   <UnderConstruction />
   <Column>

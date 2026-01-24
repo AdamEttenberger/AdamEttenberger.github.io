@@ -7,6 +7,7 @@ import ExternalLink from '@/components/external_link.vue'
 import Figure from '@/components/figure.vue'
 import Formula from '@/components/formula.vue'
 import Player from '@/components/player.vue'
+import { PlayerState } from '@/types/player_state'
 import PropertyEditor from '@/components/property_editor/property_editor.vue'
 import Section from '@/components/section.vue'
 import {
@@ -17,15 +18,48 @@ import {
   NumberRangeOptions,
   ToggleOptions,
 } from '@/util/property_editor/property_types'
+import useIntersectionObserver from '@/util/use_intersection_observer';
 //
 import UnderConstruction from '@/components/under_construction.vue'
 import WebPageCitation from '@/components/citation/web_page_citation.vue'
 
 const players = {};
 const editors = {};
+const player_states = ref({});
+const section_states = ref({});
 
-function playerRef(key) { return (e) => players[key] = e; }
-function editorRef(key) { return (e) => editors[key] = e; }
+const { observe: mapSectionIntersectionObserver } = useIntersectionObserver((key, entry, _index, _array) => {
+  section_states.value[key] = entry.isIntersecting;
+});
+
+const { observe: mapPlayerIntersectionObserver } = useIntersectionObserver((key, entry, _index, _array) => {
+  player_states.value[key] = entry.isIntersecting;
+});
+
+function makeSectionRef(key) {
+  return (e) => {
+    mapSectionIntersectionObserver(key, e?.$el);
+  };
+}
+
+function makePlayerRef(key) {
+  return (e) => {
+    players[key] = e;
+    mapPlayerIntersectionObserver(key, e?.$el);
+  };
+}
+
+function makeEditorRef(key) {
+  return (e) => {
+    editors[key] = e;
+  };
+}
+
+function getPlayerState(section_key: string, player_key: string) {
+  return (section_states.value[section_key] || player_states.value[player_key])
+      ? PlayerState.Playing
+      : PlayerState.Empty;
+}
 
 const UPDATE = {
   Auto: 0,
@@ -486,17 +520,22 @@ const shader_templates = new Map([
       label: "Capsule",
       uniforms: [
         new Uniform(UniformType.bool, 'uInvertPlane'),
+        new Uniform(UniformType.int, 'uAxis'),
         new Uniform(UniformType.float, 'uRadius'),
         new Uniform(UniformType.float, 'uLength'),
       ],
       sdf_function: `
         p = abs(p);
-        vec2 extent = vec2(0.0, uLength * 0.5);
-        if (p.y <= extent.y) {
+        float extent = uLength * 0.5;
+        if (p[uAxis] <= extent) {
           float invert = (uInvertPlane ? -1.0 : 1.0);
-          return (sdf_plane(p, vec2(1.0, 0.0)) - uRadius) * invert;
+          vec2 perpendicular = vec2(1.0);
+          perpendicular[uAxis] = 0.0;
+          return (sdf_plane(p, perpendicular) - uRadius) * invert;
         } else {
-          return sdf_circle(p - extent, uRadius);
+          vec2 offset = vec2(0.0);
+          offset[uAxis] = extent;
+          return sdf_circle(p - offset, uRadius);
         }
       `,
     }
@@ -575,7 +614,7 @@ const shader_definitions = Object.fromEntries(shader_templates.entries().map(([s
 /**
  * Generates unique bindings for PropertyEditor.properties.
  *
- * e.g., ('my-shader', { 'uInsideColor': { default_value: [1.0, 0.0, 0.0] } })
+ * e.g., ('my-shader', { 'uInsideColor': { default_value: [1.0, 0.0, 0.0, 1.0] } })
  *
  * @param shader_key The key/name of the shader program to load.
  * @param property_overlay Object containing key-value pairs ([uniform_key, IPropertyOptions_instance_overrides]). The key names the uniform which will be overridden, and the value is an object which partially implements the derived IPropertyOptions type containing which key/value pairs to override.
@@ -620,7 +659,7 @@ function getShaderProperties(shader_key, property_overlay) {
         ]).setModel(mode),
         new NumberRangeOptions('heart.uAnimationAmplitude', 'Animation Amplitude', 1.0, 0, 1, 0.01).setCollapsed(computed(() => mode.value !== 0)),
         new NumberRangeOptions('heart.uBlendToCircle', 'Blend To Circle', 0.0, 0, 1, 0.01).setCollapsed(computed(() => mode.value === 0)),
-        new NumberRangeOptions('heart.uCompositionStep', 'Composition Step', 0, 0, 10, 1).setCollapsed(computed(() => mode.value !== 1)),
+        new NumberRangeOptions('heart.uCompositionStep', 'Composition Step', 10, 0, 10, 1).setCollapsed(computed(() => mode.value !== 1)),
       ];
       break;
     case 'circle':
@@ -633,7 +672,7 @@ function getShaderProperties(shader_key, property_overlay) {
           [1, 'Ring (Within Radius)'],
           [2, 'Ring (Centered on Radius)'],
         ]).setModel(circle_mode),
-        new NumberRangeOptions('circle.uRingStrokeWidth', 'Ring Radius', 0.1, 0, 1, 0.01).setDisabled(computed(() => circle_mode.value == 0)),
+        new NumberRangeOptions('circle.uRingStrokeWidth', 'Ring Radius', 0.1, 0, 1, 0.01).setCollapsed(computed(() => circle_mode.value == 0)),
       ];
       break;
     case 'plane':
@@ -650,6 +689,10 @@ function getShaderProperties(shader_key, property_overlay) {
         ...local_properties,
         new DividerOptions('divider-capsule', 'SDF Capsule'),
         new ToggleOptions('capsule.uInvertPlane', 'Invert Plane SDF', true),
+        new ComboBoxOptions('capsule.uAxis', 'Axis', 0, [
+          [0, 'Horizontal'],
+          [1, 'Vertical'],
+        ]),
         new NumberRangeOptions('capsule.uRadius', 'Radius', 0.2, 0.0, 1.0, 0.01),
         new NumberRangeOptions('capsule.uLength', 'Length', 0.55, 0.0, 1.0, 0.01),
       ];
@@ -688,7 +731,7 @@ function getShaderProperties(shader_key, property_overlay) {
       if (!overlay) {
         continue;
       }
-      Object.entries(property_overlay[props.name])?.forEach(([key, value]) => props[key] = value);
+      Object.entries(overlay).forEach(([key, value]) => props[key] = value);
     }
   }
   return local_properties;
@@ -728,28 +771,54 @@ function onPlayerLoaded(frame: HTMLIFrameElement, editor, shader_key: string) {
 }
 
 function onPlayerPropertyChanged(frame: HTMLIFrameElement, name: string) {
-  FrameState.get(frame).update(UPDATE.Schedule);
+  FrameState.get(frame)?.update(UPDATE.Schedule);
+}
+
+function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: int) {
+  frame.contentWindow?.postMessage({
+    sources: shader_definitions['heart'].sources,
+    uniforms: [
+      // Common
+      ['uShowReticle',  {type: UniformType.bool, value: false}],
+      ['uShowAxis',     {type: UniformType.bool, value: true}],
+      ['uPositionX', {type: UniformType.float, value: 0}],
+      ['uPositionY', {type: UniformType.float, value: 0}],
+      ['uRotation', {type: UniformType.float, value: 0}],
+      ['uScale', {type: UniformType.float, value: 1}],
+      ['uInsideColor', {type: UniformType.vec4, value: [0.0, 0.0, 1.0, 1.0]}],
+      ['uOutsideColor', {type: UniformType.vec4, value: [1.0, 0.0, 0.0, 1.0]}],
+      ['uInsetColor', {type: UniformType.vec4, value: [1.0, 1.0, 1.0, 1.0]}],
+      ['uOutsetColor', {type: UniformType.vec4, value: [0.0, 0.0, 0.0, 1.0]}],
+      ['uInsetWidth', {type: UniformType.float, value: 0.01}],
+      ['uOutsetWidth', {type: UniformType.float, value: 0.01}],
+      // Heart Shape
+      ['uMode', {type: UniformType.int, value: 1}],
+      ['uAnimationAmplitude', {type: UniformType.float, value: 1}],
+      ['uBlendToCircle', {type: UniformType.float, value: 0.2}],
+      ['uCompositionStep', {type: UniformType.int, value: composition_step}],
+    ],
+  }, window.location.origin);
 }
 </script>
 
 <template>
-  <Player :ref="playerRef('main')"
+  <Player :ref="makePlayerRef('main')"
           :title="title"
           :date="date"
           :lastmod="lastmod"
           :frame="frame"
-          :paused="false"
+          :state="PlayerState.Playing"
           @load="(frame) => onPlayerLoaded(frame, editors['main'], 'heart')" />
   <Column>
     <Section heading="Controls">
-      <PropertyEditor :ref="editorRef('main')"
+      <PropertyEditor :ref="makeEditorRef('main')"
                       :properties="getShaderProperties('heart', {
-                        'uInsideColor': { default_value: [1.0, 0.0, 0.0] },
-                        'uOutsideColor': { default_value: [0.0, 0.0, 1.0] },
+                        'uInsideColor': { default_value: [1.0, 0.0, 0.0, 1.0] },
+                        'uOutsideColor': { default_value: [0.0, 0.0, 1.0, 1.0] },
                         'uInsetWidth': { default_value: 0.0 },
                         'uOutsetWidth': { default_value: 0.0 },
                       })"
-                      @property-changed="(name) => onPlayerPropertyChanged(players['main'].player_frame, name)" />
+                      @property-changed="(name) => onPlayerPropertyChanged(players['main'].inner_frame, name)" />
     </Section>
 
     <Section heading="What is a signed-distance function (SDF)?">
@@ -762,7 +831,7 @@ function onPlayerPropertyChanged(frame: HTMLIFrameElement, name: string) {
     <Section heading="Colors Used">
       <p>
         The example shaders and diagrams below will represent <b>positive</b> values with <b>red</b> and <b>negative</b> values with <b>blue</b>.
-        This will cause the heart example below to appear inverted.
+        The animated frame at the top of the page has its colors reversed for aesthetics.
         These colors were selected arbitrarily to mirror common colors for north and south magnetic poles.
       </p>
     </Section>
@@ -788,7 +857,7 @@ function onPlayerPropertyChanged(frame: HTMLIFrameElement, name: string) {
                   The value is lowest (negative) at 'P', zero at the boundary 'R', and extending outward towards positive infinity from the boundary where the value will be the highest." />
     </Section>
 
-    <Section heading="Points, Circles, and Rings">
+    <Section :ref="makeSectionRef('points-circles-rings')" heading="Points, Circles, and Rings">
       <p>
         The easiest shape to implement is likely a point, or its inflated 2D/3D forms (circle, sphere) which are offsets of the point function.
         Intuitively the signed-distance from a point is either <b>0</b> at the exact center or <b>>0</b>.
@@ -799,20 +868,20 @@ function onPlayerPropertyChanged(frame: HTMLIFrameElement, name: string) {
             caption="Circle signed-distance function."
             :text="shader_templates.get('circle').sdf_function" />
       <br />
-      <Player :ref="playerRef('circle')"
+      <Player :ref="makePlayerRef('circle')"
               title="Circle"
               :date="date"
               :lastmod="lastmod"
               :frame="frame"
-              :paused="false"
+              :state="getPlayerState('points-circles-rings', 'circle')"
               @load="(frame) => onPlayerLoaded(frame, editors['circle'], 'circle')" />
       <br />
-      <PropertyEditor :ref="editorRef('circle')"
+      <PropertyEditor :ref="makeEditorRef('circle')"
                       :properties="getShaderProperties('circle')"
-                      @property-changed="(name) => onPlayerPropertyChanged(players['circle'].player_frame, name)" />
-      </Section>
+                      @property-changed="(name) => onPlayerPropertyChanged(players['circle'].inner_frame, name)" />
+    </Section>
 
-      <Section heading="Planes and Lines">
+    <Section :ref="makeSectionRef('planes-lines')" heading="Planes and Lines">
       <p>
         Next is a plane, defined with a <b>unit vector normal</b> and an amount to offset the plane from the origin along the normal.
         The signed-distance between a point and a plane is the projected length onto the <b><u>unit</u> vector</b> using the <ExternalLink to="https://en.wikipedia.org/wiki/Dot_product">vector dot product</ExternalLink>.
@@ -830,23 +899,23 @@ function onPlayerPropertyChanged(frame: HTMLIFrameElement, name: string) {
             caption="Plane signed-distance function."
             :text="shader_templates.get('plane').sdf_function" />
       <br />
-      <Player :ref="playerRef('plane')"
+      <Player :ref="makePlayerRef('plane')"
               title="Plane"
               :date="date"
               :lastmod="lastmod"
               :frame="frame"
-              :paused="false"
+              :state="getPlayerState('planes-lines', 'plane')"
               @load="(frame) => onPlayerLoaded(frame, editors['plane'], 'plane')" />
       <br />
-      <PropertyEditor :ref="editorRef('plane')"
+      <PropertyEditor :ref="makeEditorRef('plane')"
                       :properties="getShaderProperties('plane', {
                         'uShowReticle': { default_value: true },
                         'uShowAxis': { default_value: true },
                       })"
-                      @property-changed="(name) => onPlayerPropertyChanged(players['plane'].player_frame, name)" />
+                      @property-changed="(name) => onPlayerPropertyChanged(players['plane'].inner_frame, name)" />
     </Section>
 
-    <Section heading="Symmetry">
+    <Section :ref="makeSectionRef('symmetry')" heading="Symmetry">
       <p>
         When a shape can be mirrored, centering the shape along the origin may simplify the math involved.
         For example, mirroring across the horizontal or vertical axis can be achieved by taking the absolute value of their respective UV component when the shape is centered at the origin and drawn on the <b>positive</b> side of each mirrored axis.
@@ -858,22 +927,22 @@ function onPlayerPropertyChanged(frame: HTMLIFrameElement, name: string) {
               :text="shader_templates.get('mirror').sdf_function" />
       </Details>
       <br />
-      <Player :ref="playerRef('mirror')"
+      <Player :ref="makePlayerRef('mirror')"
               title="Mirrored Shapes"
               :date="date"
               :lastmod="lastmod"
               :frame="frame"
-              :paused="false"
+              :state="getPlayerState('symmetry', 'mirror')"
               @load="(frame) => onPlayerLoaded(frame, editors['mirror'], 'mirror')" />
       <br />
-      <PropertyEditor :ref="editorRef('mirror')"
+      <PropertyEditor :ref="makeEditorRef('mirror')"
                       :properties="getShaderProperties('mirror', {
                         'uShowAxis': { default_value: true },
                       })"
-                      @property-changed="(name) => onPlayerPropertyChanged(players['mirror'].player_frame, name)" />
+                      @property-changed="(name) => onPlayerPropertyChanged(players['mirror'].inner_frame, name)" />
     </Section>
 
-    <Section heading="Boolean Operations">
+    <Section :ref="makeSectionRef('boolean-operations')" heading="Boolean Operations">
       <p>
         Shapes can be combined with an equivalent to boolean operators.
         These make it easier to create complex shapes, but don't guarantee the signed-distance field is accurate.
@@ -886,20 +955,20 @@ function onPlayerPropertyChanged(frame: HTMLIFrameElement, name: string) {
               :text="shader_templates.get('venn-diagram').sdf_function" />
       </Details>
       <br />
-      <Player :ref="playerRef('venn-diagram')"
+      <Player :ref="makePlayerRef('venn-diagram')"
               title="Venn Diagram"
               :date="date"
               :lastmod="lastmod"
               :frame="frame"
-              :paused="false"
+              :state="getPlayerState('boolean-operations', 'venn-diagram')"
               @load="(frame) => onPlayerLoaded(frame, editors['venn-diagram'], 'venn-diagram')" />
       <br />
-      <PropertyEditor :ref="editorRef('venn-diagram')"
+      <PropertyEditor :ref="makeEditorRef('venn-diagram')"
                       :properties="getShaderProperties('venn-diagram')"
-                      @property-changed="(name) => onPlayerPropertyChanged(players['venn-diagram'].player_frame, name)" />
+                      @property-changed="(name) => onPlayerPropertyChanged(players['venn-diagram'].inner_frame, name)" />
     </Section>
 
-    <Section heading="Draw Regions">
+    <Section :ref="makeSectionRef('draw-regions')" heading="Draw Regions">
       <p>
         Another approach to compositing a shape is to slice the render into different draw regions.
         For example, consider the 2D capsule shape which is effectively an inflated line segment.
@@ -921,19 +990,19 @@ function onPlayerPropertyChanged(frame: HTMLIFrameElement, name: string) {
               :text="shader_templates.get('capsule').sdf_function" />
       </Details>
       <br />
-      <Player :ref="playerRef('capsule')"
+      <Player :ref="makePlayerRef('capsule')"
               title="Aligned Capsule"
               :date="date"
               :lastmod="lastmod"
               :frame="frame"
-              :paused="false"
+              :state="getPlayerState('draw-regions', 'capsule')"
               @load="(frame) => onPlayerLoaded(frame, editors['capsule'], 'capsule')" />
       <br />
-      <PropertyEditor :ref="editorRef('capsule')"
+      <PropertyEditor :ref="makeEditorRef('capsule')"
                       :properties="getShaderProperties('capsule', {
                         'uShowAxis': { default_value: true },
                       })"
-                      @property-changed="(name) => onPlayerPropertyChanged(players['capsule'].player_frame, name)" />
+                      @property-changed="(name) => onPlayerPropertyChanged(players['capsule'].inner_frame, name)" />
     </Section>
 
     <Section heading="Boundaries, Insets, and Outsets">
@@ -958,10 +1027,19 @@ function onPlayerPropertyChanged(frame: HTMLIFrameElement, name: string) {
       " />
     </Section>
 
-    <Section heading="Compositing a Heart">
+    <Section :ref="makeSectionRef('compositing-a-heart')" heading="Compositing a Heart">
       <p>
         <UnderConstruction />
       </p>
+      <br />
+      <Player v-for="index in [...Array(10).keys()]"
+              :ref="makePlayerRef(`heart-composition-step-${index}`)"
+              :title="`Heart Composition Frame ${index}`"
+              :date="date"
+              :lastmod="lastmod"
+              :frame="frame"
+              :state="getPlayerState('compositing-a-heart', `heart-composition-step-${index}`)"
+              @load="(frame) => onStepByStepPlayerLoaded(frame, index)" />
       <br />
       <Details summary="Heart Signed-distance Function">
         <Code lang="cpp"
@@ -969,21 +1047,21 @@ function onPlayerPropertyChanged(frame: HTMLIFrameElement, name: string) {
               :text="shader_templates.get('heart').sdf_function" />
       </Details>
       <br />
-      <Player :ref="playerRef('heart')"
+      <Player :ref="makePlayerRef('heart')"
           title="Heart"
           :date="date"
           :lastmod="lastmod"
           :frame="frame"
-          :paused="false"
+          :state="getPlayerState('compositing-a-heart', `heart`)"
           @load="(frame) => onPlayerLoaded(frame, editors['heart'], 'heart')" />
       <br />
-      <PropertyEditor :ref="editorRef('heart')"
+      <PropertyEditor :ref="makeEditorRef('heart')"
                       :properties="getShaderProperties('heart', {
                         'uShowAxis': { default_value: true },
                         'heart.uMode': { default_value: 1 },
                         'heart.uBlendToCircle': { default_value: 0.2 },
                       })"
-                      @property-changed="(name) => onPlayerPropertyChanged(players['heart'].player_frame, name)" />
+                      @property-changed="(name) => onPlayerPropertyChanged(players['heart'].inner_frame, name)" />
     </Section>
 
     <Section heading="Adding Animations">

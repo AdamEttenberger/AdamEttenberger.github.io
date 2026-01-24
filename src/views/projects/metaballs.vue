@@ -6,6 +6,7 @@ import ExternalLink from '@/components/external_link.vue'
 import Figure from '@/components/figure.vue'
 import Formula from '@/components/formula.vue'
 import Player from '@/components/player.vue'
+import { PlayerState } from '@/types/player_state'
 import PropertyEditor from '@/components/property_editor/property_editor.vue'
 import Quote from '@/components/quote.vue'
 import Section from '@/components/section.vue'
@@ -107,7 +108,7 @@ function onPropertyChanged(name) {
           :date="date"
           :lastmod="lastmod"
           :frame="frame + '?mode=Version2025'"
-          :paused="false"
+          :state="PlayerState.Playing"
           @load="onPlayerLoaded" />
   <Column>
     <Section heading="Controls">
