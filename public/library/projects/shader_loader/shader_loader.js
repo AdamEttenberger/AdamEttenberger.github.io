@@ -46,7 +46,8 @@ class App {
       return;
     }
     var sources = e.data.sources;
-    var uniforms = e.data.uniforms;
+    const uniforms = e.data.uniforms;
+    const time_scale = e.data.time_scale;
     if (sources) {
       // Need to convert from API string to gl.*_SHADER keys.
       sources = Object.entries(sources).map(([key, value]) => [this.shader_api_key_map.get(key), value]);
@@ -55,6 +56,9 @@ class App {
     }
     if (uniforms) {
       this.shader_loader_component.bulkUpdateUniforms(uniforms);
+    }
+    if (typeof time_scale === 'number') {
+      this.game.game_time_scale = time_scale;
     }
   }
 }

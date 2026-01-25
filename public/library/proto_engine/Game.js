@@ -36,6 +36,8 @@ class Game {
     this.component_types = new Map(AllowedComponentNames.map(name => [name, window[name]]));
 
     this.frame_time = performance.now();
+    this.game_time = 0;
+    this.game_time_scale = 1.0;
 
     try {
       gl = this.m_canvas.getContext("webgl2");
@@ -64,6 +66,7 @@ class Game {
     var new_time = performance.now();
     var dt = (new_time - this.frame_time) * 0.001;
     this.frame_time = new_time;
+    this.game_time += dt * this.game_time_scale;
 
     this.m_managers.forEach(manager => manager.update(dt));
     this.m_root.update(dt);

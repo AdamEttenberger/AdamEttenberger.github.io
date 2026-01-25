@@ -14,8 +14,6 @@ ShaderLoaderComponent.UniformType = {
 
 function ShaderLoaderComponent( )
 {
-  var startTime = Date.now();
-
   this.shader = null;
 
   this.init = function() {
@@ -67,7 +65,7 @@ function ShaderLoaderComponent( )
 
     // Fragment Uniforms
     this.shader.setUniform3f(ShaderLoaderComponent.UniformType.resolution, g_game.canvas_width, g_game.canvas_height, g_game.aspect);
-    this.shader.setUniform1f(ShaderLoaderComponent.UniformType.time, (Date.now() - startTime) / 1000.0);
+    this.shader.setUniform1f(ShaderLoaderComponent.UniformType.time, g_game.game_time);
 
     gl.drawElements(gl.TRIANGLES, numItems, gl.UNSIGNED_BYTE, 0);
 

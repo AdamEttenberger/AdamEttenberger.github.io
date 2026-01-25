@@ -133,11 +133,9 @@ class FrameState {
     }
     var sources = this.needs_compile ? shader_definitions[this.shader_key].sources : undefined;
     var uniforms = getShaderUniformsForMessage(this.shader_key, this.editor);
+    var time_scale = unref(this.editor)?.get('game.time_scale') ?? 1.0;
 
-    this.frame.contentWindow?.postMessage({
-      sources: sources,
-      uniforms: uniforms,
-    }, window.location.origin);
+    this.frame.contentWindow?.postMessage({ sources, uniforms, time_scale }, window.location.origin);
     this.last_update = new_time;
     this.needs_compile = this.needs_compile && !sources;
   }
@@ -625,7 +623,6 @@ function getShaderProperties(shader_key, property_overlay) {
   const group_colors_open = ref(null);
   const group_border_open = ref(null);
   const camera_scale = ref(null);
-  const circle_mode = ref(null);
   var local_properties = [
     new DividerOptions('divider-common', 'Common'),
     new GroupOptions('group-overlays', 'Overlays', false).setModel(group_overlays_open),
@@ -657,12 +654,14 @@ function getShaderProperties(shader_key, property_overlay) {
           [1, 'Step By Step Composition'],
           [2, 'Blend To Circle'],
         ]).setModel(mode),
+        new NumberRangeOptions('game.time_scale', 'Time Scale', 1.0, -2.0, 2.0, 0.25).setCollapsed(computed(() => mode.value !== 0)),
         new NumberRangeOptions('heart.uAnimationAmplitude', 'Animation Amplitude', 1.0, 0, 1, 0.01).setCollapsed(computed(() => mode.value !== 0)),
         new NumberRangeOptions('heart.uBlendToCircle', 'Blend To Circle', 0.0, 0, 1, 0.01).setCollapsed(computed(() => mode.value === 0)),
         new NumberRangeOptions('heart.uCompositionStep', 'Composition Step', 10, 0, 10, 1).setCollapsed(computed(() => mode.value !== 1)),
       ];
       break;
     case 'circle':
+      const circle_mode = ref(null);
       local_properties = [
         ...local_properties,
         new DividerOptions('divider-circle', 'SDF Circle'),
@@ -710,15 +709,17 @@ function getShaderProperties(shader_key, property_overlay) {
       ];
       break;
     case 'mirror':
+      const mirror_shape = ref(null);
       local_properties = [
         ...local_properties,
         new DividerOptions('divider-mirror', 'Mirrored Plane'),
         new ComboBoxOptions('mirror.uShape', 'Shape', 0, [
           [0, 'Ring and Circles'],
           [1, 'Plane'],
-        ]),
+        ]).setModel(mirror_shape),
         new ToggleOptions('mirror.uHorizontalMirror', 'Mirror Horizontally', false),
         new ToggleOptions('mirror.uVerticalMirror', 'Mirror Vertically', false),
+        new NumberRangeOptions('game.time_scale', 'Time Scale', 1.0, -2.0, 2.0, 0.25).setCollapsed(computed(() => mirror_shape.value !== 0)),
       ];
       break;
     default:
