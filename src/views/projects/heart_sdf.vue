@@ -1199,19 +1199,44 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
         For clarity, here are definitions for some of the vector math symbols used in the formula frames below.
       </p>
       <br />
-      <Formula caption="90-degree 2-D counter-clockwise rotation.">
+      <Formula caption="2-D vector V, and its 2x1 matrix.">
         \begin{aligned}
-          \text{vector} &=& \left(\vec{V}\right) = \begin{bmatrix}
+          \text{vector} \\
+          \left(\vec{V}\right) = \begin{bmatrix}
             \vec{V}_{x} \\
             \vec{V}_{y}
-          \end{bmatrix} \\
-          \text{unit vector} &=& \left(\hat{V}\right) = \left(\tfrac{\vec{V}}{||\vec{V}||}\right) \\
-          \text{delta vector} &=& \left(\vec{AB}\right) = \left(\vec{B}-\vec{A}\right) \\
-          \text{unit delta vector} &=& \left(\hat{\vec{AB}}\right) = \left(\tfrac{\vec{AB}}{||\vec{AB}||}\right) \\
-          \text{90-deg CCW}\perp &=& \left(\vec{V}_{\perp}\right) = \begin{bmatrix}
+          \end{bmatrix}
+        \end{aligned}
+      </Formula>
+
+      <Formula caption="Perpendicular of vector V, rotated 90-degrees counter-clockwise from vector V, and its 2x1 matrix.">
+        \begin{aligned}
+          \text{perpendicular of vector V, rotated 90-deg CCW} \\
+          \left(\vec{V}_{\perp}\right) = \begin{bmatrix}
             -\vec{V}_{y} \\
             \vec{V}_{x}
-          \end{bmatrix} \\
+          \end{bmatrix}
+        \end{aligned}
+      </Formula>
+
+      <Formula caption="Unit vector V, with an identity.">
+        \begin{aligned}
+          \text{unit vector} \\
+          \left(\hat{V}\right) = \left(\tfrac{\vec{V}}{||\vec{V}||}\right)
+        \end{aligned}
+      </Formula>
+
+      <Formula caption="Vector difference between A and B, in the direction A towards B, with an identity.">
+        \begin{aligned}
+          \text{vector difference, A towards B} \\
+          \left(\vec{AB}\right) = \left(\vec{B}-\vec{A}\right)
+        \end{aligned}
+      </Formula>
+
+      <Formula caption="Unit vector in the direction A towards B, with an identity.">
+        \begin{aligned}
+          \text{unit vector, A towards B} \\
+          \left(\hat{\vec{AB}}\right) = \left(\tfrac{\vec{AB}}{||\vec{AB}||}\right)
         \end{aligned}
       </Formula>
       <br />
@@ -1319,10 +1344,13 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       </p>
       <br />
       <Formula caption="Q is the length between vertex A and T.">
+        Q = \sqrt{S^2 - R^2}
+      </Formula>
+
+      <Formula caption="θ is the angle formed by the triangle vertices A, C, and T.">
         \begin{aligned}
-          Q             &=& \sqrt{S^2 - R^2} \\
           \cos(\theta)  &=& \left(\tfrac{R}{S}\right) \\
-          \sin(\theta)  &=& \left(\tfrac{Q}{S}\right)
+          \sin(\theta)  &=& \left(\tfrac{Q}{S}\right) \\
         \end{aligned}
       </Formula>
       <br />
