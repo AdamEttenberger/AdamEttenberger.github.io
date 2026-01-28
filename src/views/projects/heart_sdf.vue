@@ -1280,7 +1280,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       <br />
       <Formula caption="S is the length between vertex A and C.">
         \begin{aligned}
-        S &=& ||\vec{CA}|| = \left(\vec{CA} \cdot \vec{CA}\right) \\
+        S &=& ||\vec{CA}|| = \sqrt{\left(\vec{CA} \cdot \vec{CA}\right)} \\
           &=& \sqrt{(\vec{A}_{x}-\vec{C}_{x})^2 + (\vec{A}_{y}-\vec{C}_{y})^2} \\
           &=& \sqrt{\left(R-\tfrac{1}{2}\right)^2 + (R-1)^2} \\
           &=& \sqrt{2R^2 - 3R + \left(\tfrac{5}{4}\right)} \\
@@ -1351,8 +1351,8 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
               \end{bmatrix} \cdot \hat{\vec{CA}} \\
 
               &=& \begin{bmatrix}
-                \cos(\theta) \cdot \hat{\vec{CA}_{x}} - \sin(\theta) \cdot \hat{\vec{CA}_{y}} \\
-                \sin(\theta) \cdot \hat{\vec{CA}_{x}} + \cos(\theta) \cdot \hat{\vec{CA}_{y}}
+                \cos(\theta) \cdot \hat{\vec{CA}}_{x} - \sin(\theta) \cdot \hat{\vec{CA}}_{y} \\
+                \sin(\theta) \cdot \hat{\vec{CA}}_{x} + \cos(\theta) \cdot \hat{\vec{CA}}_{y}
               \end{bmatrix}
             \end{aligned}
           </Formula>
