@@ -12,6 +12,7 @@ const init_failed = ref(false);
 const props = defineProps({
   text: { type: String, default: null },
   file: { type: String, default: null },
+  caption: { type: String, required: true },
 })
 
 function readFileProp(resolve, reject) {
@@ -56,7 +57,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <Figure caption="Equation for the blendFuncSeparate above, computing the color `R` given colors source `S` and destination `D`.">
+  <Figure :caption="caption">
     <div v-if="init_failed" class="error">
       <font-awesome-icon :icon="['fas', 'file-circle-xmark']" />
       <br />

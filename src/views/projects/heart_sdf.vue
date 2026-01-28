@@ -2,6 +2,8 @@
 import { computed, ref, toRaw, unref } from 'vue'
 import Code from '@/components/code.vue'
 import Column from '@/components/column.vue'
+import Term from '@/components/term.vue'
+import TermList from '@/components/term_list.vue'
 import Details from '@/components/details.vue'
 import ExternalLink from '@/components/external_link.vue'
 import Figure from '@/components/figure.vue'
@@ -161,10 +163,9 @@ function createSdfShader(uniforms: Array<Uniform>, sdf_function) {
     precision mediump float;
 
     // Constants
-    const float EPSILON = 0.001;
     const float PI = 3.1415926535897932384626433832795;
     const float TAU = 6.283185307179586476925286766559;
-    const float kAxisSize = 0.001875;
+    const float kAxisSize = 0.005;
     const float kReticleMinor = 0.0025;
     const float kReticleMajor = 0.025;
     const float kAnimationFrequency = 0.7;
@@ -228,9 +229,9 @@ function createSdfShader(uniforms: Array<Uniform>, sdf_function) {
       return sdf_subtraction(sdf_plus, sdf_square);
     }
 
-    float sdf_axis(vec2 p, float inflate) {
-      p = abs(p / uScale);
-      return min(p.x, p.y) - inflate;
+    float sdf_axis(vec2 p, uint component_index, float inflate) {
+      float axis_sdf_unscaled = p[component_index ^ 1u] / uScale;
+      return abs(axis_sdf_unscaled) - inflate;
     }
 
     float sdf_line(vec2 p, vec2 unit_normal, float stroke_width) {
@@ -259,7 +260,7 @@ function createSdfShader(uniforms: Array<Uniform>, sdf_function) {
 
     void main() {
       vec2 p = UV;
-      p -= vec2(0.5);       // translate to center the circle in the view.
+      p -= vec2(0.5);       // move the origin to the center of the view.
       p.x *= uResolution.z; // scale to the aspect ratio of the container, to fit vertically.
       p *= vec2(uScale);                  // camera zoom
       p -= vec2(uPositionX, uPositionY);  // camera translation
@@ -272,11 +273,19 @@ function createSdfShader(uniforms: Array<Uniform>, sdf_function) {
           return;
         }
       }
-      if (uShowAxis) {
-        float sdf = sdf_axis(p, kAxisSize * 0.5);
-        if (abs(sdf) <= kAxisSize) {
-          float smooth_sdf = smoothstep((kAxisSize * 0.5)-EPSILON, (kAxisSize * 0.5), sdf);
-          vColor = vec4(mix(vec3(1.0), vec3(0.0), smooth_sdf), 1.0);
+
+      if (uShowAxisX || uShowAxisY) {
+        float axis_extent = kAxisSize * 0.5;
+        vec2 axis_sdf = vec2(
+          uShowAxisX ? sdf_axis(p, 0u, axis_extent) : 0.0,
+          uShowAxisY ? sdf_axis(p, 1u, axis_extent) : 0.0
+        );
+        float sdf = (uShowAxisX && uShowAxisY)
+            ? sdf_union(axis_sdf.x, axis_sdf.y)
+            : axis_sdf.x + axis_sdf.y;
+        if (sdf <= 0.0) {
+          float smooth_sdf = smoothstep(-axis_extent, 0.0, sdf);
+          vColor = vec4(vec3(mix(1.0, 0.0, smooth_sdf)), 1.0);
           return;
         }
       }
@@ -288,7 +297,8 @@ function createSdfShader(uniforms: Array<Uniform>, sdf_function) {
 
 const shared_uniforms = [
   new Uniform(UniformType.bool, 'uShowReticle'),
-  new Uniform(UniformType.bool, 'uShowAxis'),
+  new Uniform(UniformType.bool, 'uShowAxisX'),
+  new Uniform(UniformType.bool, 'uShowAxisY'),
   new Uniform(UniformType.float, 'uPositionX'),
   new Uniform(UniformType.float, 'uPositionY'),
   new Uniform(UniformType.float, 'uRotation', degToRad), // TBD angle editor
@@ -309,70 +319,88 @@ const shader_templates = new Map([
         new Uniform(UniformType.int, 'uMode'),
         new Uniform(UniformType.float, 'uAnimationAmplitude'),
         new Uniform(UniformType.float, 'uBlendToCircle'),
+        new Uniform(UniformType.bool, 'uHiddenCompositionAnimation'),
         new Uniform(UniformType.int, 'uCompositionStep'),
       ],
       sdf_function: `
         /*
          * Renders a heart shape that fits within 1 unit using 3 SDF functions.
-         * 1. A circle around vector <C> with radius <R> in the upper-right corner, mirrored horizontally to form the heart lobes.
-         * 2. A circle around vector <D> with no radius, collinear with the mirror axis to form the upward curve below vector <D>.
-         * 3. A plane that connects vector <A> and vector <T> with the normal <N> pointing towards the 4th quadrant, mirrored horizontally.
+         * 1. A circle around vector <C> with radius <R> in the upper-right corner,
+         *    mirrored horizontally to form the heart lobes.
+         * 2. A circle around vector <B> with no radius, collinear with the mirror
+         *    axis to form the upward curve below vector <B>.
+         * 3. A plane that connects vector <A> and vector <T> with the normal <N>
+         *    pointing towards the 4th quadrant, mirrored horizontally.
          *
-         * <A> = <vec2> @ lower point of the heart shape centered at the bottom of the image.
-         * <C> = <vec2> @ center point of circle with radius <R>, mirrored horizontally.
-         * <D> = <vec2> @ top intersection point between mirrored circles around <C> with radius <R>.
+         * <A> = <vec2> @ point at the bottom of the shape, the image center-bottom.
+         * <C> = <vec2> @ center of circle with radius <R>, mirrored horizontally.
+         * <B> = <vec2> @ highest point where the mirrored heart lobes meet.
          * <T> = <vec2> @ tangent between point <A> and circle <C>.
-         * <N> = normalized <vec2> pointing towards the 4th quadrant, perpendicular to the vector between <C> and tangent <T>.
+         * <N> = unit <vec2> perpendicular to the edge connecting <A> and <T>.
          *
          * R = radius of circle <C>.
-         * H = vertical distance between <C> and <D>; half the distance between the intersection points between the two mirrored circles.
-         * K = horizontal offset of circle <C> from the center of the image; half distance between mirrored circles <C>.
+         * H = vertical distance between <C> and <B>; half the distance between
+         *     the intersection points between the two mirrored circles.
+         * K = horizontal offset of circle <C> from the center of the image;
+         *     half distance between mirrored circles <C>.
          * S = distance between point <A> and the center of circle <C>.
-         * Q = distance between point <A> and the tangent <T> of circle <C>; length of the tangent edge.
+         * Q = distance between point <A> and the tangent <T> of circle <C>;
+         *     length of the tangent edge.
          *
-         * All lines on the diagram below should be interpreted as straight lines despite being jagged.
+         * All lines on the diagram below should be interpreted as straight
+         * lines despite being jagged.
          *
-         *  |=============================================|
-         *  |            <D>                              |
-         *  |           / | \\                             |
-         *  |         /   |   \\                           |
-         *  |       R     H     R                         |
-         *  |     /       |       \\                       |
-         *  |    /        |        \\                      |
-         *  |   *----K----*----K---<C>                    |
-         *  |    \\        |        /| \\                   |
-         *  |     \\       |       / |  \\                  |
-         *  |       R     H     R   |   R                 |
-         *  |         \\   |   /     |    \\                |
-         *  |           \\ | /      /      \\               |
-         *  |             *       /       <T>             |
-         *  |             |      S        /  \\            |
-         *  |             |     /       /      \\          |
-         *  |             |    /      /         <N>       |
-         *  |             |   /     Q              \\      |
-         *  |             |  /    /                 _\\/   |
-         *  |             | /   /                         |
-         *  |             | | /                           |
-         *  |             |//                             |
-         *  |            <A>                              |
-         *  |=============================================|
+         *  |===========================================|
+         *  |            <B>                            |
+         *  |           / | \\                           |
+         *  |         /   |   \\                         |
+         *  |       R     H     R                       |
+         *  |     /       |       \\                     |
+         *  |    /        |        \\                    |
+         *  |   *----K----*----K---<C>                  |
+         *  |    \\        |        /| \\                 |
+         *  |     \\       |       / |  \\                |
+         *  |       R     H     R   |   R               |
+         *  |         \\   |   /     |    \\              |
+         *  |           \\ | /      /      \\             |
+         *  |             *       /       <T>           |
+         *  |             |      S        /  \\          |
+         *  |             |     /       /     \\         |
+         *  |             |    /      /        <N>      |
+         *  |             |   /     Q            \\      |
+         *  |             |  /    /              _\\/    |
+         *  |             | /   /                       |
+         *  |             | | /                         |
+         *  |             |//                           |
+         *  |            <A>                            |
+         *  |===========================================|
          */
-        const float kMinRadius = 0.28;
+        const float kMinRadius = 0.25;
         const float kMaxRadius = 0.5;
-        vec2 mirrored_p = vec2(abs(p.x), p.y);
+        p.x = abs(p.x);
 
         // Switch between user control and custom animation.
         float r;
         switch (uMode) {
           case 0: // Heartbeat Animation
+            const float kMinAnimationRadius = 0.28;
             float animation_time = (uTime * TAU) * kAnimationFrequency;
             float wave1 = 0.5 + 0.5 * cos(animation_time);
             float wave2 = 0.5 + 0.5 * cos(animation_time * 2.0);
             float t = min(wave1, wave2);
-            r = mix(kMinRadius, mix(kMinRadius, kMaxRadius, uAnimationAmplitude), t);
+            float amp = mix(kMinAnimationRadius, kMaxRadius, uAnimationAmplitude);
+            r = mix(kMinAnimationRadius, amp, t);
             break;
           case 1: // Step By Step Composition
-            r = mix(kMinRadius, kMaxRadius, uBlendToCircle);
+            if (uHiddenCompositionAnimation) {
+              const float kFrequency = 0.1;
+              float animation_time = (uTime * TAU) * kFrequency;
+              float t = 0.5 + 0.5 * cos(animation_time);
+              float amp = mix(kMinRadius, kMaxRadius, uAnimationAmplitude);
+              r = mix(kMinRadius, amp, t);
+            } else {
+              r = mix(kMinRadius, kMaxRadius, uBlendToCircle);
+            }
             break;
           case 2:
           default: // Blend To Circle
@@ -389,84 +417,101 @@ const shader_templates = new Map([
         float s = sqrt(s_squared);
         float q = sqrt(s_squared - r*r);
 
-        // Create normalized vector pointing from <C> to <A>.
-        vec2 unit_c_to_a = c_to_a / s;
-        vec2 unit_c_to_a_perpendicular = rot90_ccw(unit_c_to_a);
-
-        // Create a unit vector pointing from <C> to <T> by rotating the unit vector
-        // from <C> to <A> towards its perpendicular. In this context, theta is the
-        // angle between points ACT.
+        // Compute the unit vector <N> by rotating a unit vector pointing
+        // from <C> towards <A> counter-clockwise by theta, to avoid
+        // calling trig functions. In this context, theta is the angle
+        // between points <ACT>. The angle between <CTA> is a right-angle.
         float cos_theta = r/s;
         float sin_theta = q/s;
-        vec2 n = (unit_c_to_a * cos_theta) + (unit_c_to_a_perpendicular * sin_theta);
+        vec2 unit_c_to_a = c_to_a / s;
 
-        // Compute the signed-distance, branching the render between two parts; the heart lobes and the point.
-        // This is important for preventing the plane which forms the lower point from drawing over the lobes.
+        // // 2-D Rotation Matrix
+        // mat2 rotation_theta = mat2(
+        //   cos_theta, sin_theta, // column #1
+        //   -sin_theta, cos_theta // column #2
+        // );
+        // vec2 n = rotation_theta * unit_c_to_a;
+        // // Another form of the 2-D Rotation Matrix multiplication above.
+        // vec2 n = (cos_theta * unit_c_to_a) +
+        //          (sin_theta * rot90_ccw(unit_c_to_a));
+        // Inline form of the 2-D Rotation Matrix multiplication above.
+        vec2 n = vec2(cos_theta*unit_c_to_a.x - sin_theta*unit_c_to_a.y,
+                      sin_theta*unit_c_to_a.x + cos_theta*unit_c_to_a.y);
+
         float h = sqrt(r - 0.25);
-        vec2 d = vec2(0.0, c.y + h);
-        vec2 d_to_p = mirrored_p - d;
-        vec2 c_to_p = mirrored_p - c;
+        vec2 b = vec2(0.0, c.y + h);
+        vec2 a_to_p = p - a;
+        vec2 c_to_p = p - c;
+        vec2 d_to_p = p - b;
 
-        // Ordinarily, these SDF calculations would be computed
+        // Typically these SDF calculations would be computed
         // only within the branch needed. Placing here for demo
-        // purposes, since it makes uCompositionStep easier to
-        // implement.
+        // purposes, to simplify uCompositionStep.
 
         // An SDF circle which forms the right half of the mirrored heart lobes.
         float mirrored_lobes_sdf = sdf_circle(c_to_p, r);
-        // An inverted SDF point which forms the upward curve between the lobes of the heart, only values <= 0.
-        float inverted_point_sdf = -sdf_circle(d_to_p, 0.0);
-        // An SDF plane, collinear with points <A> and <T>, with the positive side towards the 4th quadrant away from the shape.
-        float mirrored_plane_sdf = sdf_plane(mirrored_p - a, n);
+        // An SDF circle which forms the right half of the mirrored heart lobes.
+        float lower_point_sdf = sdf_circle(a_to_p, 0.0);
+        // An inverted SDF point which forms the upward curve between the lobes
+        // of the heart, only values <= 0.
+        float upper_point_inverted_sdf = -sdf_circle(d_to_p, 0.0);
+        // An SDF plane, collinear with points <A> and <T>, with the positive side
+        // towards the 4th quadrant away from the shape.
+        float mirrored_plane_sdf = sdf_plane(a_to_p, n);
 
-        bool heart_lobe_mask = dot(d_to_p, rot90_cw(d - c)) > 0.0 &&
-                               dot(c_to_p, rot90_ccw(n)) > 0.0;
+
+        // Compute masks to split the render into different draw regions.
+        // This is important to prevent shapes from overlapping each other.
+        // 1. The 3 outer circle shapes: left and right heart lobes, and
+        //    the lowest point where the mirrored planes meet.
+        // 2. The plane and inner circle shapes.
+
+        // Removes the regions to the left of or below the heart lobe edge, <B-C>.
+        bool outer_mask_cd = (p.y > c.y) && dot(c_to_p, rot90_cw(b - c)) > 0.0;
+        // Removes the regions to the left of or below the heart lobe edge, <T-C>.
+        bool outer_mask_ct = (p.y <= c.y) && dot(c_to_p, rot90_ccw(n)) > 0.0;
+        // Removes regions in the direction of the vector <A-T> and below <A>,
+        // i.e., to the left of or below the perpendicular of the normal.
+        bool outer_mask_an = (p.y <= a.y) && dot(a_to_p, rot90_cw(n)) > 0.0;
+        bool outer_circles_mask = outer_mask_cd || outer_mask_ct || outer_mask_an;
 
         if (uMode == 1) {
           switch (uCompositionStep) {
-            case 0: // Mirrored circle heart lobes.
-              return mirrored_lobes_sdf;
-
+            case 0: // Mirrored heart lobes and lower point
+              return sdf_union(mirrored_lobes_sdf, lower_point_sdf);
             case 1: // Mirrored Plane
               return mirrored_plane_sdf;
-            case 2: // Circle with (inverted) Plane (for visibility)
-              return sdf_subtraction(mirrored_plane_sdf, mirrored_lobes_sdf);
-            case 3: // Heart Lobe Draw Region
-              if (!heart_lobe_mask) {
+            case 2: // Outer circle draw region
+              if (!outer_circles_mask) {
                 discard;
               }
-              return mirrored_lobes_sdf;
-            case 4: // Plane Draw Region
-              if (heart_lobe_mask) {
+              break;
+            case 3: // Opposite draw region, incomplete (without inverted point)
+              if (outer_circles_mask) {
                 discard;
               }
               return mirrored_plane_sdf;
-            case 5: // Incomplete Composition (Without inverted point)
-              return heart_lobe_mask ? mirrored_lobes_sdf : mirrored_plane_sdf;
-            case 6: // Circle and (positive) Point
-              return heart_lobe_mask ? mirrored_lobes_sdf : -inverted_point_sdf;
-            case 7: // Circle and (negative) Point
-              return heart_lobe_mask ? mirrored_lobes_sdf : inverted_point_sdf;
-            case 8: // Plane and (positive) Point
-              return sdf_intersection(inverted_point_sdf, mirrored_plane_sdf);
-            case 9: // Final Shape (without mirroring)
-              bool unmirrored_heart_lobe_mask = dot(p - d, rot90_cw(d - c)) > 0.0 &&
-                                                dot(p - c, rot90_ccw(n)) > 0.0;
-              return unmirrored_heart_lobe_mask
-                  ? sdf_circle(p - c, r)
-                  : sdf_intersection(-sdf_circle(p - d, 0.0), sdf_plane(p - a, n));
-            case 10: // Final Render
-              return heart_lobe_mask
-                  ? mirrored_lobes_sdf
-                  : sdf_intersection(inverted_point_sdf, mirrored_plane_sdf);
-            default:
+            case 4: // Incomplete Composition (Without inverted point)
+              return outer_circles_mask
+                  ? sdf_union(mirrored_lobes_sdf, lower_point_sdf)
+                  : mirrored_plane_sdf;
+            case 5: // Heart lobes with inverted point
+              return outer_circles_mask
+                  ? sdf_union(mirrored_lobes_sdf, lower_point_sdf)
+                  : upper_point_inverted_sdf;
+            case 6: // Plane with inverted point
+              if (outer_circles_mask) {
+                discard;
+              }
+              return sdf_intersection(upper_point_inverted_sdf, mirrored_plane_sdf);
+            default: // Complete Composition
               break;
           }
         }
 
-        return heart_lobe_mask
-            ? mirrored_lobes_sdf
-            : sdf_intersection(inverted_point_sdf, mirrored_plane_sdf);
+        return outer_circles_mask
+            ? sdf_union(mirrored_lobes_sdf, lower_point_sdf)
+            : sdf_intersection(upper_point_inverted_sdf, mirrored_plane_sdf);
       `,
     }
   ],
@@ -627,7 +672,8 @@ function getShaderProperties(shader_key, property_overlay) {
     new DividerOptions('divider-common', 'Common'),
     new GroupOptions('group-overlays', 'Overlays', false).setModel(group_overlays_open),
     new ToggleOptions('uShowReticle', 'Show Origin Reticle', false).setCollapsed(computed(() => !group_overlays_open.value)),
-    new ToggleOptions('uShowAxis', 'Show Cardinal Axis', false).setCollapsed(computed(() => !group_overlays_open.value)),
+    new ToggleOptions('uShowAxisX', 'Show X-Axis', false).setCollapsed(computed(() => !group_overlays_open.value)),
+    new ToggleOptions('uShowAxisY', 'Show Y-Axis', false).setCollapsed(computed(() => !group_overlays_open.value)),
     new GroupOptions('group-camera', 'Camera', false).setModel(group_camera_open),
     new NumberRangeOptions('uPositionX', 'Position X', 0.0, -1.0, 1.0, 0.01).setCollapsed(computed(() => !group_camera_open.value)),
     new NumberRangeOptions('uPositionY', 'Position Y', 0.0, -1.0, 1.0, 0.01).setCollapsed(computed(() => !group_camera_open.value)),
@@ -654,10 +700,11 @@ function getShaderProperties(shader_key, property_overlay) {
           [1, 'Step By Step Composition'],
           [2, 'Blend To Circle'],
         ]).setModel(mode),
-        new NumberRangeOptions('game.time_scale', 'Time Scale', 1.0, -2.0, 2.0, 0.25).setCollapsed(computed(() => mode.value !== 0)),
+        new NumberRangeOptions('game.time_scale', 'Time Scale', 1.0, 0.0, 2.0, 0.25).setCollapsed(computed(() => mode.value !== 0)),
         new NumberRangeOptions('heart.uAnimationAmplitude', 'Animation Amplitude', 1.0, 0, 1, 0.01).setCollapsed(computed(() => mode.value !== 0)),
         new NumberRangeOptions('heart.uBlendToCircle', 'Blend To Circle', 0.0, 0, 1, 0.01).setCollapsed(computed(() => mode.value === 0)),
-        new NumberRangeOptions('heart.uCompositionStep', 'Composition Step', 10, 0, 10, 1).setCollapsed(computed(() => mode.value !== 1)),
+        new ToggleOptions('heart.uHiddenCompositionAnimation', '(Hidden) Composition Animation', false).setCollapsed(true),
+        new NumberRangeOptions('heart.uCompositionStep', 'Composition Step', 7, 0, 7, 1).setCollapsed(computed(() => mode.value !== 1)),
       ];
       break;
     case 'circle':
@@ -665,13 +712,13 @@ function getShaderProperties(shader_key, property_overlay) {
       local_properties = [
         ...local_properties,
         new DividerOptions('divider-circle', 'SDF Circle'),
-        new NumberRangeOptions('circle.uRadius', 'Radius', 0.5, 0, 1, 0.01),
         new ComboBoxOptions('circle.uMode', 'Mode', 0, [
           [0, 'Circle'],
           [1, 'Ring (Within Radius)'],
           [2, 'Ring (Centered on Radius)'],
         ]).setModel(circle_mode),
-        new NumberRangeOptions('circle.uRingStrokeWidth', 'Ring Radius', 0.1, 0, 1, 0.01).setCollapsed(computed(() => circle_mode.value == 0)),
+        new NumberRangeOptions('circle.uRadius', 'Core Radius', 0.5, 0, 1, 0.01),
+        new NumberRangeOptions('circle.uRingStrokeWidth', 'Annulus Radius', 0.1, 0, 1, 0.01).setCollapsed(computed(() => circle_mode.value == 0)),
       ];
       break;
     case 'plane':
@@ -781,11 +828,12 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
     uniforms: [
       // Common
       ['uShowReticle',  {type: UniformType.bool, value: false}],
-      ['uShowAxis',     {type: UniformType.bool, value: true}],
+      ['uShowAxisX',     {type: UniformType.bool, value: false}],
+      ['uShowAxisY',     {type: UniformType.bool, value: true}],
       ['uPositionX', {type: UniformType.float, value: 0}],
       ['uPositionY', {type: UniformType.float, value: 0}],
       ['uRotation', {type: UniformType.float, value: 0}],
-      ['uScale', {type: UniformType.float, value: 1}],
+      ['uScale', {type: UniformType.float, value: 1.5}],
       ['uInsideColor', {type: UniformType.vec4, value: [0.0, 0.0, 1.0, 1.0]}],
       ['uOutsideColor', {type: UniformType.vec4, value: [1.0, 0.0, 0.0, 1.0]}],
       ['uInsetColor', {type: UniformType.vec4, value: [1.0, 1.0, 1.0, 1.0]}],
@@ -796,6 +844,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       ['uMode', {type: UniformType.int, value: 1}],
       ['uAnimationAmplitude', {type: UniformType.float, value: 1}],
       ['uBlendToCircle', {type: UniformType.float, value: 0.2}],
+      ['uHiddenCompositionAnimation', {type: UniformType.bool, value: true}],
       ['uCompositionStep', {type: UniformType.int, value: composition_step}],
     ],
   }, window.location.origin);
@@ -829,9 +878,48 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       </p>
     </Section>
 
+    <Section heading="Scope and Inspiration">
+      <p>
+        This page is a somewhat structured accumulation of notes and demos related to signed-distance fields and their properties.
+        While the goal for this page isn't a comprehensive guide, readers familiar with <ExternalLink to="https://en.wikipedia.org/wiki/Shading_language">shading languages</ExternalLink> and the graphics pipeline should be able to recreate the demos and create simple scenes after reading.
+        I'll briefly discuss how to derive the distance field of a few shape primitives, and how to compose simple complex shapes including an <b>aligned capsule</b> and <b>heart</b> shape.
+      </p>
+      <br />
+      <p>
+        For this exercise I wanted to experiment with signed-distance fields (SDF) for rendering game user interface elements and shader effects.
+        This also gave me an excuse to begin implementing a shader viewport for more interesting demos going forward.
+        The new viewport behaves similar to <ExternalLink to="https://www.shadertoy.com/">ShaderToy</ExternalLink>, providing a few predefined uniforms like elapsed time and viewport size automatically, built with my simple <RouterLink to="/projects/proto_engine">WebGL Proto-Engine</RouterLink>.
+      </p>
+      <br />
+      <p>
+        This was heavily inspired by the work of Inigo Quilez on <ExternalLink to='https://iquilezles.org/articles/distfunctions2d/'>2D distance functions</ExternalLink>.
+        I recreated the heart shape with adjustable heart lobes used to animate the shape, and designed to fill a 1x1 UV unit.
+      </p>
+      <br />
+      <p>
+        I strongly encourage readers to also review the <b>References</b> section at the end for more information on signed-distance functions.
+      </p>
+    </Section>
+
+    <Section heading="Technical Notes">
+      <p>
+        Before diving in, it's worth covering a few important details about the technical demos on this page.
+      </p>
+      <br />
+      <p>
+        All shaders are targeting <ExternalLink to="https://en.wikipedia.org/wiki/OpenGL_Shading_Language">GLSL ES Version 3</ExternalLink>. As of writing, that's the latest version supported by the <ExternalLink to="https://registry.khronos.org/webgl/specs/latest/2.0/">WebGL 2.0 Specification</ExternalLink>.
+        Using the default UV coordinate system; origin in the lower-left corner, <b>U</b> extends to the right, <b>V</b> extends upwards, positive rotations are counter-clockwise, and UV component ranges are <b class="no-wrap">[0.0, 1.0]</b>.
+      </p>
+      <br />
+      <p>
+        The WebGL context is setup with an orthographic projection, drawing a single quad to fill the render target with the results of an attached shader.
+        Before calling the signed-distance function, UV coordinates are translated so the resulting image is centered and scaled based on frame resolution to fit the frame vertically and avoid stretching or <ExternalLink to="https://en.wikipedia.org/wiki/Letterboxing_(filming)">letterboxing</ExternalLink> the final image.
+      </p>
+    </Section>
+
     <Section heading="Colors Used">
       <p>
-        The example shaders and diagrams below will represent <b>positive</b> values with <b>red</b> and <b>negative</b> values with <b>blue</b>.
+        The example shaders and diagrams below represent <b>positive</b> values with <b>red</b> and <b>negative</b> values with <b>blue</b>.
         The animated frame at the top of the page has its colors reversed for aesthetics.
         These colors were selected arbitrarily to mirror common colors for north and south magnetic poles.
       </p>
@@ -839,29 +927,62 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
 
     <Section heading="Foundation">
       <p>
-        To help illustrate the concept of a signed-distance function, consider the following examples of a point and a line segment on a <b>1-D</b> number line.
-        For any point <b>P</b>, values other than <b>P</b> will yield a positive signed-distance, the absolute difference from <b>P</b>.
+        To help illustrate the concept of a signed-distance function, consider the following examples on a <b>1-D</b> number line.
       </p>
       <br />
-      <Figure src_light="/images/projects/sdf/foundation_sdf_point_light.png"
-              src_dark="/images/projects/sdf/foundation_sdf_point_dark.png"
-              alt="An abstract number line with an illustrated distance field above, with point 'P' at the center where the value is lowest (zero), extending outward towards positive infinity both to the left and right where the value will be the highest." />
-      <br />
-      <p>
-        To create a line segment centered around <b>P</b>, the point can be inflated by subtracting a <b>radius</b> or <b>half-length</b>.
-        Afterwards, any point within the edge will have a negative signed-distance, and any point outside the edge will be positive.
-      </p>
-      <br />
-      <Figure src_light="/images/projects/sdf/foundation_sdf_segment_light.png"
-              src_dark="/images/projects/sdf/foundation_sdf_segment_dark.png"
-              alt="An abstract number line with an illustrated distance field above, with point 'P' at the center and radius 'R' which extends from 'P' a fixed amount in both directions.
-                  The value is lowest (negative) at 'P', zero at the boundary 'R', and extending outward towards positive infinity from the boundary where the value will be the highest." />
+      <ol class="foundation-steps">
+        <li>
+          <p>
+            The difference between points <b>P</b> and <b>Q</b>, in the form <b>Q-P</b>.
+            This creates the signed distance function of a <b>1-D</b> edge.
+            With <b>negative</b> values extend infinitely to the left of <b>P</b> where <b>Q&lt;P</b> and <b>positive</b> values extend infinitely to the right of <b>P</b> where <b>Q&gt;P</b>.
+          </p>
+          <br/>
+          <Figure src_light="/images/projects/sdf/foundation_sdf_edge_light.png"
+                  src_dark="/images/projects/sdf/foundation_sdf_edge_dark.png"
+                  alt="Abstract (1-D) number line illustrating the signed-distance function 'Q-P'." />
+        </li>
+        <li>
+          <p>
+            Taking the absolute value raises the floor of the function to zero while maintaining relative distances to the boundary.
+            This creates the signed distance function of a <b>1-D</b> point.
+          </p>
+          <br/>
+          <Figure src_light="/images/projects/sdf/foundation_sdf_point_light.png"
+                  src_dark="/images/projects/sdf/foundation_sdf_point_dark.png"
+                  alt="Abstract (1-D) number line illustrating the signed-distance function 'abs(Q-P)'." />
+        </li>
+        <li>
+          <p>
+            Subtracting a <b>radius</b>, <b>extents</b>, or <b>half-width</b> from the distance function inflates the boundary uniformly in all directions.
+            This creates the signed distance function of a <b>1-D</b> line segment.
+            With a region <b>2R</b> wide centered around <b>P</b> where the distance is zero at both endpoints of the line segment, negative inside the region, and positive outside the region.
+          </p>
+          <br/>
+          <Figure src_light="/images/projects/sdf/foundation_sdf_segment_light.png"
+                  src_dark="/images/projects/sdf/foundation_sdf_segment_dark.png"
+                  alt="Abstract (1-D) number line illustrating the signed-distance function 'abs(Q-P) - R'." />
+        </li>
+        <li>
+          <p>
+            Steps (2) and (3) can be repeated to inflate from the new boundary of the shape.
+            Taking the absolute value of the distance field then subtracting another <b>radius</b> amount <b>L</b> inflates both endpoints of the line segment into new line segments that are each <b>2L</b> wide.
+          </p>
+          <br/>
+          <Figure src_light="/images/projects/sdf/foundation_sdf_segment_abs_light.png"
+                  src_dark="/images/projects/sdf/foundation_sdf_segment_abs_dark.png"
+                  alt="Abstract (1-D) number line illustrating the signed-distance function 'abs(abs(Q-P) - R)'." />
+          <Figure src_light="/images/projects/sdf/foundation_sdf_segment_abs_inflated_light.png"
+                  src_dark="/images/projects/sdf/foundation_sdf_segment_abs_inflated_dark.png"
+                  alt="Abstract (1-D) number line illustrating the signed-distance function 'abs(abs(Q-P) - R) - L'." />
+        </li>
+      </ol>
     </Section>
 
     <Section :ref="makeSectionRef('points-circles-rings')" heading="Points, Circles, and Rings">
       <p>
         The easiest shape to implement is likely a point, or its inflated 2D/3D forms (circle, sphere) which are offsets of the point function.
-        Intuitively the signed-distance from a point is either <b>0</b> at the exact center or <b>>0</b>.
+        Intuitively the signed-distance from a point is either <b>0</b> at the exact center or <b>&gt;0</b>.
         Subtracting a radius from this value inflates the shape, with negative values falling inside the boundary formed at the radius.
       </p>
       <br />
@@ -891,8 +1012,8 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       <br />
       <p>
         A plane can be transformed into a line by taking the absolute value of the signed-distance, then subtract half the line width to <b>inflate</b> the shape boundary.
-        This process is similar to how the signed-distance of a point can be <b>inflated</b> into a circle or sphere, or how the absolute distance field of a circle inflates into a torus.
-        Taking the absolute value makes the lowest value in the distance field <b>zero</b> while maintaining distance to the boundary of the shape.
+        This process is similar to how the signed-distance of a point can be <b>inflated</b> into a circle or sphere, or how the <i>absolute</i> distance field of a circle inflates into a torus.
+        Taking the absolute value makes the lowest value <i>possible</i> in the distance field <b>zero</b> while maintaining distance to the boundary of the shape.
         Subtracting from the distance field <b>inflates</b> the boundary of the shape by shifting the field uniformly <b>away from the boundary</b>.
       </p>
       <br />
@@ -911,7 +1032,8 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       <PropertyEditor :ref="makeEditorRef('plane')"
                       :properties="getShaderProperties('plane', {
                         'uShowReticle': { default_value: true },
-                        'uShowAxis': { default_value: true },
+                        'uShowAxisX': { default_value: true },
+                        'uShowAxisY': { default_value: true },
                       })"
                       @property-changed="(name) => onPlayerPropertyChanged(players['plane'].inner_frame, name)" />
     </Section>
@@ -919,7 +1041,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
     <Section :ref="makeSectionRef('symmetry')" heading="Symmetry">
       <p>
         When a shape can be mirrored, centering the shape along the origin may simplify the math involved.
-        For example, mirroring across the horizontal or vertical axis can be achieved by taking the absolute value of their respective UV component when the shape is centered at the origin and drawn on the <b>positive</b> side of each mirrored axis.
+        For example, mirroring across the horizontal or vertical axis can be achieved by using the absolute value of their respective UV component when the shape is centered at the origin, causing anything drawn on the <b>positive</b> side of the axis being mirrored, or the first quadrant when both axis are mirrored.
       </p>
       <br />
       <Details summary="Mirrored Shapes Signed-distance Function">
@@ -938,7 +1060,8 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       <br />
       <PropertyEditor :ref="makeEditorRef('mirror')"
                       :properties="getShaderProperties('mirror', {
-                        'uShowAxis': { default_value: true },
+                        'uShowAxisX': { default_value: true },
+                        'uShowAxisY': { default_value: true },
                       })"
                       @property-changed="(name) => onPlayerPropertyChanged(players['mirror'].inner_frame, name)" />
     </Section>
@@ -972,17 +1095,25 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
     <Section :ref="makeSectionRef('draw-regions')" heading="Draw Regions">
       <p>
         Another approach to compositing a shape is to slice the render into different draw regions.
-        For example, consider the 2D capsule shape which is effectively an inflated line segment.
-        There's a point at each cap, and a mirrored plane connecting them.
-        Once inflated, the caps naturally form semi-circles that the edges of the two shapes align as they're expanded uniformly.
+        Consider a capsule shape which is effectively an inflated line segment.
       </p>
       <br />
       <p>
-        Fortunately this shape is symmetrical, so the function can be reduced to a single point and plane equation drawn in the first quadrant, then mirrored across both axis.
-        However, the plane extends infinitely and will always be "closest" so the two shapes can't be joined with boolean operations.
-        To fix this, the render can be split into two draw regions.
-        The first is a plane drawn for any points between the origin and the end of the line segment.
-        The second is a circle drawn for any points further than the end of the line segment.
+        Fortunately capsules have symmetry across two perpendicular axis, so an aligned capsule can be mirrored from the first quadrant.
+        One method of drawing a line segment is to draw a mirrored plane for the line body and a point at each endpoint.
+        However, a plane extends infinitely and is always "closest" when compared with a collinear point, so the two shapes can't joined with boolean operations.
+      </p>
+      <br />
+      <p>
+        To fix this, one approach is to split the render into two draw regions:
+      </p>
+      <ul>
+        <li>A plane drawn for any points between the origin and the end of the line segment.</li>
+        <li>A point/circle drawn for any points further than the end of the line segment.</li>
+      </ul>
+      <br />
+      <p>
+        The default settings for the demo below inverts the SDF of the plane connecting the two points to highlight the draw regions.
       </p>
       <br />
       <Details summary="Aligned Capsule: Draw Regions">
@@ -1001,7 +1132,8 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       <br />
       <PropertyEditor :ref="makeEditorRef('capsule')"
                       :properties="getShaderProperties('capsule', {
-                        'uShowAxis': { default_value: true },
+                        'uShowAxisX': { default_value: true },
+                        'uShowAxisY': { default_value: true },
                       })"
                       @property-changed="(name) => onPlayerPropertyChanged(players['capsule'].inner_frame, name)" />
     </Section>
@@ -1011,6 +1143,12 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
         Outlines can easily be rendered by creating a value band near zero, the boundary of the shape.
         This can be further discriminated by treating negative values as insets and positive values as outsets.
         Rendering both insets and outsets as separate high contrast colors can help make shapes more readable over noisy backgrounds.
+      </p>
+      <br />
+      <p>
+        This is one example for how to draw separate layers, but how to approach this really depends on your design requirements.
+        If the final texture was going to be a compositing mask, then maybe only values <b class="no-wrap"><= 0.0</b> need to be filled and everything else could be <b>discard</b>-ed.
+        To the opposite extreme, arrays could be used to specify many colors and distance-threshold values, through shader uniforms, constants, or encoded in texture data if you have a suitable use case.
       </p>
       <br />
       <Code lang="cpp"
@@ -1030,17 +1168,327 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
 
     <Section :ref="makeSectionRef('compositing-a-heart')" heading="Compositing a Heart">
       <p>
-        <UnderConstruction />
+        To begin lets first analyze the shape to decide how to approach drawing it.
+        There are many subtle variations and methods of drawing the <ExternalLink to="https://en.wikipedia.org/wiki/Heart_symbol">heart symbol</ExternalLink>.
+        To keep things simple and keep the complexity of the shape low, this demo draws overlapping circles for the heart lobes and a mirrored plane for tangent lines that meet at the bottom forming a point.
       </p>
       <br />
-      <Player v-for="index in [...Array(10).keys()]"
-              :ref="makePlayerRef(`heart-composition-step-${index}`)"
-              :title="`Heart Composition Frame ${index}`"
+      <p>
+        The shape can be broken down as illustrated by the following diagram and key components:
+      </p>
+      <br />
+      <Figure src_light="/images/projects/sdf/heart_geometry_light.png"
+              src_dark="/images/projects/sdf/heart_geometry_dark.png"
+              alt="Illustration of the geometry composing the heart shape used for this demo." />
+      <br />
+      <h2 class="heart-terms-heading"></h2>
+      <TermList class="heart-terms" heading="Components">
+        <Term term="A: Vertex">Where the tangent lines meet forming a triangular point, lowest point in the shape.</Term>
+        <Term term="B: Vertex">Highest point where the mirrored heart lobes meet.</Term>
+        <Term term="C: Vertex">Center point of the mirrored heart lobe.</Term>
+        <Term term="T: Vertex">Point that forms a tangent between vertex <b>A</b> and circle <b>C</b>.</Term>
+        <Term term="N: Unit Vector">A <b><u>unit</u></b> vector pointing from vertex <b>C</b> towards vertex <b>T</b>.</Term>
+        <Term term="R: Length">The radius of the heart lobes.</Term>
+        <Term term="H: Length">The <b>vertical distance</b> between vertex <b>C</b> and vertex <b>B</b>.</Term>
+        <Term term="S: Length">The distance between vertex <b>A</b> and vertex <b>C</b>.</Term>
+        <Term term="Q: Length">The distance between vertex <b>A</b> and vertex <b>T</b>.</Term>
+        <Term term="θ: Angle">The angle required to turn a vector pointing from vertex <b>C</b> to vertex <b>A</b>, to then point towards the tangent vertex <b>T</b>.</Term>
+      </TermList>
+      <br />
+      <p>
+        For clarity, here are definitions for some of the vector math symbols used in the formula frames below.
+      </p>
+      <br />
+      <Formula caption="90-degree 2-D counter-clockwise rotation.">
+        \begin{aligned}
+          \text{vector} &=& \left(\vec{V}\right) = \begin{bmatrix}
+            \vec{V}_{x} \\
+            \vec{V}_{y}
+          \end{bmatrix} \\
+          \text{unit vector} &=& \left(\hat{V}\right) = \left(\tfrac{\vec{V}}{||\vec{V}||}\right) \\
+          \text{delta vector} &=& \left(\vec{AB}\right) = \left(\vec{B}-\vec{A}\right) \\
+          \text{unit delta vector} &=& \left(\hat{\vec{AB}}\right) = \left(\tfrac{\vec{AB}}{||\vec{AB}||}\right) \\
+          \text{90-deg CCW}\perp &=& \left(\vec{V}_{\perp}\right) = \begin{bmatrix}
+            -\vec{V}_{y} \\
+            \vec{V}_{x}
+          \end{bmatrix} \\
+        \end{aligned}
+      </Formula>
+      <br />
+      <p>
+        It's best to start with known variables and constraints.
+      </p>
+      <br />
+      <ul>
+        <li>This shape needs to fill as much of a 1x1 UV unit as possible.</li>
+        <li>The radius of the heart lobes will be used as an animation property, for morphing between a heart and a circle.</li>
+        <li>The heart lobes must be <i>at-least</i> tangent to each other to maintain the illusion of a heart shape.</li>
+      </ul>
+      <br />
+      <p>
+        For inputs, we know that <b>R</b> must be constrained to a minimum of half quadrant 1, and a maximum of half the UV space.
+        This is the maximum range allowed for the heart and circle transformation to maintain the illusion and stay within bounds of the 1x1 UV unit space.
+      </p>
+      <br />
+      <Formula caption="R is within range [0.25, 0.5]">
+        R \in \left[\tfrac{1}{4},\tfrac{1}{2}\right]
+      </Formula>
+      <br />
+      <p>
+        So far both vertex <b>A</b> and <b>C</b> are known values.
+        Vertex <b>A</b> must be the lower-midpoint of the UV space.
+      </p>
+      <br />
+      <Formula caption="A is the point [0, -0.5]">
+        \vec{A} = \begin{bmatrix}
+          0 \\
+          -\tfrac{1}{2}
+        \end{bmatrix}
+      </Formula>
+      <br />
+      <p>
+        Vertex <b>C</b> is offset from the both the top and right edges of the UV space by the radius <b>R</b>.
+      </p>
+      <br />
+      <Formula caption="C is the point [0.5-R, 0.5-R]">
+        \vec{C} = \begin{bmatrix}
+          \tfrac{1}{2}-R \\
+          \tfrac{1}{2}-R \\
+        \end{bmatrix}
+      </Formula>
+      <br />
+      <p>
+        This is enough information to begin drawing with, so lets take a look at what we have so far:
+      </p>
+      <br />
+      <Player :ref="makePlayerRef(`heart-composition-step-0`)"
+              :title="`(Fig. 0) Mirrored Heart Lobe + Lower Point`"
               :date="date"
               :lastmod="lastmod"
               :frame="frame"
-              :state="getPlayerState('compositing-a-heart', `heart-composition-step-${index}`)"
-              @load="(frame) => onStepByStepPlayerLoaded(frame, index)" />
+              :state="getPlayerState('compositing-a-heart', `heart-composition-step-0`)"
+              @load="(frame) => onStepByStepPlayerLoaded(frame, 0)" />
+      <br />
+      <p>
+        To draw the slope connecting vertex <b>A</b> and vertex <b>T</b>, we'll need to find the <b><i>direction</i></b> from vertex <b>C</b> to tangent vertex <b>T</b>, the location of the tangent isn't needed.
+        There are a few ways to derive this value, and it's worth reviewing a few of them.
+      </p>
+      <br />
+      <p>
+        To find the tangent direction, we'll need the length <b>S</b>, the distance between vertices <b>A</b> and <b>C</b>.
+      </p>
+      <br />
+      <Formula caption="S is the length between vertex A and C.">
+        \begin{aligned}
+        S &=& ||\vec{CA}|| = \left(\vec{CA} \cdot \vec{CA}\right) \\
+          &=& \sqrt{(\vec{A}_{x}-\vec{C}_{x})^2 + (\vec{A}_{y}-\vec{C}_{y})^2} \\
+          &=& \sqrt{\left(R-\tfrac{1}{2}\right)^2 + (R-1)^2} \\
+          &=& \sqrt{2R^2 - 3R + \left(\tfrac{5}{4}\right)} \\
+        \end{aligned}
+      </Formula>
+      <br />
+      <p>
+        For the first approach, the tangent direction can be computed with a few trig functions.
+        The angle of a vector pointing from vertex <b>C</b> to vertex <b>A</b> can be computed as the arctangent of the difference between their components.
+        The angle to required to rotate this angle counter-clockwise so it to points towards vertex <b>T</b> can be computed as the arccosine of radius <b>R</b> and length <b>S</b>.
+        Finally, the sum of the angles can be used to compute <b>N</b> using cosine and sine for the x and y components respectively.
+      </p>
+      <br />
+      <p>
+        This solution requires 4 trig functions which are relatively expensive operations.
+      </p>
+      <br />
+      <Formula caption="unit vector N, computed through trig functions.">
+        \begin{aligned}
+          \alpha =& \arctan(\tfrac{\vec{CA}_{y}}{\vec{CA}_{x}}) \\
+          \theta =& \arccos(\tfrac{R}{S}) \\
+          \hat{N} =& \begin{bmatrix}
+            \cos(\alpha+\theta) \\
+            \sin(\alpha+\theta)
+          \end{bmatrix}
+        \end{aligned}
+      </Formula>
+      <br />
+      <p>
+        For the second approach, the tangent direction can be computed without trig functions by using a <ExternalLink to="https://en.wikipedia.org/wiki/Rotation_matrix">rotation matrix</ExternalLink> based on <b class="no-wrap">cos(θ)</b> and <b class="no-wrap">sin(θ)</b>, rather than computing the angle <b>θ</b>.
+        This can be done by using perpendicular unit vectors, or with a rotation matrix.
+      </p>
+      <br />
+      <p>
+        With the length <b>Q</b> we can solve for <b class="no-wrap">cos(θ)</b> and <b class="no-wrap">sin(θ)</b>, rather than <b>θ</b> itself.
+      </p>
+      <br />
+      <Formula caption="Q is the length between vertex A and T.">
+        \begin{aligned}
+          Q             &=& \sqrt{S^2 - R^2} \\
+          \cos(\theta)  &=& \left(\tfrac{R}{S}\right) \\
+          \sin(\theta)  &=& \left(\tfrac{Q}{S}\right)
+        \end{aligned}
+      </Formula>
+      <br />
+      <p>
+        Next create a unit vector pointing from vertex <b>C</b> to vertex <b>A</b>, scaling the difference between them by the inverse length <b>S</b> to normalize.
+      </p>
+      <br />
+      <Formula caption="unit vector pointing from vertex C to vertex A.">
+        \hat{\vec{CA}} = \tfrac{\vec{CA}}{S}
+      </Formula>
+      <br />
+      <p>
+        Then there are a few more options to choose from to compute the unit vector <b>N</b>:
+      </p>
+      <br />
+      <ul>
+        <li>
+          <p>
+            Create a 2-D rotation matrix directly with the precomputed values <b class="no-wrap">cos(θ)</b> and <b class="no-wrap">sin(θ)</b>.
+          </p>
+          <Formula caption="unit vector N, computed directly with a rotation matrix using matrix multiplication.">
+            \begin{aligned}
+              \hat{N} &=& \begin{bmatrix}
+                \cos(\theta) & \quad -\sin(\theta) \\
+                \sin(\theta) & \quad \cos(\theta)
+              \end{bmatrix} \cdot \hat{\vec{CA}} \\
+
+              &=& \begin{bmatrix}
+                \cos(\theta) \cdot \hat{\vec{CA}_{x}} - \sin(\theta) \cdot \hat{\vec{CA}_{y}} \\
+                \sin(\theta) \cdot \hat{\vec{CA}_{x}} + \cos(\theta) \cdot \hat{\vec{CA}_{y}}
+              \end{bmatrix}
+            \end{aligned}
+          </Formula>
+        </li>
+        <li>
+          <p>
+            Swizzle and flip a component to create a counter-clockwise perpendicular vector.
+            Then multiply each vector by <b class="no-wrap">cos(θ)</b> and <b class="no-wrap">sin(θ)</b> respectively.
+          </p>
+          <Formula caption="unit vector N, computed with vector multiplication and addition, another form of the 2-D rotation matrix.">
+            \begin{aligned}
+              \hat{N} &=& \left(\cos(\theta) \cdot \hat{\vec{CA}} + \sin(\theta) \cdot \hat{\vec{CA}}_{\perp}\right) \\
+                      &=& \begin{bmatrix}
+                            \cos(\theta) \cdot \hat{\vec{CA}}_{x} \\
+                            \cos(\theta) \cdot \hat{\vec{CA}}_{y} \\
+                          \end{bmatrix} + \begin{bmatrix}
+                            \sin(\theta) \cdot -\hat{\vec{CA}}_{y} \\
+                            \sin(\theta) \cdot \hat{\vec{CA}}_{x} \\
+                          \end{bmatrix} \\
+                      &=& \left(\left(\tfrac{R}{S}\right) \cdot \hat{\vec{CA}} + \left(\tfrac{Q}{S}\right) \cdot \hat{\vec{CA}}_{\perp}\right) \\
+            \end{aligned}
+          </Formula>
+        </li>
+      </ul>
+      <br />
+      <p>
+        Now that the unit normal <b>N</b> has been solved a plane can be drawn relative to vertex <b>A</b> which is tangent to the heart lobe through vertex <b>T</b>.
+      </p>
+      <br />
+      <Player :ref="makePlayerRef(`heart-composition-step-1`)"
+              :title="`(Fig. 1) Mirrored Plane`"
+              :date="date"
+              :lastmod="lastmod"
+              :frame="frame"
+              :state="getPlayerState('compositing-a-heart', `heart-composition-step-1`)"
+              @load="(frame) => onStepByStepPlayerLoaded(frame, 1)" />
+      <br />
+      <p>
+        Unfortunately the shape can't easily be composed using boolean operations, so the image needs to be sliced into separate draw regions.
+        To create a seamless appearance when joining the plane and circle, the circles need to be cut from their center point to a tangent.
+        At least two draw regions are needed, but 3 planes are needed to define the areas to cut.
+      </p>
+      <br />
+      <p>
+        The draw regions and the cutting planes can roughly be described as follows:
+      </p>
+      <br />
+      <Figure src_light="/images/projects/sdf/heart_draw_regions_light.png"
+              src_dark="/images/projects/sdf/heart_draw_regions_dark.png"
+              alt="Illustration of the 3 draw region mask slices are made." />
+      <br />
+      <TermList heading="Draw Regions">
+        <Term term="Planes">Mostly the slope connecting vertex <b>A</b> and vertex <b>T</b>, and a triangle region cut out of circle <b>C</b> with vertex <b>B</b>.</Term>
+        <Term term="Circles">Mostly outward curves like the heart lobes and a section below the point drawn at vertex <b>A</b>.</Term>
+      </TermList>
+      <br />
+      <TermList heading="Region Edges">
+        <Term term="Circle Edge CB"><Formula>\vec{C} \quad \text{towards} \quad \hat{\vec{CB}}_{\perp}</Formula></Term>
+        <Term term="Circle Edge CT"><Formula>\vec{C} \quad \text{towards} \quad -\hat{N}_{\perp}</Formula></Term>
+        <Term term="Point Edge A"><Formula>\vec{A} \quad \text{towards} \quad \hat{N}_{\perp}</Formula></Term>
+      </TermList>
+      <br />
+      <p>
+        Since vertex <b>B</b> lies on the vertical axis only the <b>Y</b> component is missing, which can be defined as relative to the <b>Y</b> component of vertex <b>C</b>.
+        So the vertical component of <b>B</b> is only missing the value <b>H</b> which can be solve for as follows.
+      </p>
+      <br />
+      <Formula caption="H is the vertical difference between vertex B and C.">
+        \begin{aligned}
+          H &=& \sqrt{R^2 - \left(\vec{C}_{x}\right)^2} \\
+            &=& \sqrt{R^2 - \left(\tfrac{1}{2}-R\right)^2} \\
+            &=& \sqrt{R-\tfrac{1}{4}} \\
+        \end{aligned}
+      </Formula>
+      <Formula caption="B is the highest point where the heart lobes meet.">
+        \begin{aligned}
+          \vec{B} &=& \begin{bmatrix}
+                        0 \\
+                        \vec{C}_{y} + H \\
+                      \end{bmatrix}
+                  &=& \begin{bmatrix}
+                        0 \\
+                        \left(\tfrac{1}{2}-R\right) + \sqrt{R-\tfrac{1}{4}} \\
+                      \end{bmatrix}
+        \end{aligned}
+      </Formula>
+      <br />
+      <p>
+        With the draw regions have been defined the image can be stitched together.
+      </p>
+      <br />
+      <Player :ref="makePlayerRef(`heart-composition-step-2`)"
+              :title="`(Fig. 2) Draw Region #1, Outer Circles`"
+              :date="date"
+              :lastmod="lastmod"
+              :frame="frame"
+              :state="getPlayerState('compositing-a-heart', `heart-composition-step-2`)"
+              @load="(frame) => onStepByStepPlayerLoaded(frame, 2)" />
+      <Player :ref="makePlayerRef(`heart-composition-step-3`)"
+              :title="`(Fig. 3) Draw Region #2, Plane (Incomplete)`"
+              :date="date"
+              :lastmod="lastmod"
+              :frame="frame"
+              :state="getPlayerState('compositing-a-heart', `heart-composition-step-3`)"
+              @load="(frame) => onStepByStepPlayerLoaded(frame, 3)" />
+      <Player :ref="makePlayerRef(`heart-composition-step-4`)"
+              :title="`(Fig. 4) Heart Shape (Incomplete)`"
+              :date="date"
+              :lastmod="lastmod"
+              :frame="frame"
+              :state="getPlayerState('compositing-a-heart', `heart-composition-step-4`)"
+              @load="(frame) => onStepByStepPlayerLoaded(frame, 4)" />
+      <br />
+      <p>
+        That's close, the silhouette is correct but the area below vertex <b>B</b> doesn't look right.
+        To fix this, an <i>inverted</i> point can be drawn at vertex <b>B</b> within the planes draw region, giving the illusion that the heart lobes have one continuous inner curve.
+      </p>
+      <br />
+      <Player :ref="makePlayerRef(`heart-composition-step-5`)"
+              :title="`(Fig. 5) Outer Circles + Inverted Point in Draw Region #2`"
+              :date="date"
+              :lastmod="lastmod"
+              :frame="frame"
+              :state="getPlayerState('compositing-a-heart', `heart-composition-step-5`)"
+              @load="(frame) => onStepByStepPlayerLoaded(frame, 5)" />
+      <Player :ref="makePlayerRef(`heart-composition-step-6`)"
+              :title="`(Fig. 6) Draw Region #2, Plane + Inverted Point`"
+              :date="date"
+              :lastmod="lastmod"
+              :frame="frame"
+              :state="getPlayerState('compositing-a-heart', `heart-composition-step-6`)"
+              @load="(frame) => onStepByStepPlayerLoaded(frame, 6)" />
+      <br />
+      <p>
+        So with 2 draw regions composed with 3 cutting edges, and drawing 3 points and a plane, the heart is complete and is ready for animation.
+      </p>
       <br />
       <Details summary="Heart Signed-distance Function">
         <Code lang="cpp"
@@ -1058,9 +1506,10 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       <br />
       <PropertyEditor :ref="makeEditorRef('heart')"
                       :properties="getShaderProperties('heart', {
-                        'uShowAxis': { default_value: true },
+                        'uScale': { default_value: 1.5 },
+                        'uShowAxisY': { default_value: true },
                         'heart.uMode': { default_value: 1 },
-                        'heart.uBlendToCircle': { default_value: 0.2 },
+                        'heart.uBlendToCircle': { default_value: 0.25 },
                       })"
                       @property-changed="(name) => onPlayerPropertyChanged(players['heart'].inner_frame, name)" />
     </Section>
@@ -1097,3 +1546,9 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
     </Section>
   </Column>
 </template>
+
+<style scoped>
+ol.foundation-steps li {
+  margin: var(--size-padding-round) 0;
+}
+</style>

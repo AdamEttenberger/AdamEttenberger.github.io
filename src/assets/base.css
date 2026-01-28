@@ -103,14 +103,21 @@
   --anim-transition: var(--anim-transition-duration) var(--anim-transition-timing-function);
 }
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  border: none;
-  padding: 0;
-  margin: 0;
-  font-weight: normal;
+/* TODO: Audit use of wildcard selector in base styles, clearing padding/margin.
+ * Exclude MathML Elements: https://developer.mozilla.org/en-US/docs/Web/MathML/Reference/Element
+ */
+*:not(math, maction, annotation, annotation-xml, menclose, merror, mfenced, mfrac, mi, mmultiscripts, mn, mo, mover, mpadded,
+      mphantom, mprescripts, mroot, mrow, ms, semantics, mspace, msqrt, mstyle, msub, msup, msubsup, mtable, mtd, mtext, mtr,
+      munder, munderover) {
+  &,
+  &::before,
+  &::after {
+    box-sizing: border-box;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font-weight: normal;
+  }
 }
 
 :root {
@@ -201,4 +208,8 @@ merror {
 .centered {
   text-align: center;
   align-self: center;
+}
+
+.no-wrap {
+  white-space: nowrap;
 }

@@ -179,10 +179,10 @@ function onPropertyChanged(name) {
         gl.disable(gl.DEPTH_TEST);
       "></Code>
 
-      <Formula>
+      <Formula caption="Equation for the blendFuncSeparate above, computing the color `R` given colors source `S` and destination `D`.">
         \begin{aligned}
-        R_{rgb} &=& \Big[(S_{rgb} \cdot S_a) &+& (D_{rgb} \cdot (1 - S_a))\Big] \\
-        R_a     &=& \Big[(S_a \cdot 1) &+& (D_a \cdot (1 - S_a))\Big] \\
+        R_{rgb} &=& &(S_{rgb} \cdot S_a) &+& (D_{rgb} \cdot (1 - S_a))& \\
+        R_a     &=& &(S_a \cdot 1) &+& (D_a \cdot (1 - S_a))& \\
         \end{aligned}
       </Formula>
       <br />
