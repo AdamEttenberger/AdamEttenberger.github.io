@@ -22,6 +22,7 @@ import {
 } from '@/util/property_editor/property_types'
 import useIntersectionObserver from '@/util/use_intersection_observer';
 //
+import default_vertex_shader from '@/assets/shaders/default.vert?raw'
 import UnderConstruction from '@/components/under_construction.vue'
 import WebPageCitation from '@/components/citation/web_page_citation.vue'
 
@@ -647,7 +648,7 @@ const shader_definitions = Object.fromEntries(shader_templates.entries().map(([s
       label: value.label,
       uniforms: value.uniforms,
       sources: {
-        vert: {file: "/library/projects/shader_loader/shaders/default.vert"},
+        vert: {source: default_vertex_shader},
         frag: {source: createSdfShader(value.uniforms, value.sdf_function)},
       }
     }
