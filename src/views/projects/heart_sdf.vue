@@ -1438,9 +1438,9 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       </TermList>
       <br />
       <TermList heading="Region Edges">
-        <Term term="Circle Edge CB"><Formula>\vec{C} \quad \text{towards} \quad \hat{\vec{CB}}_{\perp}</Formula></Term>
-        <Term term="Circle Edge CT"><Formula>\vec{C} \quad \text{towards} \quad -\hat{N}_{\perp}</Formula></Term>
-        <Term term="Point Edge A"><Formula>\vec{A} \quad \text{towards} \quad \hat{N}_{\perp}</Formula></Term>
+        <Term term="Circle Edge CB"><Formula caption="">\vec{C} \quad \text{towards} \quad \hat{\vec{CB}}_{\perp}</Formula></Term>
+        <Term term="Circle Edge CT"><Formula caption="">\vec{C} \quad \text{towards} \quad -\hat{N}_{\perp}</Formula></Term>
+        <Term term="Point Edge A"><Formula caption="">\vec{A} \quad \text{towards} \quad \hat{N}_{\perp}</Formula></Term>
       </TermList>
       <br />
       <p>
@@ -1544,7 +1544,8 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
 
     <Section heading="Adding Animations">
       <p>
-        <UnderConstruction />
+        Simple animations can be added by looping over one or more wave functions, providing <b>frame time</b> or a similar value to interpolate properties of the scene such as object transformations, colors, or texture coordinates for example.
+        This type of animation can easily be adjusted to warp time or play in reverse by scaling the real <b>delta time</b>, unless some property of the animation isn't deterministic or breaks time symmetry.
       </p>
       <br />
       <Code lang="cpp"
@@ -1554,7 +1555,8 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
         float wave1 = 0.5 + 0.5 * cos(animation_time);
         float wave2 = 0.5 + 0.5 * cos(animation_time * 2.0);
         float t = min(wave1, wave2);
-        r = mix(kMinRadius, mix(kMinRadius, kMaxRadius, uAnimationAmplitude), t);
+        float amp = mix(kMinAnimationRadius, kMaxRadius, uAnimationAmplitude);
+        r = mix(kMinAnimationRadius, amp, t);
       " />
     </Section>
 
