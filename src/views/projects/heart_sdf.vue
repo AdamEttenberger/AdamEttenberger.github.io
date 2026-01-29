@@ -891,7 +891,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
 
     <Section heading="What is a signed-distance function (SDF)?">
       <p>
-        A <ExternalLink to="https://en.wikipedia.org/wiki/Signed_distance_function">signed-distance function</ExternalLink> (SDF) or signed-distance field, is a function which computes the signed-distance between any point and the nearest surface or boundary.
+        A <ExternalLink to="https://en.wikipedia.org/wiki/Signed_distance_function">signed-distance function</ExternalLink> (<abbr>SDF</abbr>) or signed-distance field, is a function which computes the signed-distance between any point and the nearest surface or boundary.
         The sign of the result indicates whether a point is inside (negative), outside (positive), or on the surface (0) of a shape boundary, like how the dot product of two vectors indicates whether they point in similar (positive), opposing (negative), or perpendicular (0) directions.
       </p>
     </Section>
@@ -904,7 +904,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       </p>
       <br />
       <p>
-        For this exercise I wanted to experiment with signed-distance fields (SDF) for rendering game user interface elements and shader effects.
+        For this exercise I wanted to experiment with signed-distance fields (<abbr>SDF</abbr>) for rendering game user interface elements and shader effects.
         This also gave me an excuse to begin implementing a shader viewport for more interesting demos going forward.
         The new viewport behaves like the viewport in <ExternalLink to="https://www.shadertoy.com/">ShaderToy</ExternalLink>, providing a few predefined uniforms like elapsed time and viewport size automatically, built with my simple <RouterLink to="/projects/proto_engine">WebGL Proto-Engine</RouterLink>.
       </p>
@@ -1131,7 +1131,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       </ul>
       <br />
       <p>
-        The default settings for the demo below inverts the SDF of the plane connecting the two points to highlight the drawing regions.
+        The default settings for the demo below inverts the <abbr>SDF</abbr> of the plane connecting the two points to highlight the drawing regions.
       </p>
       <br />
       <Details summary="Aligned Capsule: Drawing Regions">
