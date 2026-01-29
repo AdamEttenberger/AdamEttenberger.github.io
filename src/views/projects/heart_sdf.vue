@@ -635,16 +635,19 @@ const shader_templates = new Map([
             float t = uTime * TAU * 0.25;
             vec2 path = vec2(cos(t), sin(t)) * ring_core;
 
-            float orbitals_sdf = sdf_circle(p - path, dot_size);
-            orbitals_sdf = sdf_union(orbitals_sdf, sdf_circle(p - vec2(cos45) * ring_core, dot_size));
-            orbitals_sdf = sdf_union(orbitals_sdf, sdf_rectangle(p - rot90_cw(path), vec2(dot_size)));
-            float ring_sdf = sdf_torus(p, ring_core, ring_inflate);
+            float ring = sdf_torus(p, ring_core, ring_inflate);
+            float circle = sdf_circle(p - path, dot_size);
+            float orbitals = sdf_union(
+                sdf_circle(p - vec2(cos45) * ring_core, dot_size),
+                sdf_rectangle(p - rot90_cw(path), vec2(dot_size)));
+
+            float outer_shapes = sdf_union(circle, orbitals);
 
             if (uSmoothMinimum) {
               float smooth_factor = mix(0.025, 0.1, (1.0-cos(t*0.5)));
-              return sdf_smooth_union(ring_sdf, orbitals_sdf, smooth_factor);
+              return sdf_smooth_union(ring, outer_shapes, smooth_factor);
             } else {
-              return sdf_union(ring_sdf, orbitals_sdf);
+              return sdf_union(ring, outer_shapes);
             }
           case 1: // Plane
             return sdf_plane(p, vec2(cos45, -cos45));
