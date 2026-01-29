@@ -8,10 +8,12 @@ import Details from '@/components/details.vue'
 import ExternalLink from '@/components/external_link.vue'
 import Figure from '@/components/figure.vue'
 import Formula from '@/components/formula.vue'
+import Note from '@/components/note.vue'
 import Player from '@/components/player.vue'
 import { PlayerState } from '@/types/player_state'
 import PropertyEditor from '@/components/property_editor/property_editor.vue'
 import Section from '@/components/section.vue'
+import WebPageCitation from '@/components/citation/web_page_citation.vue'
 import {
   Color4Options,
   ComboBoxOptions,
@@ -20,11 +22,9 @@ import {
   NumberRangeOptions,
   ToggleOptions,
 } from '@/util/property_editor/property_types'
-import useIntersectionObserver from '@/util/use_intersection_observer';
 //
+import useIntersectionObserver from '@/util/use_intersection_observer';
 import default_vertex_shader from '@/assets/shaders/default.vert?raw'
-import UnderConstruction from '@/components/under_construction.vue'
-import WebPageCitation from '@/components/citation/web_page_citation.vue'
 
 const players = {};
 const editors = {};
@@ -1409,6 +1409,12 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
             Swizzle and flip a component to create a counter-clockwise perpendicular vector.
             Then multiply each vector by <b class="no-wrap">cos(θ)</b> and <b class="no-wrap">sin(θ)</b> respectively.
           </p>
+          <br />
+          <Note>
+            This is an identity of the matrix above.
+            Game engines often have a <b>local transform</b> API that exposes <b><u>unit</u></b> vectors like <b>forward</b>, <b>right</b>, <b>up</b>, and other <i>local</i> cardinal directions which are helpful for rotating a vector when <b class="no-wrap">cos(θ)</b> and <b class="no-wrap">sin(θ)</b> are known.
+          </Note>
+          <br />
           <Formula caption="unit vector N, computed with vector multiplication and addition, another form of the 2-D rotation matrix.">
             \begin{aligned}
               \hat{N} &=& \left(\cos(\theta) \cdot \hat{\vec{CA}} + \sin(\theta) \cdot \hat{\vec{CA}}_{\perp}\right) \\

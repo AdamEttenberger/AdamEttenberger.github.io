@@ -11,7 +11,10 @@ import { library } from '@fortawesome/fontawesome-svg-core'
 // import { far } from '@fortawesome/free-regular-svg-icons'
 // import { fab } from '@fortawesome/free-brands-svg-icons'
 import {
+  faCircleExclamation,
+  faCircleInfo,
   faCirclePlay,
+  faCircleQuestion,
   faDragon,
   faEnvelope,
   faFileCircleXmark,
@@ -19,6 +22,7 @@ import {
   faLightbulb,
   faQuestion,
   faRotateLeft,
+  faTriangleExclamation,
   faUpRightFromSquare,
   faXmark,
 } from '@fortawesome/free-solid-svg-icons'
@@ -34,7 +38,10 @@ app.use(pinia);
 
 // FontAwesome Config
 library.add(
+  faCircleExclamation,
+  faCircleInfo,
   faCirclePlay,
+  faCircleQuestion,
   faDragon,
   faEnvelope,
   faFileCircleXmark,
@@ -42,6 +49,7 @@ library.add(
   faLightbulb,
   faQuestion,
   faRotateLeft,
+  faTriangleExclamation,
   faUpRightFromSquare,
   faXmark,
 );

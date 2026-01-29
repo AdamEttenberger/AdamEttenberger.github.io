@@ -25,12 +25,14 @@
   --theme-black: #181818;
 
   /* Light Theme Background Colors */
+  --theme-background-info-light: #bec5d4;
   --theme-background-warn-light: #e2e671;
   --theme-background-error-light: #DA6C6C;
   --theme-background-light-1: #c2e2ea;
   --theme-background-light-2: #dceef3;
   --theme-background-button-light-1: #6C87BC;
   /* Dark Theme Background Colors */
+  --theme-background-info-dark: #35373b;
   --theme-background-warn-dark: #e2e671;
   --theme-background-error-dark: #DA6C6C;
   --theme-background-dark-1: #0d1b2a;
@@ -40,11 +42,13 @@
   --theme-text-light-1: var(--theme-black);
   --theme-text-light-2: #8E3B46;
   --theme-text-button-light: var(--theme-black);
+  --theme-text-info-light: var(--theme-black);
   --theme-text-warn-light: var(--theme-black);
   --theme-text-error-light: var(--theme-black);
   --theme-text-dark-1: var(--theme-white);
   --theme-text-dark-2: #f4bc6c;
   --theme-text-button-dark: var(--theme-black);
+  --theme-text-info-dark: var(--theme-white);
   --theme-text-warn-dark: var(--theme-black);
   --theme-text-error-dark: var(--theme-black);
 
@@ -68,11 +72,13 @@
   --color-background-button-active:   --button-active(var(--color-background-button));
   --color-background-button-selected: --button-selected(var(--color-background-button));
   --color-background-button-disabled: --button-disabled(var(--color-background-button));
+  --color-background-info:            light-dark(var(--theme-background-info-light),      var(--theme-background-info-dark));
   --color-background-warn:            light-dark(var(--theme-background-warn-light),      var(--theme-background-warn-dark));
   --color-background-error:           light-dark(var(--theme-background-error-light),     var(--theme-background-error-dark));
   --color-text:                       light-dark(var(--theme-text-light-1),               var(--theme-text-dark-1));
   --color-text-button:                light-dark(var(--theme-text-button-light),          var(--theme-text-button-dark));
   --color-text-heading:               light-dark(var(--theme-text-light-2),               var(--theme-text-dark-2));
+  --color-text-info:                  light-dark(var(--theme-text-info-light),            var(--theme-text-info-dark));
   --color-text-warn:                  light-dark(var(--theme-text-warn-light),            var(--theme-text-warn-dark));
   --color-text-error:                 light-dark(var(--theme-text-error-light),           var(--theme-text-error-dark));
   --color-link:                       light-dark(var(--theme-link-light-1),               var(--theme-link-dark-1));
@@ -174,6 +180,11 @@ ul, ol {
   &.list-none {
     list-style: none;
   }
+}
+
+.info {
+  background-color: var(--color-background-info);
+  color: var(--color-text-info);
 }
 
 .warn {
