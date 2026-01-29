@@ -1588,6 +1588,55 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       </p>
     </Section>
 
+    <Section heading="Challenges">
+      <Details summary="Too many active WebGL contexts. Oldest context will be lost.">
+        <p>
+          Modern browsers have implemented guardrails to prevent websites from using too many resources.
+          One of which is limiting how many active WebGL contexts allowed.
+          This page quickly reached that limit during development, as this is the page with the most demo frames on my website thus far.
+        </p>
+        <br />
+        <p>
+          To avoid this I implemented a simple Vue composable to encapsulates an <ExternalLink to="https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API">IntersectionObserver</ExternalLink> which can be used to manage renderer states.
+          The implementor initializes the observer with a callback for handling events.
+        </p>
+        <br />
+        <p>
+          Observables are registered with a local key (e.g., a unique name) through a Vue template <ExternalLink to="https://vuejs.org/guide/essentials/template-refs#function-refs">function ref</ExternalLink> which associates the element ref with the provided key.
+          When the callback is run, the associated key is passed so the implementor can easily act within the callback handler when many elements are bound to the observer.
+          This is a work in progress, but avoids the immediate issue as I continue learning Vue.
+        </p>
+        <br />
+        <Details summary="useIntersectionObserver Example">
+          <Code lang="vue"
+              caption="Example use of useIntersectionObserver"
+              text="
+            <script setup lang='ts'>
+            import ChildComponent from '@/components/child_component.vue'
+            import useIntersectionObserver from '@/util/use_intersection_observer';
+
+            const observable_states = ref({});
+            const { observe: mapIntersectionObserver } = useIntersectionObserver((key, entry, _index, _array) => {
+              observable_states.value[key] = entry.isIntersecting;
+            });
+
+            function makeObservable(key) {
+              // For multi-root nodes, be sure the observer exposes
+              // an observable child element to link instead of $el.
+              return (e) => mapIntersectionObserver(key, e?.$el);
+            }
+            </script>
+
+            <template>
+              <ChildComponent v-for='i in [...Array(3).keys()]'
+                              :ref='makeObservable(`child-${i}`)'
+                              :enabled='observable_states[`child-${i}`]' />
+            </template>
+          " />
+        </Details>
+      </Details>
+    </Section>
+
     <Section heading="References">
       <WebPageCitation firstname='Inigo' lastname='Quilez'
                        website_title='Inigo Quilez' webpage_title='Inigo Quilez'
