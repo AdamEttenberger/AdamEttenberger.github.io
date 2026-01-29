@@ -1021,7 +1021,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
               @load="(frame) => onStepByStepPlayerLoaded(frame, 0)" />
       <br />
       <Note>
-        The demos in this section have been adjusted to show some space outside the 1x1 UV unit to make some details more apparent.
+        Demos in this section have been adjusted to show some space outside the 1x1 UV unit to make some details more apparent.
         In particular, the area below vertex <b>A</b>.
       </Note>
       <br />
