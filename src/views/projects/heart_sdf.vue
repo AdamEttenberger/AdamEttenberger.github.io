@@ -1441,12 +1441,23 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       </p>
       <br />
       <p>
+        When using planes to slice an image into different regions, be sure their intersection points behave well when animating the shape.
+        Two of the planes used for this image are parallel, the region between <b>A</b> and <b>T</b> that extends along the normal <b>N</b>.
+        However, the third cutting plane is based on the edge between vertex <b>C</b> towards <b>B</b>, and <b>B</b> can lie on either side of the other plane.
+        For the heart shape this issue can be avoided by using the vertical axis to define which plane should be used to cut with.
+      </p>
+      <br />
+      <p>
         The drawing regions and the cutting planes can roughly be described as follows:
       </p>
       <br />
       <Figure src_light="/images/projects/sdf/heart_draw_regions_light.png"
               src_dark="/images/projects/sdf/heart_draw_regions_dark.png"
               alt="Illustration of the 3 draw region mask slices are made." />
+      <br />
+      <Figure src_light="/images/projects/sdf/heart_cut_planes_light.png"
+              src_dark="/images/projects/sdf/heart_cut_planes_dark.png"
+              alt="Illustration of cut edges CB and CT, showing how the angle can be acute or obtuse." />
       <br />
       <TermList heading="Drawing Regions">
         <Term term="Planes">Mostly the slope connecting vertex <b>A</b> and vertex <b>T</b>, and a triangle region cut out of circle <b>C</b> with vertex <b>B</b>.</Term>
@@ -1565,7 +1576,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       </p>
       <br />
       <Code lang="cpp"
-            caption="Time based heartbeat animation cycle."
+            caption="Time based heartbeat animation cycle composed of two wave functions."
             text="
         float animation_time = (uTime * TAU) * kAnimationFrequency;
         float wave1 = 0.5 + 0.5 * cos(animation_time);
