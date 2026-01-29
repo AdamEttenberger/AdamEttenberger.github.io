@@ -14,7 +14,7 @@ export default function useIntersectionObserver(entry_callback: IntersectionObse
         }
         entry_callback.call(null, key, entry, index, array);
       });
-    }, observer_init ?? {} as IntersectionObserverInit);
+    }, observer_init ?? undefined);
 
   function observe(key: any, target_element: Element) {
     const old_target = key_to_target.get(key);
