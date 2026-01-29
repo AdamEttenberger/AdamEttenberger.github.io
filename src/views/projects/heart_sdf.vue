@@ -1210,7 +1210,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
           \vec{B} &=& \begin{bmatrix}
                         0 \\
                         \vec{C}_{y} + H \\
-                      \end{bmatrix}
+                      \end{bmatrix} \\
                   &=& \begin{bmatrix}
                         0 \\
                         \left(\tfrac{1}{2}-R\right) + \sqrt{R-\tfrac{1}{4}} \\
