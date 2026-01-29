@@ -30,21 +30,12 @@ import { NoteKind } from '@/types/note_kind'
 const players = {};
 const editors = {};
 const player_states = ref({});
-const section_states = ref({});
-
-const { observe: mapSectionIntersectionObserver } = useIntersectionObserver((key, entry, _index, _array) => {
-  section_states.value[key] = entry.isIntersecting;
-});
 
 const { observe: mapPlayerIntersectionObserver } = useIntersectionObserver((key, entry, _index, _array) => {
-  player_states.value[key] = entry.isIntersecting;
+  player_states.value[key] = entry.isIntersecting
+      ? PlayerState.Playing
+      : PlayerState.Empty;
 });
-
-function makeSectionRef(key) {
-  return (e) => {
-    mapSectionIntersectionObserver(key, e?.$el);
-  };
-}
 
 function makePlayerRef(key) {
   return (e) => {
@@ -57,12 +48,6 @@ function makeEditorRef(key) {
   return (e) => {
     editors[key] = e;
   };
-}
-
-function getPlayerState(section_key: string, player_key: string) {
-  return (section_states.value[section_key] || player_states.value[player_key])
-      ? PlayerState.Playing
-      : PlayerState.Empty;
 }
 
 const UPDATE = {
@@ -876,7 +861,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
           :date="date"
           :lastmod="lastmod"
           :frame="frame"
-          :state="PlayerState.Playing"
+          :state="player_states['main']"
           @load="(frame) => onPlayerLoaded(frame, editors['main'], 'heart')" />
   <Column>
     <Section heading="Controls">
@@ -998,7 +983,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       </ol>
     </Section>
 
-    <Section :ref="makeSectionRef('points-circles-rings')" heading="Points, Circles, and Rings">
+    <Section heading="Points, Circles, and Rings">
       <p>
         The easiest shape to implement is likely a point, or its inflated 2D/3D forms (circle, sphere) which are offsets of the point function.
         Intuitively the signed-distance from a point is either <b>0</b> at the exact center or <b>&gt;0</b>.
@@ -1014,7 +999,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
               :date="date"
               :lastmod="lastmod"
               :frame="frame"
-              :state="getPlayerState('points-circles-rings', 'circle')"
+              :state="player_states['circle']"
               @load="(frame) => onPlayerLoaded(frame, editors['circle'], 'circle')" />
       <br />
       <PropertyEditor :ref="makeEditorRef('circle')"
@@ -1022,7 +1007,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
                       @property-changed="(name) => onPlayerPropertyChanged(players['circle'].inner_frame, name)" />
     </Section>
 
-    <Section :ref="makeSectionRef('planes-lines')" heading="Planes and Lines">
+    <Section heading="Planes and Lines">
       <p>
         Next is a plane, defined with a <b>unit vector normal</b> and an amount to offset the plane from the origin along the normal.
         The signed-distance between a point and a plane is the projected length onto the <b><u>unit</u> vector</b> using the <ExternalLink to="https://en.wikipedia.org/wiki/Dot_product">vector dot product</ExternalLink>.
@@ -1045,7 +1030,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
               :date="date"
               :lastmod="lastmod"
               :frame="frame"
-              :state="getPlayerState('planes-lines', 'plane')"
+              :state="player_states['plane']"
               @load="(frame) => onPlayerLoaded(frame, editors['plane'], 'plane')" />
       <br />
       <PropertyEditor :ref="makeEditorRef('plane')"
@@ -1057,7 +1042,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
                       @property-changed="(name) => onPlayerPropertyChanged(players['plane'].inner_frame, name)" />
     </Section>
 
-    <Section :ref="makeSectionRef('symmetry')" heading="Symmetry">
+    <Section heading="Symmetry">
       <p>
         When a shape can be mirrored, centering the shape along the origin may simplify the math involved.
         For example, mirroring across the horizontal or vertical axis can be achieved by using the absolute value of their respective UV component when the shape is centered at the origin, causing anything drawn on the <b>positive</b> side of the axis to be mirrored, or the first quadrant when both axes are mirrored.
@@ -1074,7 +1059,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
               :date="date"
               :lastmod="lastmod"
               :frame="frame"
-              :state="getPlayerState('symmetry', 'mirror')"
+              :state="player_states['mirror']"
               @load="(frame) => onPlayerLoaded(frame, editors['mirror'], 'mirror')" />
       <br />
       <PropertyEditor :ref="makeEditorRef('mirror')"
@@ -1085,7 +1070,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
                       @property-changed="(name) => onPlayerPropertyChanged(players['mirror'].inner_frame, name)" />
     </Section>
 
-    <Section :ref="makeSectionRef('boolean-operations')" heading="Boolean Operations">
+    <Section heading="Boolean Operations">
       <p>
         Shapes can be combined with an equivalent to boolean operators.
         These make it easier to create complex shapes, but don't guarantee the signed-distance field is accurate.
@@ -1103,7 +1088,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
               :date="date"
               :lastmod="lastmod"
               :frame="frame"
-              :state="getPlayerState('boolean-operations', 'venn-diagram')"
+              :state="player_states['venn-diagram']"
               @load="(frame) => onPlayerLoaded(frame, editors['venn-diagram'], 'venn-diagram')" />
       <br />
       <PropertyEditor :ref="makeEditorRef('venn-diagram')"
@@ -1111,7 +1096,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
                       @property-changed="(name) => onPlayerPropertyChanged(players['venn-diagram'].inner_frame, name)" />
     </Section>
 
-    <Section :ref="makeSectionRef('draw-regions')" heading="Drawing Regions">
+    <Section heading="Drawing Regions">
       <p>
         Another approach to compositing a shape is to slice the render into different drawing regions.
         Consider a capsule shape which is effectively an inflated line segment.
@@ -1146,7 +1131,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
               :date="date"
               :lastmod="lastmod"
               :frame="frame"
-              :state="getPlayerState('draw-regions', 'capsule')"
+              :state="player_states['capsule']"
               @load="(frame) => onPlayerLoaded(frame, editors['capsule'], 'capsule')" />
       <br />
       <PropertyEditor :ref="makeEditorRef('capsule')"
@@ -1185,7 +1170,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       " />
     </Section>
 
-    <Section :ref="makeSectionRef('compositing-a-heart')" heading="Compositing a Heart">
+    <Section heading="Compositing a Heart">
       <p>
         To begin lets first analyze the shape to decide how to approach drawing it.
         There are many subtle variations and methods of drawing the <ExternalLink to="https://en.wikipedia.org/wiki/Heart_symbol">heart symbol</ExternalLink>.
@@ -1311,7 +1296,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
               :date="date"
               :lastmod="lastmod"
               :frame="frame"
-              :state="getPlayerState('compositing-a-heart', `heart-composition-step-0`)"
+              :state="player_states['heart-composition-step-0']"
               @load="(frame) => onStepByStepPlayerLoaded(frame, 0)" />
       <br />
       <Note>
@@ -1447,7 +1432,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
               :date="date"
               :lastmod="lastmod"
               :frame="frame"
-              :state="getPlayerState('compositing-a-heart', `heart-composition-step-1`)"
+              :state="player_states['heart-composition-step-1']"
               @load="(frame) => onStepByStepPlayerLoaded(frame, 1)" />
       <br />
       <p>
@@ -1520,21 +1505,21 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
               :date="date"
               :lastmod="lastmod"
               :frame="frame"
-              :state="getPlayerState('compositing-a-heart', `heart-composition-step-2`)"
+              :state="player_states['heart-composition-step-2']"
               @load="(frame) => onStepByStepPlayerLoaded(frame, 2)" />
       <Player :ref="makePlayerRef(`heart-composition-step-3`)"
               :title="`(Fig. 3) Draw Region #2, Plane (Incomplete)`"
               :date="date"
               :lastmod="lastmod"
               :frame="frame"
-              :state="getPlayerState('compositing-a-heart', `heart-composition-step-3`)"
+              :state="player_states['heart-composition-step-3']"
               @load="(frame) => onStepByStepPlayerLoaded(frame, 3)" />
       <Player :ref="makePlayerRef(`heart-composition-step-4`)"
               :title="`(Fig. 4) Heart Shape (Incomplete)`"
               :date="date"
               :lastmod="lastmod"
               :frame="frame"
-              :state="getPlayerState('compositing-a-heart', `heart-composition-step-4`)"
+              :state="player_states['heart-composition-step-4']"
               @load="(frame) => onStepByStepPlayerLoaded(frame, 4)" />
       <br />
       <p>
@@ -1547,14 +1532,14 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
               :date="date"
               :lastmod="lastmod"
               :frame="frame"
-              :state="getPlayerState('compositing-a-heart', `heart-composition-step-5`)"
+              :state="player_states['heart-composition-step-5']"
               @load="(frame) => onStepByStepPlayerLoaded(frame, 5)" />
       <Player :ref="makePlayerRef(`heart-composition-step-6`)"
               :title="`(Fig. 6) Draw Region #2, Plane + Inverted Point`"
               :date="date"
               :lastmod="lastmod"
               :frame="frame"
-              :state="getPlayerState('compositing-a-heart', `heart-composition-step-6`)"
+              :state="player_states['heart-composition-step-6']"
               @load="(frame) => onStepByStepPlayerLoaded(frame, 6)" />
       <br />
       <p>
@@ -1572,7 +1557,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
           :date="date"
           :lastmod="lastmod"
           :frame="frame"
-          :state="getPlayerState('compositing-a-heart', `heart`)"
+          :state="player_states['heart']"
           @load="(frame) => onPlayerLoaded(frame, editors['heart'], 'heart')" />
       <br />
       <PropertyEditor :ref="makeEditorRef('heart')"
