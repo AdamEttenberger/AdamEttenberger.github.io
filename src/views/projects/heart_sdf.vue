@@ -461,7 +461,7 @@ const shader_templates = new Map([
         float mirrored_plane_sdf = sdf_plane(a_to_p, n);
 
 
-        // Compute masks to split the render into different draw regions.
+        // Compute masks to split the render into different drawing regions.
         // This is important to prevent shapes from overlapping each other.
         // 1. The 3 outer circle shapes: left and right heart lobes, and
         //    the lowest point where the mirrored planes meet.
@@ -875,7 +875,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
     <Section heading="What is a signed-distance function (SDF)?">
       <p>
         A <ExternalLink to="https://en.wikipedia.org/wiki/Signed_distance_function">signed-distance function</ExternalLink> (SDF) or signed-distance field, is a function which computes the signed-distance between any point and the nearest surface or boundary.
-        The sign of the result indicates whether a point is inside (negative), outside (positive), or on the surface (0) of a shape boundary, similar to how the dot product of two vectors indicates whether they point in similar (positive), opposing (negative), or perpendicular (0) directions.
+        The sign of the result indicates whether a point is inside (negative), outside (positive), or on the surface (0) of a shape boundary, like how the dot product of two vectors indicates whether they point in similar (positive), opposing (negative), or perpendicular (0) directions.
       </p>
     </Section>
 
@@ -889,12 +889,12 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       <p>
         For this exercise I wanted to experiment with signed-distance fields (SDF) for rendering game user interface elements and shader effects.
         This also gave me an excuse to begin implementing a shader viewport for more interesting demos going forward.
-        The new viewport behaves similar to <ExternalLink to="https://www.shadertoy.com/">ShaderToy</ExternalLink>, providing a few predefined uniforms like elapsed time and viewport size automatically, built with my simple <RouterLink to="/projects/proto_engine">WebGL Proto-Engine</RouterLink>.
+        The new viewport behaves like the viewport in <ExternalLink to="https://www.shadertoy.com/">ShaderToy</ExternalLink>, providing a few predefined uniforms like elapsed time and viewport size automatically, built with my simple <RouterLink to="/projects/proto_engine">WebGL Proto-Engine</RouterLink>.
       </p>
       <br />
       <p>
         This was heavily inspired by the work of Inigo Quilez on <ExternalLink to='https://iquilezles.org/articles/distfunctions2d/'>2D distance functions</ExternalLink>.
-        I recreated the heart shape with adjustable heart lobes used to animate the shape, and designed to fill a 1x1 UV unit.
+        I recreated the heart shape and designed it to fill a 1x1 UV unit, with adjustable heart lobes which are used to animate and morph the shape.
       </p>
       <br />
       <p>
@@ -913,7 +913,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       </p>
       <br />
       <p>
-        The WebGL context is setup with an orthographic projection, drawing a single quad to fill the render target with the results of an attached shader.
+        The WebGL context is configured with an orthographic projection, drawing a single quad to fill the render target with the results of an attached shader.
         Before calling the signed-distance function, UV coordinates are translated so the resulting image is centered and scaled based on frame resolution to fit the frame vertically and avoid stretching or <ExternalLink to="https://en.wikipedia.org/wiki/Letterboxing_(filming)">letterboxing</ExternalLink> the final image.
       </p>
     </Section>
@@ -956,8 +956,8 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
         <li>
           <p>
             Subtracting a <b>radius</b>, <b>extents</b>, or <b>half-width</b> from the distance function inflates the boundary uniformly in all directions.
-            This creates the signed distance function of a <b>1-D</b> line segment.
-            With a region <b>2R</b> wide centered around <b>P</b> where the distance is zero at both endpoints of the line segment, negative inside the region, and positive outside the region.
+            This creates the signed distance function of a <b>1-D</b> line segment; a region centered around <b>P</b> extended by <b>R</b> in each direction.
+            The distance is zero at both endpoints of the line segment, falling negative inside the region, and growing positive outside the region.
           </p>
           <br/>
           <Figure src_light="/images/projects/sdf/foundation_sdf_segment_light.png"
@@ -1013,7 +1013,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       <br />
       <p>
         A plane can be transformed into a line by taking the absolute value of the signed-distance, then subtract half the line width to <b>inflate</b> the shape boundary.
-        This process is similar to how the signed-distance of a point can be <b>inflated</b> into a circle or sphere, or how the <i>absolute</i> distance field of a circle inflates into a torus.
+        This process is like how the signed-distance of a point can be <b>inflated</b> into a circle or sphere, or how the <i>absolute</i> distance field of a circle inflates into a torus.
         Taking the absolute value makes the lowest value <i>possible</i> in the distance field <b>zero</b> while maintaining distance to the boundary of the shape.
         Subtracting from the distance field <b>inflates</b> the boundary of the shape by shifting the field uniformly <b>away from the boundary</b>.
       </p>
@@ -1042,7 +1042,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
     <Section :ref="makeSectionRef('symmetry')" heading="Symmetry">
       <p>
         When a shape can be mirrored, centering the shape along the origin may simplify the math involved.
-        For example, mirroring across the horizontal or vertical axis can be achieved by using the absolute value of their respective UV component when the shape is centered at the origin, causing anything drawn on the <b>positive</b> side of the axis being mirrored, or the first quadrant when both axis are mirrored.
+        For example, mirroring across the horizontal or vertical axis can be achieved by using the absolute value of their respective UV component when the shape is centered at the origin, causing anything drawn on the <b>positive</b> side of the axis to be mirrored, or the first quadrant when both axes are mirrored.
       </p>
       <br />
       <Details summary="Mirrored Shapes Signed-distance Function">
@@ -1093,20 +1093,20 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
                       @property-changed="(name) => onPlayerPropertyChanged(players['venn-diagram'].inner_frame, name)" />
     </Section>
 
-    <Section :ref="makeSectionRef('draw-regions')" heading="Draw Regions">
+    <Section :ref="makeSectionRef('draw-regions')" heading="Drawing Regions">
       <p>
-        Another approach to compositing a shape is to slice the render into different draw regions.
+        Another approach to compositing a shape is to slice the render into different drawing regions.
         Consider a capsule shape which is effectively an inflated line segment.
       </p>
       <br />
       <p>
-        Fortunately capsules have symmetry across two perpendicular axis, so an aligned capsule can be mirrored from the first quadrant.
+        Fortunately, capsules have symmetry across two perpendicular axes, so an aligned capsule can be mirrored from the first quadrant.
         One method of drawing a line segment is to draw a mirrored plane for the line body and a point at each endpoint.
-        However, a plane extends infinitely and is always "closest" when compared with a collinear point, so the two shapes can't joined with boolean operations.
+        However, a plane extends infinitely and is always "closest" when compared with a collinear point, so the two shapes can't join with boolean operations.
       </p>
       <br />
       <p>
-        To fix this, one approach is to split the render into two draw regions:
+        To fix this, one approach is to split the render into two drawing regions:
       </p>
       <ul>
         <li>A plane drawn for any points between the origin and the end of the line segment.</li>
@@ -1114,12 +1114,12 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       </ul>
       <br />
       <p>
-        The default settings for the demo below inverts the SDF of the plane connecting the two points to highlight the draw regions.
+        The default settings for the demo below inverts the SDF of the plane connecting the two points to highlight the drawing regions.
       </p>
       <br />
-      <Details summary="Aligned Capsule: Draw Regions">
+      <Details summary="Aligned Capsule: Drawing Regions">
         <Code lang="cpp"
-              caption="Aligned capsule signed-distance function. Draws a circle and plane, mirrored across both axis, with two draw regions."
+              caption="Aligned capsule signed-distance function. Draws a circle and plane, mirrored across both axes, with two drawing regions."
               :text="shader_templates.get('capsule').sdf_function" />
       </Details>
       <br />
@@ -1142,7 +1142,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
     <Section heading="Boundaries, Insets, and Outsets">
       <p>
         Outlines can easily be rendered by creating a value band near zero, the boundary of the shape.
-        This can be further discriminated by treating negative values as insets and positive values as outsets.
+        Taking this a step further, negative and positive values could have different colors, creating separate inset and outset color bands.
         Rendering both insets and outsets as separate high contrast colors can help make shapes more readable over noisy backgrounds.
       </p>
       <br />
@@ -1273,7 +1273,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       </Formula>
       <br />
       <p>
-        Vertex <b>C</b> is offset from the both the top and right edges of the UV space by the radius <b>R</b>.
+        Vertex <b>C</b> is offset from both the top and right edges of the UV space by the radius <b>R</b>.
       </p>
       <br />
       <Formula caption="C is the point [0.5-R, 0.5-R]">
@@ -1284,7 +1284,8 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       </Formula>
       <br />
       <p>
-        This is enough information to begin drawing with, so lets take a look at what we have so far:
+        This is enough information to start drawing with.
+        So, looking at what's been solved for:
       </p>
       <br />
       <Player :ref="makePlayerRef(`heart-composition-step-0`)"
@@ -1316,7 +1317,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       <p>
         For the first approach, the tangent direction can be computed with a few trig functions.
         The angle of a vector pointing from vertex <b>C</b> to vertex <b>A</b> can be computed as the arctangent of the difference between their components.
-        The angle to required to rotate this angle counter-clockwise so it to points towards vertex <b>T</b> can be computed as the arccosine of radius <b>R</b> and length <b>S</b>.
+        The angle needed to rotate a vector pointing from <b>C</b> to <b>A</b> counter-clockwise, to point towards vertex <b>T</b> can be computed as the arccosine of radius <b>R</b> and length <b>S</b>.
         Finally, the sum of the angles can be used to compute <b>N</b> using cosine and sine for the x and y components respectively.
       </p>
       <br />
@@ -1364,7 +1365,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       </Formula>
       <br />
       <p>
-        Then there are a few more options to choose from to compute the unit vector <b>N</b>:
+        Then there are a few more options to choose from to compute unit vector <b>N</b>:
       </p>
       <br />
       <ul>
@@ -1420,20 +1421,20 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
               @load="(frame) => onStepByStepPlayerLoaded(frame, 1)" />
       <br />
       <p>
-        Unfortunately the shape can't easily be composed using boolean operations, so the image needs to be sliced into separate draw regions.
+        Unfortunately, the shape can't easily be composed using boolean operations, so the image needs to be sliced into separate drawing regions.
         To create a seamless appearance when joining the plane and circle, the circles need to be cut from their center point to a tangent.
-        At least two draw regions are needed, but 3 planes are needed to define the areas to cut.
+        At least two regions are needed, but 3 cutting planes are needed to define the boundary between them.
       </p>
       <br />
       <p>
-        The draw regions and the cutting planes can roughly be described as follows:
+        The drawing regions and the cutting planes can roughly be described as follows:
       </p>
       <br />
       <Figure src_light="/images/projects/sdf/heart_draw_regions_light.png"
               src_dark="/images/projects/sdf/heart_draw_regions_dark.png"
               alt="Illustration of the 3 draw region mask slices are made." />
       <br />
-      <TermList heading="Draw Regions">
+      <TermList heading="Drawing Regions">
         <Term term="Planes">Mostly the slope connecting vertex <b>A</b> and vertex <b>T</b>, and a triangle region cut out of circle <b>C</b> with vertex <b>B</b>.</Term>
         <Term term="Circles">Mostly outward curves like the heart lobes and a section below the point drawn at vertex <b>A</b>.</Term>
       </TermList>
@@ -1446,7 +1447,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       <br />
       <p>
         Since vertex <b>B</b> lies on the vertical axis only the <b>Y</b> component is missing, which can be defined as relative to the <b>Y</b> component of vertex <b>C</b>.
-        So the vertical component of <b>B</b> is only missing the value <b>H</b> which can be solve for as follows.
+        So, the vertical component of <b>B</b> is only missing the value <b>H</b> which can be solved for as follows.
       </p>
       <br />
       <Formula caption="H is the vertical difference between vertex B and C.">
@@ -1456,7 +1457,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
             &=& \sqrt{R-\tfrac{1}{4}} \\
         \end{aligned}
       </Formula>
-      <Formula caption="B is the highest point where the heart lobes meet.">
+      <Formula caption="B is the highest point where heart lobes meet.">
         \begin{aligned}
           \vec{B} &=& \begin{bmatrix}
                         0 \\
@@ -1470,7 +1471,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       </Formula>
       <br />
       <p>
-        With the draw regions have been defined the image can be stitched together.
+        With drawing regions defined the image can be stitched together.
       </p>
       <br />
       <Player :ref="makePlayerRef(`heart-composition-step-2`)"
@@ -1497,7 +1498,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       <br />
       <p>
         That's close, the silhouette is correct but the area below vertex <b>B</b> doesn't look right.
-        To fix this, an <i>inverted</i> point can be drawn at vertex <b>B</b> within the planes draw region, giving the illusion that the heart lobes have one continuous inner curve.
+        To fix this, an <i>inverted</i> point can be drawn at vertex <b>B</b> within the planes draw region, creating the illusion that the heart lobes have one continuous inner curve.
       </p>
       <br />
       <Player :ref="makePlayerRef(`heart-composition-step-5`)"
@@ -1516,7 +1517,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
               @load="(frame) => onStepByStepPlayerLoaded(frame, 6)" />
       <br />
       <p>
-        So with 2 draw regions composed with 3 cutting edges, and drawing 3 points and a plane, the heart is complete and is ready for animation.
+        With 2 drawing regions composed of 3 points, 1 plane, and 3 cutting edges; the heart is complete and is ready for animation.
       </p>
       <br />
       <Details summary="Heart Signed-distance Function">
