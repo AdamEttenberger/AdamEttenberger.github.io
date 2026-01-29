@@ -1067,7 +1067,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       <br />
       <p>
         For the second approach, the tangent direction can be computed without trig functions by using a <ExternalLink to="https://en.wikipedia.org/wiki/Rotation_matrix">rotation matrix</ExternalLink> based on <b class="no-wrap">cos(θ)</b> and <b class="no-wrap">sin(θ)</b>, rather than computing the angle <b>θ</b>.
-        This can be done by using perpendicular unit vectors, or with a rotation matrix.
+        The rotation can be solved either with a rotation matrix, or with an identity of the matrix based on perpendicular unit vectors.
       </p>
       <br />
       <p>
