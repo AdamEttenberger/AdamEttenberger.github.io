@@ -1160,7 +1160,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       <p>
         Unfortunately, the shape can't easily be composed using boolean operations, so the image needs to be sliced into separate drawing regions.
         To create a seamless appearance when joining the plane and circle, the circles need to be cut from their center point to a tangent.
-        At least two regions are needed, but 3 cutting planes are needed to define the boundary between them.
+        At least two regions are needed, but at least 3 cutting planes are needed to define the boundary between them.
       </p>
       <br />
       <p>
