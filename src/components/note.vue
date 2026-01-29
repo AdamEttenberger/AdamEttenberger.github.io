@@ -43,7 +43,29 @@ const fallback_heading = computed(() => {
 </template>
 
 <style scoped>
-.note {
+.error {
+  background-color: var(--color-background-error);
+  color: var(--color-text-error);
+  & > .heading {
+    color: var(--color-text-heading-error);
+  }
+}
+.info {
+  background-color: var(--color-background-info);
+  color: var(--color-text-info);
+  & > .heading {
+    color: var(--color-text-heading-info);
+  }
+}
+.warn {
+  background-color: var(--color-background-warn);
+  color: var(--color-text-warn);
+  & > .heading {
+    color: var(--color-text-heading-warn);
+  }
+}
+
+aside.note {
   padding: var(--size-padding-hard) var(--size-padding-round);
   border-radius: var(--size-border-radius);
 }
@@ -54,7 +76,6 @@ const fallback_heading = computed(() => {
 
 .heading {
   font-size: larger;
-  color: var(--color-text-heading);
 }
 
 .message {
