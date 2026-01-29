@@ -1265,7 +1265,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       <ul>
         <li>This shape needs to fill as much of a 1x1 UV unit as possible.</li>
         <li>The radius of the heart lobes will be used as an animation property, for morphing between a heart and a circle.</li>
-        <li>The heart lobes must be <i>at-least</i> tangent to each other to maintain the illusion of a heart shape.</li>
+        <li>The heart lobes must be <i>at least</i> tangent to each other to maintain the illusion of a heart shape.</li>
       </ul>
       <br />
       <p>
@@ -1412,7 +1412,8 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
           <br />
           <Note>
             This is an identity of the matrix above.
-            Game engines often have a <b>local transform</b> API that exposes <b><u>unit</u></b> vectors like <b>forward</b>, <b>right</b>, <b>up</b>, and other <i>local</i> cardinal directions which are helpful for rotating a vector when <b class="no-wrap">cos(θ)</b> and <b class="no-wrap">sin(θ)</b> are known.
+            Game engines often have a <b>local transform</b> API that exposes <b><u>unit</u></b> vectors like <b>forward</b>, <b>right</b>, <b>up</b>, and other <i>local</i> cardinal directions which can be helpful for rotating a vector without constructing a matrix.
+            For game logic, an engine likely exposes at least one math API to logically simplify this type of calculation.
           </Note>
           <br />
           <Formula caption="unit vector N, computed with vector multiplication and addition, another form of the 2-D rotation matrix.">
