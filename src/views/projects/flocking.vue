@@ -1,56 +1,58 @@
-<script setup>
-import { ref } from 'vue'
-import Code from '@/components/code.vue'
+<script setup lang="ts">
+import { ref, useTemplateRef } from 'vue'
 import Column from '@/components/column.vue'
-import ExternalLink from '@/components/external_link.vue'
-import Figure from '@/components/figure.vue'
-import Math from '@/components/math.vue'
 import Player from '@/components/player.vue'
-import PropertyBuilder, { PropertyButtonBuilder, PropertyNumberRangeBuilder } from '@/util/property_editor/property_builder'
+import { PlayerState } from '@/types/player_state'
 import PropertyEditor from '@/components/property_editor/property_editor.vue'
-import Quote from '@/components/quote.vue'
 import Section from '@/components/section.vue'
 import UnderConstruction from '@/components/under_construction.vue'
-const props = defineProps({
+import {
+  ButtonOptions,
+  NumberRangeOptions,
+} from '@/util/property_editor/property_types'
+
+const main_editor = useTemplateRef('main_editor_ref');
+const main_player = useTemplateRef('main_player_ref');
+
+defineProps({
   title: { type: String, required: true },
   date: { type: Date, required: true },
   lastmod: { type: Date },
   frame: { type: String, required: true },
 })
 
-const editorProperties = ref(new PropertyBuilder()
-    .addProperty('reload', new PropertyButtonBuilder().setLabel('Reload').setText('Restart Scene'))
-    .addProperty('count', new PropertyNumberRangeBuilder().setLabel('Count').setModel(150).setMin(1).setMax(500).setStep(1))
-    .addProperty('speed', new PropertyNumberRangeBuilder().setLabel('Max Speed').setModel(12).setMin(1).setMax(100).setStep(1))
-    .addProperty('force', new PropertyNumberRangeBuilder().setLabel('Max Steer Force').setModel(20).setMin(10).setMax(30).setStep(1))
-    .addProperty('alignment', new PropertyNumberRangeBuilder().setLabel('Alignment').setModel(9).setMin(0).setMax(20).setStep(1))
-    .addProperty('separation', new PropertyNumberRangeBuilder().setLabel('Separation').setModel(15).setMin(0).setMax(20).setStep(1))
-    .addProperty('cohesion', new PropertyNumberRangeBuilder().setLabel('Cohesion').setModel(7).setMin(0).setMax(20).setStep(1))
-    .addProperty('containment', new PropertyNumberRangeBuilder().setLabel('Containment').setModel(100).setMin(0).setMax(100).setStep(1))
-    .addProperty('sight_radius', new PropertyNumberRangeBuilder().setLabel('Sight Radius').setModel(8).setMin(0).setMax(35).setStep(1))
-    .addProperty('separation_radius', new PropertyNumberRangeBuilder().setLabel('Separation Radius').setModel(3).setMin(0).setMax(35).setStep(1))
-    .addProperty('containment_radius', new PropertyNumberRangeBuilder().setLabel('Containment Radius').setModel(30).setMin(0).setMax(35).setStep(1))
-    .build());
-
-const needs_reload = ref(false);
+const editor_properties = [
+  new ButtonOptions('reload', 'Restart Scene'),
+  new NumberRangeOptions('count', 'Count', 150, 0, 500, 1),
+  new NumberRangeOptions('speed', 'Max Speed', 12, 0, 100, 1).asScalar(),
+  new NumberRangeOptions('force', 'Max Steer Force', 20, 10, 30, 1).asScalar(),
+  new NumberRangeOptions('alignment', 'Alignment', 9, 0, 20, 1).asScalar(),
+  new NumberRangeOptions('separation', 'Separation', 15, 0, 20, 1).asScalar(),
+  new NumberRangeOptions('cohesion', 'Cohesion', 7, 0, 20, 1).asScalar(),
+  new NumberRangeOptions('containment', 'Containment', 100, 0, 100, 1).asScalar(),
+  new NumberRangeOptions('sight_radius', 'Sight Radius', 8, 0, 35, 1).asScalar(),
+  new NumberRangeOptions('separation_radius', 'Separation Radius', 3, 0, 35, 1).asScalar(),
+  new NumberRangeOptions('containment_radius', 'Containment Radius', 30, 0, 35, 1).asScalar(),
+];
 
 function onPlayerLoaded(target_frame) {
   postMessageToFrame(target_frame);
 }
 
+const needs_reload = ref(false);
 function postMessageToFrame(target_frame) {
   target_frame.contentWindow.postMessage({
     reload: needs_reload.value,
-    count: editorProperties.value.count.model,
-    speed: editorProperties.value.speed.model,
-    force: editorProperties.value.force.model,
-    alignment: editorProperties.value.alignment.model,
-    separation: editorProperties.value.separation.model,
-    cohesion: editorProperties.value.cohesion.model,
-    containment: editorProperties.value.containment.model,
-    sight_radius: editorProperties.value.sight_radius.model,
-    separation_radius: editorProperties.value.separation_radius.model,
-    containment_radius: editorProperties.value.containment_radius.model,
+    count: main_editor.value.get('count'),
+    speed: main_editor.value.get('speed'),
+    force: main_editor.value.get('force'),
+    alignment: main_editor.value.get('alignment'),
+    separation: main_editor.value.get('separation'),
+    cohesion: main_editor.value.get('cohesion'),
+    containment: main_editor.value.get('containment'),
+    sight_radius: main_editor.value.get('sight_radius'),
+    separation_radius: main_editor.value.get('separation_radius'),
+    containment_radius: main_editor.value.get('containment_radius'),
   }, window.location.origin);
   needs_reload.value = false;
 }
@@ -62,7 +64,7 @@ function scheduleUpdate() {
   }
   clearTimeout(pending_update);
   pending_update = setTimeout(() => {
-    document.querySelectorAll('iframe').forEach(postMessageToFrame);
+    postMessageToFrame(main_player.value.inner_frame);
     pending_update = null;
   }, 300);
 }
@@ -81,16 +83,18 @@ function onPropertyButtonClick(name) {
 </script>
 
 <template>
-  <Player :title="title"
+  <Player ref="main_player_ref"
+          :title="title"
           :date="date"
           :lastmod="lastmod"
           :frame="frame"
-          :paused="false"
+          :state="PlayerState.Playing"
           @load="onPlayerLoaded" />
   <UnderConstruction />
   <Column>
     <Section heading="Controls">
-      <PropertyEditor :properties="editorProperties"
+      <PropertyEditor ref="main_editor_ref"
+                      :properties="editor_properties"
                       @property-changed="onPropertyChanged"
                       @property-click="onPropertyButtonClick" />
     </Section>

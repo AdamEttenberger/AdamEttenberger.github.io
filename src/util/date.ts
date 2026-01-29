@@ -59,4 +59,16 @@ export default class DateUtil {
     }
     return date.toUTCString();
   }
+
+  static formatMLA(value: any): String {
+    var date = DateUtil.toDate(value);
+    if (!date) {
+      return "";
+    }
+    return [
+      date.toLocaleDateString(undefined, { day: 'numeric' }),
+      date.toLocaleDateString(undefined, { month: 'short' }),
+      date.toLocaleDateString(undefined, { year: 'numeric' }),
+    ].join(' ');
+  }
 }

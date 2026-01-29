@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import DateLabel from '@/components/date_label.vue'
 
 defineProps({

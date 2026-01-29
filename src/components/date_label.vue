@@ -1,11 +1,12 @@
-<script setup>
+<script setup lang="ts">
+import { computed } from 'vue';
 import DateText from '@/components/date_text.vue';
 
 var props = defineProps({
   date: { required: true },
   lastmod: { default: null },
 })
-const show_lastmod = props.lastmod && (props.lastmod.getTime ? props.lastmod : props.lastmod.value)?.getTime() != props.date.getTime();
+const show_lastmod = computed(() => props.lastmod && (props.lastmod.getTime ? props.lastmod : props.lastmod.value)?.getTime() != props.date.getTime());
 </script>
 
 <template>

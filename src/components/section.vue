@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import Divider from '@/components/divider.vue'
 
 defineProps({

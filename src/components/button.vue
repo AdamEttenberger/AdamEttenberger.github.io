@@ -1,4 +1,5 @@
-<script setup>
+<script setup lang="ts">
+import { unref, PropType } from 'vue'
 import ExternalLink from '@/components/external_link.vue'
 import EmailTemplate from '@/types/email_template';
 
@@ -12,13 +13,13 @@ defineProps({
   route: { type: String, default: null },
   to: { type: String, default: null },
   mailto: { type: EmailTemplate, default: null },
-  disabled: { type: Boolean, default: false },
+  disabled: { type: [Boolean, Object] as PropType<Boolean | Object>, default: false },
   transparent: { type: Boolean, default: false },
 })
 </script>
 
 <template>
-  <button class="image_button" @click="$emit('click')">
+  <button class="image_button" @click="$emit('click')" :disabled="unref(disabled)">
     <RouterLink v-if="route" class="router" :to="route">
       <div :class="{'animator': true, 'transparent': transparent}">
         <slot v-if="$slots.default"></slot>
@@ -53,8 +54,11 @@ defineProps({
   padding: 0;
   margin: 0;
   background-color: transparent;
-  cursor: pointer;
   font-size: 1.2rem;
+}
+
+.image_button:not([disabled]) {
+  cursor: pointer;
 }
 
 .animator {
@@ -94,6 +98,26 @@ defineProps({
   }
   &:active {
     background-color: var(--color-background-button-active);
+  }
+  &:disabled,
+  [disabled] & {
+    background-color: var(--color-background-button-disabled);
+  }
+}
+
+.delete .animator:not(.transparent) {
+  transition: background-color var(--anim-transition);
+  background-color: var(--color-background-error);
+  color: var(--color-text-error);
+  &:hover {
+    background-color: --button-hover(var(--color-background-error));
+  }
+  &:active {
+    background-color: --button-active(var(--color-background-error));
+  }
+  &:disabled,
+  [disabled] & {
+    background-color: --button-disabled(var(--color-background-error));
   }
 }
 

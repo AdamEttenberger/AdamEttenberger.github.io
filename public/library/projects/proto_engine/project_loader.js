@@ -1,28 +1,45 @@
 window.addEventListener("load", main, true);
 
-function main()
-{
-  var canvas = document.querySelector("canvas");
-  canvas.style.minWidth = 800;
-  canvas.style.minHeight = 500;
+function main() {
+  new App(document.querySelector("canvas"))
+    .initScene()
+    .setupCamera()
+    .start();
+}
 
-  var game = new Game(canvas);
-  Game.clearColor = vec4.fromValues( 0.0, 0.0, 0.0, 1.0 );
+class App {
+  constructor(canvas) {
+    this.game = new Game(canvas);
+    this.game.clear_color = vec4.fromValues( 0.0, 0.0, 0.0, 1.0 );
+    window.addEventListener("message", e => this.handleMessage(e));
+  }
 
-  // Setup the camera (move the world forward 5 units).
-  mat4.perspective(Game.pMatrix, 45, gl.viewportWidth / gl.viewportHeight, 1.0, 1000.0);
-  mat4.fromTranslation(Game.mMatrix, vec3.fromValues(0.0, 0.0, -5.0));
+  initScene() {
+    return this;
+  }
 
-  window.addEventListener("message", (event) => {
+  setupCamera() {
+    // Setup the camera (move the world forward 5 units).
+    mat4.perspective(this.game.pMatrix, 45, this.game.aspect, 1.0, 1000.0);
+    mat4.fromTranslation(this.game.vMatrix, vec3.fromValues(0.0, 0.0, -5.0));
+    return this;
+  }
+
+  start() {
+    this.game.start();
+    return this;
+  }
+
+  handleMessage( event ) {
     if (event.origin !== window.location.origin ||
         !event.data.file) {
       return;
     }
     LoadFileAsync('GET', event.data.file)
         .then(xhr => {
-          game.deserialize(JSON.parse(xhr.responseText));
-          game.start();
+          this.game.deserialize(JSON.parse(xhr.responseText));
+          this.game.start();
         })
-        .catch(e => Game.ExceptionHandler(e));
-  });
+        .catch(e => this.game.onException(e));
+  }
 }

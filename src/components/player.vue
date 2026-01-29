@@ -1,31 +1,39 @@
-<script setup>
-import { ref } from 'vue';
+<script setup lang="ts">
+import { PropType, useTemplateRef } from 'vue';
 import Figure from '@/components/figure.vue'
 import ProjectLabel from '@/components/project_label.vue'
+import { PlayerState } from '@/types/player_state'
+
+const inner_frame = useTemplateRef('inner_frame');
 
 /**
  * Emits `target_frame: HTMLIFrameElement`
  */
 defineEmits(['load']);
 
-const props = defineProps({
+defineProps({
   title: { type: String, required: true },
   date: { type: Date, default: null },
   lastmod: { type: Date, default: null },
   frame: { type: String, required: true },
   aspect: { type: Number, default: Number(4 / 3) },
-  paused: { type: Boolean, default: true },
 })
 
-const player_frame = ref();
-const requested_play = ref(false);
+const state = defineModel('state', {
+  type: [String, PlayerState] as PropType<String | PlayerState>,
+  default: PlayerState.Empty,
+});
+
+defineExpose({
+  inner_frame,
+});
 </script>
 
 <template>
   <Figure class="player">
     <div class="responsive-frame">
-      <button v-if="!requested_play && paused" class="play-button" @click.once="requested_play = true"><font-awesome-icon :icon="['fas', 'circle-play']" /></button>
-      <iframe v-else ref="player_frame" class="renderer" :title="title" :src="frame" @load="$emit('load', player_frame)"></iframe>
+      <button v-if="state != PlayerState.Playing" class="play-button" @click.once="state = PlayerState.Playing"><font-awesome-icon :icon="['fas', 'circle-play']" /></button>
+      <iframe v-if="state != PlayerState.Empty" ref="inner_frame" class="renderer" :title="title" :src="frame" @load="$emit('load', inner_frame)"></iframe>
     </div>
     <template v-slot:caption>
       <ProjectLabel :title="title" :date="date" :lastmod="lastmod" />

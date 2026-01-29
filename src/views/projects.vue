@@ -6,6 +6,16 @@ const website_lastmod = ref(__BUILD_TIMESTAMP__);
 </script>
 
 <template>
+  <ProjectCard title="Anatomy of a Heart (SDF)"
+               image="/images/projects/sdf/icon.png"
+               route="/projects/heart_sdf"
+               :date="new Date('2026/01/29')"
+               :lastmod="new Date('2026/01/29')">
+    <p>
+      Notes for creating a shader which renders a heart shaped <ExternalLink to="https://en.wikipedia.org/wiki/Signed_distance_function">signed-distance field</ExternalLink>. Discusses some of the maths behind the shape, and some basic shader effects.
+    </p>
+  </ProjectCard>
+
   <ProjectCard title="Match-3 Game"
                image="/images/projects/match_three/icon.png"
                route="/projects/match_three"

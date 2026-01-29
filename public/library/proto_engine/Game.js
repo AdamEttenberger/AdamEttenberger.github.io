@@ -1,4 +1,5 @@
 const { mat2, mat2d, mat3, mat4, quat, quat2, vec2, vec3, vec4 } = glMatrix;
+var g_game = null;
 var gl = null;
 
 const AllowedComponentNames = [
@@ -14,330 +15,245 @@ const AllowedComponentNames = [
   "FlockerComponent",
 ];
 
-function Game(canvas)
-{
-  this.m_canvas = canvas;
-  this.m_managers = new Array();
-  this.m_root = new GameObject();
-  this.m_intervalID = null;
-  this.running = false;
-  this.fps = 50;
+class Game {
+  constructor(canvas) {
+    g_game = this;
+    this.m_canvas = canvas;
+    this.canvas_width = canvas.width;
+    this.canvas_height = canvas.height;
+    this.m_managers = new Array();
+    this.m_root = new GameObject();
+    this.m_intervalID = null;
+    this.running = false;
+    this.fps = 50;
 
-  var _frame_time = performance.now();
+    this.clear_color = vec4.fromValues( 0.392156862745098, 0.5843137254901961, 0.9294117647058824, 1.0 );
+    this.mMatrix = mat4.create();
+    this.vMatrix = mat4.create();
+    this.pMatrix = mat4.create();
+    this.matrix_stack = new Array();
+    this.textures = new Map(); // Map<URL, WeakRef<WebGLTexture>>
+    this.component_types = new Map(AllowedComponentNames.map(name => [name, window[name]]));
 
-  try
-  {
-    gl = this.m_canvas.getContext("webgl2");
-    gl.viewportWidth = canvas.width;
-    gl.viewportHeight = canvas.height;
+    this.frame_time = performance.now();
+    this.game_time = 0;
+    this.game_time_scale = 1.0;
 
-    gl.disable(gl.BLEND);
-    gl.enable(gl.DEPTH_TEST);
-    gl.enable(gl.CULL_FACE);
-    gl.frontFace(gl.CCW);
-    gl.cullFace(gl.BACK);
-    gl.depthFunc(gl.LEQUAL);
+    try {
+      gl = this.m_canvas.getContext("webgl2");
+
+      gl.disable(gl.BLEND);
+      gl.enable(gl.DEPTH_TEST);
+      gl.enable(gl.CULL_FACE);
+      gl.frontFace(gl.CCW);
+      gl.cullFace(gl.BACK);
+      gl.depthFunc(gl.LEQUAL);
+    } catch(e) {
+      console.log("Could not initialize WebGL Context");
+      this.onException("GL_INITIALIZATION");
+    }
+    if ( !gl ) {
+      console.log("Could not initialize WebGL Context");
+      this.onException("GL_INITIALIZATION");
+    }
   }
-  catch(e)
-  {
-    console.log("Could not initialize WebGL Context");
-    Game.ExceptionHandler("GL_INITIALIZATION");
-  }
-  if ( !gl )
-  {
-    console.log("Could not initialize WebGL Context");
-    Game.ExceptionHandler("GL_INITIALIZATION");
+
+  get aspect() {
+    return this.canvas_width / this.canvas_height;
   }
 
-  this.update = function(dt)
-  {
+  update(dt) {
     var new_time = performance.now();
-    var dt = (new_time - _frame_time) * 0.001;
-    _frame_time = new_time;
+    var dt = (new_time - this.frame_time) * 0.001;
+    this.frame_time = new_time;
+    this.game_time += dt * this.game_time_scale;
 
     this.m_managers.forEach(manager => manager.update(dt));
     this.m_root.update(dt);
   }
 
-  this.draw = function()
-  {
-    gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
-    gl.clearColor( Game.clearColor[0], Game.clearColor[1], Game.clearColor[2], Game.clearColor[3] );
+  draw() {
+    gl.viewport(0, 0, this.canvas_width, this.canvas_height);
+    gl.clearColor( this.clear_color[0], this.clear_color[1], this.clear_color[2], this.clear_color[3] );
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
 
     this.m_managers.forEach(manager => manager.draw(gl));
     this.m_root.draw(gl);
   }
 
-  this.run = function()
-  {
+  tick() {
     this.update();
     this.draw();
   }
 
-  this.start = function()
-  {
-    if (!this.running)
-    {
+  start() {
+    if (!this.running) {
       // this.serialize().then(jsonObject => console.log(JSON.stringify(jsonObject)));
-      var _this = this;
-      this.m_intervalID = setInterval(function(){_this.run();}, 1000 / this.fps);
+      this.m_intervalID = setInterval(() => this.tick(), 1000 / this.fps);
       this.running = true;
     }
   }
 
-  this.loadShaderProgramAsync = function(vertexShaderFile, fragmentShaderFile)
-  {
-    var loadVSContent = LoadFileAsync('GET', vertexShaderFile)
-    .then(xhr => {
-      var vsContents = xhr.responseText;
-      var vs_shader = gl.createShader(gl.VERTEX_SHADER);
-      gl.shaderSource(vs_shader, vsContents);
-      gl.compileShader(vs_shader);
-      if ( !gl.getShaderParameter(vs_shader, gl.COMPILE_STATUS) )
-      {
-        console.log(gl.getShaderInfoLog(vs_shader));
-        throw "GL_SHADER_ERROR";
-      }
-      return vs_shader;
-    })
-    .catch( e => Game.ExceptionHandler(e) );
-
-    var loadFSContent = LoadFileAsync('GET', fragmentShaderFile)
-    .then(xhr => {
-      var fsContents = xhr.responseText;
-      var fs_shader = gl.createShader(gl.FRAGMENT_SHADER);
-      gl.shaderSource(fs_shader, fsContents);
-      gl.compileShader(fs_shader);
-      if ( !gl.getShaderParameter(fs_shader, gl.COMPILE_STATUS) )
-      {
-        console.log(gl.getShaderInfoLog(fs_shader));
-        throw "GL_SHADER_ERROR";
-      }
-      return fs_shader;
-    })
-    .catch( e => Game.ExceptionHandler(e) );;
-
-    return Promise.all([loadVSContent, loadFSContent])
-    .then(function(values) {
-      var vs_shader = values[0];
-      var fs_shader = values[1];
-      var shaderProgram = gl.createProgram();
-      gl.attachShader(shaderProgram, vs_shader);
-      gl.attachShader(shaderProgram, fs_shader);
-      gl.linkProgram(shaderProgram);
-
-      if ( !gl.getProgramParameter(shaderProgram, gl.LINK_STATUS) )
-      {
-        console.log("Could not initialise shaders");
-        throw "GL_SHADER_PROGRAM_ERROR";
-      }
-
-      gl.useProgram(shaderProgram);
-
-      return shaderProgram;
-    })
-    .catch( e => Game.ExceptionHandler(e) );;
-  }
-
-  this.exit = function()
-  {
-    if (this.running)
-    {
+  exit() {
+    if (this.running) {
       clearInterval(this.m_intervalID);
       this.running = false;
     }
   }
 
-  this.serialize = async function() {
+  async serialize() {
     return {
-      "managers": await Promise.all(this.m_managers.map(Game.serializeComponent)),
-      "root": await Game.serializeGameObject(this.m_root),
+      "managers": await Promise.all(this.m_managers.map(this.serializeComponent, this)),
+      "root": await this.serializeGameObject(this.m_root),
     };
   }
 
-  this.deserialize = async function(jsonSceneRoot) {
-    this.m_managers = await Promise.all(jsonSceneRoot.managers.map(Game.deserializeComponent));
-    this.m_root = await Game.deserializeGameObject(jsonSceneRoot.root);
+  async deserialize(jsonSceneRoot) {
+    this.m_managers = await Promise.all(jsonSceneRoot.managers.map(this.deserializeComponent, this));
+    this.m_root = await this.deserializeGameObject(jsonSceneRoot.root);
     return this;
   }
-}
 
-Game.shaderProgram = null;
-Game.clearColor = vec4.fromValues( 0.392156862745098, 0.5843137254901961, 0.9294117647058824, 1.0 );
-Game.mMatrix = mat4.create();
-Game.vMatrix = mat4.create();
-Game.pMatrix = mat4.create();
-
-Game.matrixStack = new Array();
-
-Game.pushMatrix = function()
-{
-  var copy = mat4.copy(mat4.create(), Game.mMatrix);
-  Game.matrixStack.push( copy );
-}
-
-Game.popMatrix = function()
-{
-  if ( Game.matrixStack.length == 0 )
-    throw "Invalid popMatrix";
-  Game.mMatrix = Game.matrixStack.pop();
-}
-
-Game.stringToFunction = function(str) {
-  var arr = str.split(".");
-  var fn = (window || this);
-  for (var i = 0, len = arr.length; i < len; i++)
-    fn = fn[arr[i]];
-  if (typeof fn !== "function")
-    throw new Error("function not found");
-  return  new fn();
-};
-
-Game.serializeTexture = async function(texture) {
-  await texture.loader;
-  const canvas = document.createElement('canvas');
-  canvas.width = texture.image.width;
-  canvas.height = texture.image.height;
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(texture.image, 0, 0);
-  return canvas.toDataURL('image/png', 1.0);
-}
-
-Game.textures = [];
-Game.loadTexture = function(path) {
-  if (Game.textures[path] != null) return Game.textures[path];
-
-  var tex = gl.createTexture( );
-  tex.image = new Image();
-  tex.loader = new Promise((resolve) => {
-    tex.image.addEventListener('load', () => {
-      gl.bindTexture(gl.TEXTURE_2D, tex);
-      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, tex.image);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-      gl.generateMipmap(gl.TEXTURE_2D);
-      gl.bindTexture(gl.TEXTURE_2D, null);
-      tex.loaded = true;
-      resolve();
-    }, { once: true });
-  });
-  tex.image.src = path;
-  Game.textures[path] = tex;
-  return tex;
-}
-
-Game.ExceptionHandler = (function() {
-  var replacedGame = false;
-  return function(e) {
-    if (!replacedGame) {
-      var gameElement = document.querySelector("canvas.game");
-      if (!gameElement)
-        return;
-      var message = Game.ExceptionToMessage(e)
-      if (message == null)
-        return;
-
-      gameElement.html(message);
-      replacedGame = true;
-    }
+  pushMatrix() {
+    var copy = mat4.copy(mat4.create(), this.mMatrix);
+    this.matrix_stack.push( copy );
   }
-})();
 
-Game.ExceptionToMessage = function(e) {
-    switch (e) {
-        case "GL_INITIALIZATION":
-        {
-            return "<div class='error'><img src='/images/html5_white.png' width='128' height='128' /><h1>Error initializing WebGL</h1><h2>This page requires support for HTML5 Canvas and WebGL</h2></div>";
-        }
-        case "GL_SHADER_ERROR":
-        case "GL_SHADER_PROGRAM_ERROR":
-        {
-            return "<div class='error'><img src='/images/html5_white.png' width='128' height='128' /><h1>Error initializing WebGL Shaders</h1><h2>This page requires support for HTML5 Canvas and WebGL</h2></div>";
-        }
-        default:
-        {
-            return `<div class='error'><img src='/images/html5_white.png' width='128' height='128' /><h1>Exception '${e}'</h1><h2>This page requires support for HTML5 Canvas and WebGL</h2></div>`;
-        }
-        return null;
+  popMatrix() {
+    if ( this.matrix_stack.length == 0 ) {
+      throw "Invalid popMatrix";
     }
-}
+    this.mMatrix = this.matrix_stack.pop();
+  }
 
-/**
- * Creates a JSON object representing the given GameObject and all
- * of its components and children which can be passed to JSON.stringify
- * then restored with Game.deserializeGameObject after JSON.parse.
- */
-Game.serializeGameObject = function(obj) {
-  return new Promise(async (resolve) => {
+  stringToFunction(str) {
+    var arr = str.split(".");
+    var fn = (window || this);
+    for (var i = 0, len = arr.length; i < len; i++)
+      fn = fn[arr[i]];
+    if (typeof fn !== "function") {
+      throw new Error("function not found");
+    }
+    return  new fn();
+  }
+
+  static async serializeTexture(texture) {
+    await texture.loader;
+    const canvas = document.createElement('canvas');
+    canvas.width = texture.image.width;
+    canvas.height = texture.image.height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(texture.image, 0, 0);
+    return canvas.toDataURL('image/png', 1.0);
+  }
+
+  loadTexture(path) {
+    var cached = this.textures[path]?.deref();
+    if (cached) {
+      return cached;
+    }
+
+    var tex = gl.createTexture( );
+    tex.image = new Image();
+    tex.loader = new Promise((resolve) => {
+      tex.image.addEventListener('load', () => {
+        gl.bindTexture(gl.TEXTURE_2D, tex);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, tex.image);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.generateMipmap(gl.TEXTURE_2D);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        tex.loaded = true;
+        resolve();
+      }, { once: true });
+    });
+    tex.image.src = path;
+    this.textures[path] = new WeakRef(tex);
+    return tex;
+  }
+
+  onException(e) {
+    var gameElement = document.querySelector("canvas.game");
+    if (!gameElement)
+      return;
+    var message;
+    switch (e) {
+      case "GL_INITIALIZATION":
+        message = "<div class='error'><img src='/images/html5_white.png' width='128' height='128' /><h1>Error initializing WebGL</h1><h2>This page requires support for HTML5 Canvas and WebGL</h2></div>";
+      case "GL_SHADER_ERROR":
+      case "GL_SHADER_PROGRAM_ERROR":
+        message = "<div class='error'><img src='/images/html5_white.png' width='128' height='128' /><h1>Error initializing WebGL Shaders</h1><h2>This page requires support for HTML5 Canvas and WebGL</h2></div>";
+      default:
+        console.log(`unhandled exception: ${e}`);
+        message = `<div class='error'><img src='/images/html5_white.png' width='128' height='128' /><h1>Exception '${e}'</h1><h2>This page requires support for HTML5 Canvas and WebGL</h2></div>`;
+        break;
+    }
+    gameElement.html(message);
+  }
+
+  /**
+   * Creates a JSON object representing the given GameObject and all
+   * of its components and children which can be passed to JSON.stringify
+   * then restored with this.deserializeGameObject after JSON.parse.
+   */
+  async serializeGameObject(obj) {
     var result = {};
     if (obj.components) {
-      result.components = await Promise.all(obj.components.map(Game.serializeComponent));
+      result.components = await Promise.all(obj.components.map(this.serializeComponent, this));
     }
     if (obj.children) {
-      result.children = await Promise.all(obj.children.map(Game.serializeGameObject));
+      result.children = await Promise.all(obj.children.map(this.serializeGameObject, this));
     }
-    resolve(result);
-  });
-}
-
-/**
- * Creates a JSON object representing the given GameObjectComponent which
- * can be passed to JSON.stringify then restored with Game.deserializeComponent
- * after JSON.parse.
- */
-Game.serializeComponent = function(component) {
-  return new Promise(async (resolve, reject) => {
-    var result = await component.serialize();
-    result ? resolve(result) : reject();
-  });
-}
-
-/**
- * Creates a new GameObject which reflects the state of jsonObject.
- * For example:
- *
- * {
- *   components: [ ... ]
- *   children: [ ... ],
- * }
- *
- * @param {*} jsonGameObject JSON object that represents the current node being deserialized and its descendants.
- */
-Game.deserializeGameObject = async function(jsonGameObject) {
-  var obj = new GameObject();
-  await Promise.all([
-    Promise.all(jsonGameObject.components?.map(Game.deserializeComponent)).then(new_components => {
-      new_components.forEach(component => obj.addComponent(component));
-    }),
-    Promise.all(jsonGameObject.children?.map(Game.deserializeGameObject)).then(new_children => {
-      new_children.forEach(child => obj.addChildGameObject(child));
-    }),
-  ]);
-  return obj;
-}
-
-/**
- * Creates a new GameObject which reflects the state of jsonObject.
- * For example:
- *   { type: "Transform", position: [x,y,z], rotation: [x,y,z,w], scale:[x,y,z] }
- *   { type: "RotateComponent", rotation: [x,y,z,w] }
- *   { type: "ModelComponent", vertices: {position: [...], color: [...]}, indices: [...] }
- *   { type: "ModelComponent", file: "/path/to/some.obj" }
- *
- * @param {*} jsonGameObject JSON object that represents the current node being deserialized and its descendants.
- */
-Game.deserializeComponent = function(jsonComponent) {
-  if (!Game.ComponentTypes) {
-    Game.ComponentTypes = new Map(AllowedComponentNames.map(name => [name, window[name]]));
+    return result;
   }
-  return new Promise(async (resolve, reject) => {
-    var TComponent = Game.ComponentTypes.get(jsonComponent.type);
-    return TComponent
-        ? resolve(await new TComponent().deserialize(jsonComponent))
-        : reject();
-  });
+
+  /**
+   * Creates a JSON object representing the given GameObjectComponent which
+   * can be passed to JSON.stringify then restored with this.deserializeComponent
+   * after JSON.parse.
+   */
+  async serializeComponent(component) {
+    return await component.serialize();
+  }
+
+  /**
+   * Creates a new GameObject which reflects the state of jsonObject.
+   * For example:
+   *
+   * {
+   *   components: [ ... ]
+   *   children: [ ... ],
+   * }
+   *
+   * @param {*} jsonGameObject JSON object that represents the current node being deserialized and its descendants.
+   */
+  async deserializeGameObject(jsonGameObject) {
+    var obj = new GameObject();
+    // Ensure all components are added to the current object before deserializing children.
+    await Promise.all(jsonGameObject.components?.map(this.deserializeComponent, this)).then(new_components => {
+      new_components.forEach(component => obj.addComponent(component));
+    });
+    await Promise.all(jsonGameObject.children?.map(this.deserializeGameObject, this)).then(new_children => {
+      new_children.forEach(child => obj.addChildGameObject(child));
+    });
+    return obj;
+  }
+
+  /**
+   * Creates a new GameObject which reflects the state of jsonObject.
+   * For example:
+   *   { type: "Transform", position: [x,y,z], rotation: [x,y,z,w], scale:[x,y,z] }
+   *   { type: "RotateComponent", rotation: [x,y,z,w] }
+   *   { type: "ModelComponent", vertices: {position: [...], color: [...]}, indices: [...] }
+   *   { type: "ModelComponent", file: "/path/to/some.obj" }
+   *
+   * @param {*} jsonGameObject JSON object that represents the current node being deserialized and its descendants.
+   */
+  async deserializeComponent(jsonComponent) {
+      var TComponent = this.component_types.get(jsonComponent.type);
+      return await new TComponent().deserialize(jsonComponent);
+  }
 }

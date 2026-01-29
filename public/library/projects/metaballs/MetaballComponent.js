@@ -65,9 +65,7 @@ function MetaballComponent( run_mode )
 
           MetaballComponent.TextureShader.setUniform1f(MetaballComponent.UniformType.alpha, 1.0);
         })
-        .catch(e => {
-            throw e;
-        });
+        .catch(e => g_game.onException(e));
         pending_shaders.push(loader);
       }
 
@@ -283,7 +281,7 @@ function MetaballComponent( run_mode )
    */
   this.drawShader = function( placement, shader ) {
     /* Render the Pre-Metaball RenderTarget to the Canvas ( On the Left Side ) */
-    Game.pushMatrix( );
+    g_game.pushMatrix( );
     var x, y;
     var scale = 1.0;
     switch (placement) {
@@ -293,9 +291,9 @@ function MetaballComponent( run_mode )
       case MetaballComponent.Placement.kLowerRight: x = 1.0; y = -1.0; break;
       case MetaballComponent.Placement.kStretch: x = 0.0; y = 0.0; scale = 2.0; break;
     }
-    mat4.translate( Game.mMatrix, Game.mMatrix, vec3.fromValues( x, y, 0.0 ) );
+    mat4.translate( g_game.mMatrix, g_game.mMatrix, vec3.fromValues( x, y, 0.0 ) );
     if (scale != 1.0) {
-      mat4.scale( Game.mMatrix, Game.mMatrix, vec3.fromValues( scale, scale, 1.0 ) );
+      mat4.scale( g_game.mMatrix, g_game.mMatrix, vec3.fromValues( scale, scale, 1.0 ) );
     }
     if (shader.apply( ))
     {
@@ -308,9 +306,9 @@ function MetaballComponent( run_mode )
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, target.texture);
 
-      shader.setUniformMat4(MetaballComponent.UniformType.mMatrix, Game.mMatrix);
-      shader.setUniformMat4(MetaballComponent.UniformType.vMatrix, Game.vMatrix);
-      shader.setUniformMat4(MetaballComponent.UniformType.pMatrix, Game.pMatrix);
+      shader.setUniformMat4(MetaballComponent.UniformType.mMatrix, g_game.mMatrix);
+      shader.setUniformMat4(MetaballComponent.UniformType.vMatrix, g_game.vMatrix);
+      shader.setUniformMat4(MetaballComponent.UniformType.pMatrix, g_game.pMatrix);
 
       gl.drawElements(gl.TRIANGLES, this.indexBuffer.numItems, gl.UNSIGNED_BYTE, 0);
 
@@ -321,7 +319,7 @@ function MetaballComponent( run_mode )
       ]);
       gl.bindTexture(gl.TEXTURE_2D, null);
     }
-    Game.popMatrix( );
+    g_game.popMatrix( );
     /* */
   }
 

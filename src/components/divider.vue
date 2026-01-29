@@ -1,8 +1,13 @@
+<script setup lang="ts">
+defineProps({
+  text: { type: String, default: null },
+});
+</script>
+
 <template>
   <div class="divider">
-    <h2 v-if="$slots.default" class="heading">
-      <slot></slot>
-    </h2>
+    <h2 v-if="$slots.default" class="heading"><slot></slot></h2>
+    <h2 v-else class="heading">{{ text }}</h2>
   </div>
 </template>
 

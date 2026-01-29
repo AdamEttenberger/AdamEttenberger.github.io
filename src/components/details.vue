@@ -1,11 +1,15 @@
-<script setup>
+<script setup lang="ts">
 defineProps({
   summary: { type: String, default: null },
+});
+const open = defineModel('open', {
+  type: Boolean,
+  default: false,
 });
 </script>
 
 <template>
-  <details>
+  <details :open="open" @toggle="open = !open">
     <summary v-if="$slots.summary"><slot name="summary"></slot></summary>
     <summary v-else>{{ summary }}</summary>
     <slot></slot>
@@ -17,6 +21,7 @@ details:open > *:not(summary) {
   padding-left: 1rem;
 }
 summary{
+  user-select: none;
   cursor: pointer;
   font-size: medium;
   background-color: var(--color-background-button);

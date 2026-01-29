@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 defineProps({
   name: { type: String, required: true },
   cite_url: { type: String, default: null },

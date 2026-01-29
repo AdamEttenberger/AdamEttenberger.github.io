@@ -1,16 +1,21 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref, useTemplateRef } from 'vue'
 import Code from '@/components/code.vue'
 import Column from '@/components/column.vue'
 import ExternalLink from '@/components/external_link.vue'
 import Figure from '@/components/figure.vue'
-import Math from '@/components/math.vue'
+import Formula from '@/components/formula.vue'
 import Player from '@/components/player.vue'
-import PropertyBuilder, { PropertyNumberRangeBuilder, PropertyComboBoxBuilder } from '@/util/property_editor/property_builder'
+import { PlayerState } from '@/types/player_state'
 import PropertyEditor from '@/components/property_editor/property_editor.vue'
 import Quote from '@/components/quote.vue'
 import Section from '@/components/section.vue'
+import {
+  ComboBoxOptions,
+  NumberRangeOptions,
+} from '@/util/property_editor/property_types'
 
+const main_editor = useTemplateRef('main_editor_ref');
 
 defineProps({
   title: { type: String, required: true },
@@ -19,47 +24,54 @@ defineProps({
   frame: { type: String, required: true },
 })
 
-const editorProperties = ref(new PropertyBuilder()
-    .addProperty('count', new PropertyNumberRangeBuilder().setLabel('Count').setModel(40).setMin(1).setMax(100).setStep(1))
-    .addProperty('radius', new PropertyNumberRangeBuilder().setLabel('Radius').setModel(0.1).setMin(0.01).setMax(0.2).setStep(0.01))
-    .addProperty('threshold', new PropertyNumberRangeBuilder().setLabel('Min-Mass').setModel(0.5).setMin(0.01).setMax(0.99).setStep(0.01))
-    .addProperty('preset', new PropertyComboBoxBuilder().setLabel('Preset').setModel('default').setValues({
-      "default": {
-        label: "Default",
-        count: 40,
-        radius: 0.1,
-        threshold: 0.5,
-      },
-      "extra-gloopy": {
-        label: "Extra Gloopy",
-        count: 40,
-        radius: 0.1,
-        threshold: 0.75,
-      },
-      "explosive-growth": {
-        label: "Explosive Growth",
-        count: 20,
-        radius: 0.2,
-        threshold: 0.9,
-      },
-      "many-mini": {
-        label: "Many Mini",
-        count: 100,
-        radius: 0.05,
-        threshold: 0.5,
-      },
-    }))
-    .build());
+const presets = {
+  "default": {
+    label: "Default",
+    count: 40,
+    radius: 0.1,
+    threshold: 0.5,
+  },
+  "extra-gloopy": {
+    label: "Extra Gloopy",
+    count: 40,
+    radius: 0.1,
+    threshold: 0.75,
+  },
+  "explosive-growth": {
+    label: "Explosive Growth",
+    count: 20,
+    radius: 0.2,
+    threshold: 0.9,
+  },
+  "many-mini": {
+    label: "Many Mini",
+    count: 100,
+    radius: 0.05,
+    threshold: 0.5,
+  },
+};
+
+const selected_preset = ref('default');
+// Intentionally setup so each editor is synchronized.
+const editor_properties = [
+  new NumberRangeOptions('count', 'Count', computed(() => presets[selected_preset.value]?.count), 0, 100, 1).setModel(ref(presets[selected_preset.value].count)),
+  new NumberRangeOptions('radius', 'Radius', computed(() => presets[selected_preset.value]?.radius), 0.01, 0.2, 0.01).setModel(ref(presets[selected_preset.value].radius)),
+  new NumberRangeOptions('threshold', 'Min-Mass', computed(() => presets[selected_preset.value]?.threshold), 0.01, 0.99, 0.01).setModel(ref(presets[selected_preset.value].threshold)),
+  new ComboBoxOptions('preset', 'Preset', 'default', Object.entries(presets).map(([key, value]) => [key, value.label])).setModel(selected_preset),
+];
 
 function onPlayerLoaded(target_frame) {
   postMessageToFrame(target_frame);
 }
 
 function postMessageToFrame(target_frame) {
+  if (!target_frame || !main_editor.value) {
+    return;
+  }
   target_frame.contentWindow.postMessage({
-    count: editorProperties.value.count.model,
-    radius: editorProperties.value.radius.model,
-    threshold: editorProperties.value.threshold.model,
+    count: main_editor.value.get('count'),
+    radius: main_editor.value.get('radius'),
+    threshold: main_editor.value.get('threshold'),
   }, window.location.origin);
 }
 
@@ -75,23 +87,17 @@ function scheduleUpdate() {
   }, 300);
 }
 
-function onPresetSelected(new_value) {
-  var new_options = editorProperties.value.preset.options.values[new_value];
-  if (!new_options) {
-    return;
-  }
+function onPresetSelected() {
+  const new_selection = main_editor.value.get('preset');
+  const new_presets = presets[new_selection];
   for (var key of ['count', 'radius', 'threshold']) {
-    if (!new_options[key] || !editorProperties.value[key]) {
-      continue;
-    }
-    editorProperties.value[key].model = new_options[key];
-    editorProperties.value[key].options.initial_value = new_options[key];
+    main_editor.value.set(key, new_presets[key]);
   }
 }
 
-function onPropertyChanged(name, new_value) {
+function onPropertyChanged(name) {
   if (name === 'preset') {
-    onPresetSelected(new_value);
+    onPresetSelected();
   }
   scheduleUpdate();
 }
@@ -102,11 +108,12 @@ function onPropertyChanged(name, new_value) {
           :date="date"
           :lastmod="lastmod"
           :frame="frame + '?mode=Version2025'"
-          :paused="false"
+          :state="PlayerState.Playing"
           @load="onPlayerLoaded" />
   <Column>
     <Section heading="Controls">
-      <PropertyEditor :properties="editorProperties"
+      <PropertyEditor ref="main_editor_ref"
+                      :properties="editor_properties"
                       @property-changed="onPropertyChanged" />
     </Section>
 
@@ -172,12 +179,12 @@ function onPropertyChanged(name, new_value) {
         gl.disable(gl.DEPTH_TEST);
       "></Code>
 
-      <Math>
+      <Formula caption="Equation for the blendFuncSeparate above, computing the color `R` given colors source `S` and destination `D`.">
         \begin{aligned}
-        R_{rgb} &=& \Big[(S_{rgb} \cdot S_a) &+& (D_{rgb} \cdot (1 - S_a))\Big] \\
-        R_a     &=& \Big[(S_a \cdot 1) &+& (D_a \cdot (1 - S_a))\Big] \\
+        R_{rgb} &=& &(S_{rgb} \cdot S_a) &+& (D_{rgb} \cdot (1 - S_a))& \\
+        R_a     &=& &(S_a \cdot 1) &+& (D_a \cdot (1 - S_a))& \\
         \end{aligned}
-      </Math>
+      </Formula>
       <br />
       <p>
         Each particle is shaded into the base texture after updating its per-particle uniform values.
@@ -214,7 +221,7 @@ function onPropertyChanged(name, new_value) {
               :lastmod="lastmod"
               :frame="frame + '?mode=WebFigureBaseTexture'"
               @load="onPlayerLoaded" />
-      <PropertyEditor :properties="editorProperties" @property-changed="onPropertyChanged" />
+      <PropertyEditor :properties="editor_properties" @property-changed="onPropertyChanged" />
     </Section>
 
     <Section heading="Apply: Diffuse Metaball">
@@ -230,7 +237,7 @@ function onPropertyChanged(name, new_value) {
               :lastmod="lastmod"
               :frame="frame + '?mode=WebFigureDiffuse'"
               @load="onPlayerLoaded" />
-      <PropertyEditor :properties="editorProperties" @property-changed="onPropertyChanged" />
+      <PropertyEditor :properties="editor_properties" @property-changed="onPropertyChanged" />
     </Section>
 
     <Section heading="Apply: Diffuse Metaball + Outline">
@@ -245,7 +252,7 @@ function onPropertyChanged(name, new_value) {
               :lastmod="lastmod"
               :frame="frame + '?mode=WebFigureDiffuseOutline'"
               @load="onPlayerLoaded" />
-      <PropertyEditor :properties="editorProperties" @property-changed="onPropertyChanged" />
+      <PropertyEditor :properties="editor_properties" @property-changed="onPropertyChanged" />
     </Section>
 
     <Section heading="Apply: Outline + Hue">
@@ -260,7 +267,7 @@ function onPropertyChanged(name, new_value) {
               :lastmod="lastmod"
               :frame="frame + '?mode=WebFigureHueOutline'"
               @load="onPlayerLoaded" />
-      <PropertyEditor :properties="editorProperties" @property-changed="onPropertyChanged" />
+      <PropertyEditor :properties="editor_properties" @property-changed="onPropertyChanged" />
     </Section>
 
     <Section heading="Limitations">

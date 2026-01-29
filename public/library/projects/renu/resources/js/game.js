@@ -221,7 +221,6 @@ function main() {
 }
 
 function disableSelect(e) {
-  console.log("yes");
   if (e.preventDefaults) { e.preventDefault(); }
   return false;
 }

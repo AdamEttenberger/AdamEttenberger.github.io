@@ -1,30 +1,19 @@
-<script setup>
-/**
- * Emits `name: String, new_value: String`
- */
-const emit = defineEmits(['property-changed']);
+<script setup lang="ts">
+import { PropType } from 'vue'
+import { IPropertyComboBoxOptions } from '@/util/property_editor/property_interfaces';
 
-const props = defineProps({
-  name: { type: String, required: true },
-  disabled: { type: Boolean, required: true },
-  options: { type: Object, required: true },
-});
-
+const options = defineProps<IPropertyComboBoxOptions>();
 const model = defineModel({
-  type: String,
+  type: [String, Number] as PropType<String | Number>,
   required: true,
-  set(value) {
-    emit('property-changed', props.name, value);
-    return value;
-  },
 });
 </script>
 
 <template>
-  <select :name="name" :disabled="disabled" v-model="model">
-    <option v-for="(option, key) in options"
-            :value="key">
-      {{ option.label }}
+  <select class="property-editor-combo-box" :name="name" :disabled="disabled" v-model="model">
+    <option v-for="([property_name, label]) in options.values"
+            :value="property_name">
+      {{ label }}
     </option>
   </select>
 </template>
@@ -58,6 +47,9 @@ select {
   &:active {
     background-color: var(--color-background-button-active);
   }
+  &:disabled {
+    background-color: var(--color-background-button-disabled);
+  }
 }
 
 option {
@@ -75,6 +67,9 @@ option {
   }
   &:checked {
     background-color: var(--color-background-button-selected);
+  }
+  &:disabled {
+    background-color: var(--color-background-button-disabled);
   }
 }
 </style>

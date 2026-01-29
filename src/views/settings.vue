@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import Button from '@/components/button.vue'
 import Column from '@/components/column.vue'
@@ -9,7 +9,11 @@ import Section from '@/components/section.vue'
 import { useConsentStore } from '@/stores/consent'
 import { useUserPreferencesStore } from '@/stores/user_preferences'
 import { useMatchThreeScorecardStore } from '@/stores/match_three_scorecard'
-import PropertyBuilder, { PropertyButtonBuilder, PropertyComboBoxBuilder, PropertyToggleBuilder } from '@/util/property_editor/property_builder'
+import {
+  ButtonOptions,
+  ComboBoxOptions,
+  ToggleOptions,
+} from '@/util/property_editor/property_types'
 
 const consent = useConsentStore();
 const user_preferences = useUserPreferencesStore();
@@ -26,26 +30,26 @@ const {
   color_scheme,
 } = storeToRefs(user_preferences);
 
-const consent_properties = ref(new PropertyBuilder()
-    .addProperty('consent.allow_hiding_consent_banner', new PropertyToggleBuilder().setLabel('Hide consent banner').setModel(allow_hiding_consent_banner))
-    .addProperty('consent.allow_first_party_tracking', new PropertyToggleBuilder().setLabel('Allow first-party tracking').setModel(allow_first_party_tracking))
-    .addProperty('consent.allow_saving_user_preferences', new PropertyToggleBuilder().setLabel('Save User Preferences').setModel(allow_saving_user_preferences))
-    .addProperty('consent.allow_saving_match_three_scorecard', new PropertyToggleBuilder().setLabel('Save Match-3 Scorecard').setModel(allow_saving_match_three_scorecard))
-    .build());
+const consent_properties = [
+  new ToggleOptions('consent.allow_hiding_consent_banner', 'Hide consent banner', false).setModel(allow_hiding_consent_banner),
+  new ToggleOptions('consent.allow_first_party_tracking', 'Allow first-party tracking', false).setModel(allow_first_party_tracking),
+  new ToggleOptions('consent.allow_saving_user_preferences', 'Save User Preferences', false).setModel(allow_saving_user_preferences),
+  new ToggleOptions('consent.allow_saving_match_three_scorecard', 'Save Match-3 Scorecard', false).setModel(allow_saving_match_three_scorecard),
+];
 
-const user_preferences_properties = ref(new PropertyBuilder()
-    .addProperty('consent.allow_saving_user_preferences', new PropertyToggleBuilder().setLabel('Save User Preferences').setModel(allow_saving_user_preferences))
-    .addProperty('user.color_scheme', new PropertyComboBoxBuilder().setLabel('Color Scheme').setModel(color_scheme).setValues({
-      "normal": { label: 'System Default' },
-      "dark": { label: 'Dark' },
-      "light": { label: 'Light' },
-    }))
-    .build());
+const user_preferences_properties = [
+  new ToggleOptions('consent.allow_saving_user_preferences', 'Save User Preferences', false).setModel(allow_saving_user_preferences),
+  new ComboBoxOptions('user.color_scheme', 'Color Scheme', 'normal', [
+    ['normal', 'System Default'],
+    ['dark', 'Dark'],
+    ['light', 'Light'],
+  ]).setModel(color_scheme),
+];
 
-const match_three_scorecard_properties = ref(new PropertyBuilder()
-    .addProperty('consent.allow_saving_match_three_scorecard', new PropertyToggleBuilder().setLabel('Save Match-3 Personal Scorecard').setModel(allow_saving_match_three_scorecard))
-    .addProperty('action.delete_match_three_scorecard', new PropertyButtonBuilder().setLabel('Delete personal scorecard').setText("Delete"))
-    .build());
+const match_three_scorecard_properties = [
+  new ToggleOptions('consent.allow_saving_match_three_scorecard', 'Save Match-3 Personal Scorecard', false).setModel(allow_saving_match_three_scorecard),
+  new ButtonOptions('action.delete_match_three_scorecard', 'Delete Scorecard').setClasses(['delete']).setDisabled(computed(() => !match_three_scorecard?.scorecard)),
+];
 
 function onPropertyButtonClick(name) {
   switch (name) {
@@ -125,8 +129,6 @@ function onDeleteAllLocalStorage() {
   justify-content: center;
 }
 .delete {
-  /* background-color: var(--color-background-error);
-  color: var(--color-text-error); */
   width: max-content;
 }
 </style>

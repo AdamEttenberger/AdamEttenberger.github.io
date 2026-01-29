@@ -19,6 +19,16 @@ const routes = [
     component: () => import('@/views/projects.vue'),
   },
   {
+    path: "/projects/heart_sdf/",
+    component: () => import('@/views/projects/heart_sdf.vue'),
+    props: {
+      title: "Anatomy of a Heart (SDF)",
+      date: new Date('2026/01/29'),
+      lastmod: new Date('2026/01/29'),
+      frame: "/library/projects/shader_loader/shader_loader.html",
+    },
+  },
+  {
     path: "/projects/match_three/",
     component: () => import('@/views/projects/match_three.vue'),
     props: {

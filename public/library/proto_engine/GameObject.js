@@ -31,9 +31,9 @@ function GameObject()
 
   this.draw = function(gl)
   {
-    Game.pushMatrix();
+    g_game.pushMatrix();
 
-    mat4.multiply( Game.mMatrix, Game.mMatrix, this.m_transform.toMatrix() );
+    mat4.multiply( g_game.mMatrix, g_game.mMatrix, this.m_transform.toMatrix() );
 
     var i;
     for(i in this.components)
@@ -42,7 +42,7 @@ function GameObject()
     for(i in this.children)
       this.children[i].draw(gl);
 
-    Game.popMatrix();
+    g_game.popMatrix();
   }
 
   this.addChildGameObject = function(child)
@@ -62,8 +62,9 @@ function GameObject()
     var i = this.children.indexOf(child);
     if (i != -1)
     {
-      this.children.splice(i, 1);
+      const removed = this.children.splice(i, 1);
       child.parent = null;
+      return removed[0];
     }
   }
 

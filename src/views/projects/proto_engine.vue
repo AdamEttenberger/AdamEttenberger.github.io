@@ -1,13 +1,13 @@
-<script setup>
+<script setup lang="ts">
 import Code from '@/components/code.vue'
 import Column from '@/components/column.vue'
 import Details from '@/components/details.vue'
 import ExternalLink from '@/components/external_link.vue'
 import Figure from '@/components/figure.vue'
-import Math from '@/components/math.vue'
 import Player from '@/components/player.vue'
+import { PlayerState } from '@/types/player_state'
 import Section from '@/components/section.vue'
-const props = defineProps({
+defineProps({
   title: { type: String, required: true },
   date: { type: Date, required: true },
   lastmod: { type: Date },
@@ -30,7 +30,7 @@ function postMessageToFrame(target_frame, filepath) {
           :date="date"
           :lastmod="lastmod"
           :frame="frame"
-          :paused="false" />
+          :state="PlayerState.Playing" />
   <Column>
     <Section heading="What's this?">
       <p>
@@ -181,7 +181,7 @@ function postMessageToFrame(target_frame, filepath) {
             text="
         var canvas = document.querySelector('canvas');
         game = new Game(canvas);
-        Game.clearColor = vec4.fromValues( 0.0, 0.0, 0.0, 1.0 );
+        game.clear_color = vec4.fromValues( 0.0, 0.0, 0.0, 1.0 );
       " />
       <br />
       <p>
@@ -240,8 +240,8 @@ function postMessageToFrame(target_frame, filepath) {
             caption="Setup the camera."
             text="
         // Setup the camera (move the world forward 5 units).
-        mat4.perspective(Game.pMatrix, 45, gl.viewportWidth / gl.viewportHeight, 1.0, 1000.0);
-        mat4.fromTranslation(Game.mMatrix, vec3.fromValues(0.0, 0.0, -5.0));
+        mat4.perspective(game.pMatrix, 45, game.aspect, 1.0, 1000.0);
+        mat4.fromTranslation(game.vMatrix, vec3.fromValues(0.0, 0.0, -5.0));
       " />
       <br />
       <p>
@@ -336,7 +336,7 @@ function postMessageToFrame(target_frame, filepath) {
             caption="Texture serialization seamlessly waits until the texture is ready without blocking other tasks."
             text="
         // Game.js
-        Game.serializeTexture = async function(texture) {
+        static async serializeTexture(texture) {
           await texture.loader;
           const canvas = document.createElement('canvas');
           canvas.width = texture.image.width;
@@ -347,7 +347,7 @@ function postMessageToFrame(target_frame, filepath) {
         }
 
         // TextureModelComponent.js
-        this.serialize = async function() {
+        async serialize() {
           return {
             'type': 'TextureModelComponent',
             'texture': await Game.serializeTexture(this.texture),
@@ -359,26 +359,22 @@ function postMessageToFrame(target_frame, filepath) {
       <Code lang="javascript"
             caption="High-level deserialization logic."
             text="
-        Game.deserializeGameObject = async function(jsonGameObject) {
+        // Game.js
+        async deserializeGameObject(jsonGameObject) {
           var obj = new GameObject();
-          await Promise.all([
-            Promise.all(jsonGameObject.components?.map(Game.deserializeComponent)).then(new_components => {
-              new_components.forEach(component => obj.addComponent(component));
-            }),
-            Promise.all(jsonGameObject.children?.map(Game.deserializeGameObject)).then(new_children => {
-              new_children.forEach(child => obj.addChildGameObject(child));
-            }),
-          ]);
+          // Ensure all components are added to the current object before deserializing children.
+          await Promise.all(jsonGameObject.components?.map(this.deserializeComponent, this)).then(new_components => {
+            new_components.forEach(component => obj.addComponent(component));
+          });
+          await Promise.all(jsonGameObject.children?.map(this.deserializeGameObject, this)).then(new_children => {
+            new_children.forEach(child => obj.addChildGameObject(child));
+          });
           return obj;
         }
 
-        Game.deserializeComponent = function(jsonComponent) {
-          return new Promise(async (resolve, reject) => {
-            var TComponent = Game.ComponentTypes.get(jsonComponent.type);
-            return TComponent
-                ? resolve(await new TComponent().deserialize(jsonComponent))
-                : reject();
-          });
+        async deserializeComponent(jsonComponent) {
+            var TComponent = this.component_types.get(jsonComponent.type);
+            return await new TComponent().deserialize(jsonComponent);
         }
       " />
     </Section>

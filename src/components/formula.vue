@@ -1,6 +1,9 @@
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, useSlots } from 'vue'
 import Figure from '@/components/figure.vue'
+import { useScrollAffectingContentWaiterStore } from '@/stores/scroll_affecting_content_waiter'
+
+const scrollAffectingContentWaiter = useScrollAffectingContentWaiterStore();
 
 const slots = useSlots();
 const mathml_parent = ref();
@@ -9,6 +12,7 @@ const init_failed = ref(false);
 const props = defineProps({
   text: { type: String, default: null },
   file: { type: String, default: null },
+  caption: { type: String, required: true },
 })
 
 function readFileProp(resolve, reject) {
@@ -42,17 +46,18 @@ function getTextAsync() {
 }
 
 onMounted(() => {
-  getTextAsync().then((text) => {
+  var task = getTextAsync().then((text) => {
     mathml_parent.value.replaceChildren(TeXZilla.toMathML(text));
   }).catch((e) => {
     console.log(e)
     init_failed.value = true
-  })
+  });
+  scrollAffectingContentWaiter.add(task);
 });
 </script>
 
 <template>
-  <Figure caption="Equation for the blendFuncSeparate above, computing the color `R` given colors source `S` and destination `D`.">
+  <Figure :caption="caption">
     <div v-if="init_failed" class="error">
       <font-awesome-icon :icon="['fas', 'file-circle-xmark']" />
       <br />
