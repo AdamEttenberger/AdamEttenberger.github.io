@@ -905,22 +905,6 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       </p>
     </Section>
 
-    <Section heading="Technical Notes">
-      <p>
-        Before diving in, it's worth covering a few important details about the technical demos on this page.
-      </p>
-      <br />
-      <p>
-        All shaders are targeting <ExternalLink to="https://en.wikipedia.org/wiki/OpenGL_Shading_Language">GLSL ES Version 3</ExternalLink>. As of writing, that's the latest version supported by the <ExternalLink to="https://registry.khronos.org/webgl/specs/latest/2.0/">WebGL 2.0 Specification</ExternalLink>.
-        Using the default UV coordinate system; origin in the lower-left corner, <b>U</b> extends to the right, <b>V</b> extends upwards, positive rotations are counter-clockwise, and UV component ranges are <b class="no-wrap">[0.0, 1.0]</b>.
-      </p>
-      <br />
-      <p>
-        The WebGL context is configured with an orthographic projection, drawing a single quad to fill the render target with the results of an attached shader.
-        Before calling the signed-distance function, UV coordinates are translated so the resulting image is centered and scaled based on frame resolution to fit the frame vertically and avoid stretching or <ExternalLink to="https://en.wikipedia.org/wiki/Letterboxing_(filming)">letterboxing</ExternalLink> the final image.
-      </p>
-    </Section>
-
     <Section heading="Colors Used">
       <p>
         Shader demos and diagrams below represent <b>positive</b> values with <b>red</b> and <b>negative</b> values with <b>blue</b>.
@@ -1586,6 +1570,18 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
         float amp = mix(kMinAnimationRadius, kMaxRadius, uAnimationAmplitude);
         r = mix(kMinAnimationRadius, amp, t);
       " />
+    </Section>
+
+    <Section heading="Technical Notes">
+      <p>
+        All shaders are targeting <ExternalLink to="https://en.wikipedia.org/wiki/OpenGL_Shading_Language">GLSL ES Version 3</ExternalLink>. As of writing, that's the latest version supported by the <ExternalLink to="https://registry.khronos.org/webgl/specs/latest/2.0/">WebGL 2.0 Specification</ExternalLink>.
+        Using the default UV coordinate system; origin in the lower-left corner, <b>U</b> extends to the right, <b>V</b> extends upwards, positive rotations are counter-clockwise, and UV component ranges are <b class="no-wrap">[0.0, 1.0]</b>.
+      </p>
+      <br />
+      <p>
+        The WebGL context is configured with an orthographic projection, drawing a single quad to fill the render target with the results of an attached shader.
+        Before calling the signed-distance function, UV coordinates are translated so the resulting image is centered and scaled based on frame resolution to fit the frame vertically and avoid stretching or <ExternalLink to="https://en.wikipedia.org/wiki/Letterboxing_(filming)">letterboxing</ExternalLink> the final image.
+      </p>
     </Section>
 
     <Section heading="References">
