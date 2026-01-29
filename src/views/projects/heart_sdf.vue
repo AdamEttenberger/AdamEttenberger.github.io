@@ -1051,7 +1051,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       </p>
       <br />
       <Note :kind="NoteKind.Warning">
-        This solution uses 4 trig functions which are relatively expensive operations.
+        This solution uses 4 trig functions which are relatively expensive operations; this approach isn't recommended for production.
       </Note>
       <br />
       <Formula caption="unit vector N, computed through trig functions.">
