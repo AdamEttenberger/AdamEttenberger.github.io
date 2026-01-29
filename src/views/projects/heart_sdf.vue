@@ -923,9 +923,9 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
 
     <Section heading="Colors Used">
       <p>
-        The example shaders and diagrams below represent <b>positive</b> values with <b>red</b> and <b>negative</b> values with <b>blue</b>.
-        The animated frame at the top of the page has its colors reversed for aesthetics.
+        Shader demos and diagrams below represent <b>positive</b> values with <b>red</b> and <b>negative</b> values with <b>blue</b>.
         These colors were selected arbitrarily to mirror common colors for north and south magnetic poles.
+        The showcase at the top of the page has colors reversed for aesthetics.
       </p>
     </Section>
 
