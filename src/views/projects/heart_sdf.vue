@@ -886,7 +886,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       <p>
         This page is a somewhat structured accumulation of notes and demos related to signed-distance fields and their properties.
         While the goal for this page isn't a comprehensive guide, readers familiar with <ExternalLink to="https://en.wikipedia.org/wiki/Shading_language">shading languages</ExternalLink> and the graphics pipeline should be able to recreate the demos and create simple scenes after reading.
-        I'll briefly discuss how to derive the distance field of a few shape primitives, and how to compose simple complex shapes including an <b>aligned capsule</b> and <b>heart</b> shape.
+        I'll briefly discuss how to derive the distance field of a few shape primitives, and how to compose simple complex shapes including a <b>heart</b> and an <b>aligned capsule</b>.
       </p>
       <br />
       <p>
