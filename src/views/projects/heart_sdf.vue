@@ -875,13 +875,6 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
                       @property-changed="(name) => onPlayerPropertyChanged(players['main'].inner_frame, name)" />
     </Section>
 
-    <Section heading="What is a signed-distance function (SDF)?">
-      <p>
-        A <ExternalLink to="https://en.wikipedia.org/wiki/Signed_distance_function">signed-distance function</ExternalLink> (<abbr>SDF</abbr>) or signed-distance field, is a function which computes the signed-distance between any point and the nearest surface or boundary.
-        The sign of the result indicates whether a point is inside (negative), outside (positive), or on the surface (0) of a shape boundary, like how the dot product of two vectors indicates whether they point in similar (positive), opposing (negative), or perpendicular (0) directions.
-      </p>
-    </Section>
-
     <Section heading="Scope">
       <p>
         This page is a somewhat structured accumulation of notes and demos related to signed-distance fields and their properties.
@@ -896,247 +889,6 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
         These colors were selected arbitrarily to mirror common colors for north and south magnetic poles.
         The showcase at the top of the page has colors reversed for aesthetics.
       </p>
-    </Section>
-
-    <Section heading="Foundation">
-      <p>
-        To help illustrate the concept of a signed-distance function, consider the following examples on a <b>1-D</b> number line.
-      </p>
-      <br />
-      <ol class="foundation-steps">
-        <li>
-          <p>
-            The difference between points <b>P</b> and <b>Q</b>, in the form <b>Q-P</b>.
-            This creates the signed distance function of a <b>1-D</b> edge.
-            With <b>negative</b> values extend infinitely to the left of <b>P</b> where <b>Q&lt;P</b> and <b>positive</b> values extend infinitely to the right of <b>P</b> where <b>Q&gt;P</b>.
-          </p>
-          <br/>
-          <Figure src_light="/images/projects/sdf/foundation_sdf_edge_light.png"
-                  src_dark="/images/projects/sdf/foundation_sdf_edge_dark.png"
-                  alt="Abstract (1-D) number line illustrating the signed-distance function 'Q-P'." />
-        </li>
-        <li>
-          <p>
-            Taking the absolute value raises the floor of the function to zero while maintaining relative distances to the boundary.
-            This creates the signed distance function of a <b>1-D</b> point.
-          </p>
-          <br/>
-          <Figure src_light="/images/projects/sdf/foundation_sdf_point_light.png"
-                  src_dark="/images/projects/sdf/foundation_sdf_point_dark.png"
-                  alt="Abstract (1-D) number line illustrating the signed-distance function 'abs(Q-P)'." />
-        </li>
-        <li>
-          <p>
-            Subtracting a <b>radius</b>, <b>extents</b>, or <b>half-width</b> from the distance function inflates the boundary uniformly in all directions.
-            This creates the signed distance function of a <b>1-D</b> line segment; a region centered around <b>P</b> extended by <b>R</b> in each direction.
-            The distance is zero at both endpoints of the line segment, falling negative inside the region, and growing positive outside the region.
-          </p>
-          <br/>
-          <Figure src_light="/images/projects/sdf/foundation_sdf_segment_light.png"
-                  src_dark="/images/projects/sdf/foundation_sdf_segment_dark.png"
-                  alt="Abstract (1-D) number line illustrating the signed-distance function 'abs(Q-P) - R'." />
-        </li>
-        <li>
-          <p>
-            Steps (2) and (3) can be repeated to inflate from the new boundary of the shape.
-            Taking the absolute value of the distance field then subtracting another <b>radius</b> amount <b>L</b> inflates both endpoints of the line segment into new line segments that are each <b>2L</b> wide.
-          </p>
-          <br/>
-          <Figure src_light="/images/projects/sdf/foundation_sdf_segment_abs_light.png"
-                  src_dark="/images/projects/sdf/foundation_sdf_segment_abs_dark.png"
-                  alt="Abstract (1-D) number line illustrating the signed-distance function 'abs(abs(Q-P) - R)'." />
-          <Figure src_light="/images/projects/sdf/foundation_sdf_segment_abs_inflated_light.png"
-                  src_dark="/images/projects/sdf/foundation_sdf_segment_abs_inflated_dark.png"
-                  alt="Abstract (1-D) number line illustrating the signed-distance function 'abs(abs(Q-P) - R) - L'." />
-        </li>
-      </ol>
-    </Section>
-
-    <Section heading="Points, Circles, and Rings">
-      <p>
-        The easiest shape to implement is likely a point, or its inflated 2D/3D forms (circle, sphere) which are offsets of the point function.
-        Intuitively the signed-distance from a point is either <b>0</b> at the exact center or <b>&gt;0</b>.
-        Subtracting a radius from this value inflates the shape, with negative values falling inside the boundary formed at the radius.
-      </p>
-      <br />
-      <Code lang="cpp"
-            caption="Circle signed-distance function."
-            :text="shader_templates.get('circle').sdf_function" />
-      <br />
-      <Player :ref="makePlayerRef('circle')"
-              title="Circle"
-              :date="date"
-              :lastmod="lastmod"
-              :frame="frame"
-              :state="player_states['circle']"
-              @load="(frame) => onPlayerLoaded(frame, editors['circle'], 'circle')" />
-      <br />
-      <PropertyEditor :ref="makeEditorRef('circle')"
-                      :properties="getShaderProperties('circle')"
-                      @property-changed="(name) => onPlayerPropertyChanged(players['circle'].inner_frame, name)" />
-    </Section>
-
-    <Section heading="Planes and Lines">
-      <p>
-        Next is a plane, defined with a <b>unit vector normal</b> and an amount to offset the plane from the origin along the normal.
-        The signed-distance between a point and a plane is the projected length onto the <b><u>unit</u> vector</b> using the <ExternalLink to="https://en.wikipedia.org/wiki/Dot_product">vector dot product</ExternalLink>.
-        Creating a region of positive values on the side the <b>normal</b> vector is pointing, and negative values in the opposite direction.
-      </p>
-      <br />
-      <p>
-        A plane can be transformed into a line by taking the absolute value of the signed-distance, then subtract half the line width to <b>inflate</b> the shape boundary.
-        This process is like how the signed-distance of a point can be <b>inflated</b> into a circle or sphere, or how the <i>absolute</i> distance field of a circle inflates into a torus.
-        Taking the absolute value makes the lowest value <i>possible</i> in the distance field <b>zero</b> while maintaining distance to the boundary of the shape.
-        Subtracting from the distance field <b>inflates</b> the boundary of the shape by shifting the field uniformly <b>away from the boundary</b>.
-      </p>
-      <br />
-      <Code lang="cpp"
-            caption="Plane signed-distance function."
-            :text="shader_templates.get('plane').sdf_function" />
-      <br />
-      <Player :ref="makePlayerRef('plane')"
-              title="Plane"
-              :date="date"
-              :lastmod="lastmod"
-              :frame="frame"
-              :state="player_states['plane']"
-              @load="(frame) => onPlayerLoaded(frame, editors['plane'], 'plane')" />
-      <br />
-      <PropertyEditor :ref="makeEditorRef('plane')"
-                      :properties="getShaderProperties('plane', {
-                        'uShowReticle': { default_value: true },
-                        'uShowAxisX': { default_value: true },
-                        'uShowAxisY': { default_value: true },
-                      })"
-                      @property-changed="(name) => onPlayerPropertyChanged(players['plane'].inner_frame, name)" />
-    </Section>
-
-    <Section heading="Symmetry">
-      <p>
-        When a shape can be mirrored, centering the shape along the origin may simplify the math involved.
-        For example, mirroring across the horizontal or vertical axis can be achieved by using the absolute value of their respective UV component when the shape is centered at the origin, causing anything drawn on the <b>positive</b> side of the axis to be mirrored, or the first quadrant when both axes are mirrored.
-      </p>
-      <br />
-      <Details summary="Mirrored Shapes Signed-distance Function">
-        <Code lang="cpp"
-              caption="Mirrored shapes signed-distance function."
-              :text="shader_templates.get('mirror').sdf_function" />
-      </Details>
-      <br />
-      <Player :ref="makePlayerRef('mirror')"
-              title="Mirrored Shapes"
-              :date="date"
-              :lastmod="lastmod"
-              :frame="frame"
-              :state="player_states['mirror']"
-              @load="(frame) => onPlayerLoaded(frame, editors['mirror'], 'mirror')" />
-      <br />
-      <PropertyEditor :ref="makeEditorRef('mirror')"
-                      :properties="getShaderProperties('mirror', {
-                        'uShowAxisX': { default_value: true },
-                        'uShowAxisY': { default_value: true },
-                      })"
-                      @property-changed="(name) => onPlayerPropertyChanged(players['mirror'].inner_frame, name)" />
-    </Section>
-
-    <Section heading="Boolean Operations">
-      <p>
-        Shapes can be combined with an equivalent to boolean operators.
-        These make it easier to create complex shapes, but don't guarantee the signed-distance field is accurate.
-        Accurate signed-distance fields are generally preferred since they're more flexible, but boolean operations can quickly compose a shape when only the shape boundary or mask is needed.
-      </p>
-      <br />
-      <Details summary="Venn Diagram: Boolean Operators">
-        <Code lang="cpp"
-              caption="SDF Venn Diagram boolean operators."
-              :text="shader_templates.get('venn-diagram').sdf_function" />
-      </Details>
-      <br />
-      <Player :ref="makePlayerRef('venn-diagram')"
-              title="Venn Diagram"
-              :date="date"
-              :lastmod="lastmod"
-              :frame="frame"
-              :state="player_states['venn-diagram']"
-              @load="(frame) => onPlayerLoaded(frame, editors['venn-diagram'], 'venn-diagram')" />
-      <br />
-      <PropertyEditor :ref="makeEditorRef('venn-diagram')"
-                      :properties="getShaderProperties('venn-diagram')"
-                      @property-changed="(name) => onPlayerPropertyChanged(players['venn-diagram'].inner_frame, name)" />
-    </Section>
-
-    <Section heading="Drawing Regions">
-      <p>
-        Another approach to compositing a shape is to slice the render into different drawing regions.
-        Consider a capsule shape which is effectively an inflated line segment.
-      </p>
-      <br />
-      <p>
-        Fortunately, capsules have symmetry across two perpendicular axes, so an aligned capsule can be mirrored from the first quadrant.
-        One method of drawing a line segment is to draw a mirrored plane for the line body and a point at each endpoint.
-        However, a plane extends infinitely and is always "closest" when compared with a collinear point, so the two shapes can't join with boolean operations.
-      </p>
-      <br />
-      <p>
-        To fix this, one approach is to split the render into two drawing regions:
-      </p>
-      <ul>
-        <li>A plane drawn for any points between the origin and the end of the line segment.</li>
-        <li>A point/circle drawn for any points further than the end of the line segment.</li>
-      </ul>
-      <br />
-      <p>
-        The default settings for the demo below inverts the <abbr>SDF</abbr> of the plane connecting the two points to highlight the drawing regions.
-      </p>
-      <br />
-      <Details summary="Aligned Capsule: Drawing Regions">
-        <Code lang="cpp"
-              caption="Aligned capsule signed-distance function. Draws a circle and plane, mirrored across both axes, with two drawing regions."
-              :text="shader_templates.get('capsule').sdf_function" />
-      </Details>
-      <br />
-      <Player :ref="makePlayerRef('capsule')"
-              title="Aligned Capsule"
-              :date="date"
-              :lastmod="lastmod"
-              :frame="frame"
-              :state="player_states['capsule']"
-              @load="(frame) => onPlayerLoaded(frame, editors['capsule'], 'capsule')" />
-      <br />
-      <PropertyEditor :ref="makeEditorRef('capsule')"
-                      :properties="getShaderProperties('capsule', {
-                        'uShowAxisX': { default_value: true },
-                        'uShowAxisY': { default_value: true },
-                      })"
-                      @property-changed="(name) => onPlayerPropertyChanged(players['capsule'].inner_frame, name)" />
-    </Section>
-
-    <Section heading="Boundaries, Insets, and Outsets">
-      <p>
-        Outlines can easily be rendered by creating a value band near zero, the boundary of the shape.
-        Taking this a step further, negative and positive values could have different colors, creating separate inset and outset color bands.
-        Rendering both insets and outsets as separate high contrast colors can help make shapes more readable over noisy backgrounds.
-      </p>
-      <br />
-      <p>
-        This is one example for how to draw separate layers, but how to approach this really depends on your design requirements.
-        If the final texture was going to be a compositing mask, then maybe only values <b class="no-wrap"><= 0.0</b> need to be filled and everything else could be <b>discard</b>-ed.
-        To the opposite extreme, arrays could be used to specify many colors and distance-threshold values, through shader uniforms, constants, or encoded in texture data if you have a suitable use case.
-      </p>
-      <br />
-      <Code lang="cpp"
-            caption="Simple SDF draw call with 4 layers: [outside, outset, inset, inside]."
-            text="
-        vec4 draw(float sdf) {
-          if (sdf + uInsetWidth <= 0.0) {
-            return uInsideColor;
-          } else if (sdf - uOutsetWidth > 0.0) {
-            return uOutsideColor;
-          } else {
-            return (sdf > 0.0) ? uOutsetColor : uInsetColor;
-          }
-        }
-      " />
     </Section>
 
     <Section heading="Compositing a Heart">
@@ -1537,6 +1289,254 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
                         'heart.uBlendToCircle': { default_value: 0.25 },
                       })"
                       @property-changed="(name) => onPlayerPropertyChanged(players['heart'].inner_frame, name)" />
+    </Section>
+
+    <Section heading="What is a signed-distance function (SDF)?">
+      <p>
+        A <ExternalLink to="https://en.wikipedia.org/wiki/Signed_distance_function">signed-distance function</ExternalLink> (<abbr>SDF</abbr>) or signed-distance field, is a function which computes the signed-distance between any point and the nearest surface or boundary.
+        The sign of the result indicates whether a point is inside (negative), outside (positive), or on the surface (0) of a shape boundary, like how the dot product of two vectors indicates whether they point in similar (positive), opposing (negative), or perpendicular (0) directions.
+      </p>
+    </Section>
+
+    <Section heading="Foundation">
+      <p>
+        To help illustrate the concept of a signed-distance function, consider the following examples on a <b>1-D</b> number line.
+      </p>
+      <br />
+      <ol class="foundation-steps">
+        <li>
+          <p>
+            The difference between points <b>P</b> and <b>Q</b>, in the form <b>Q-P</b>.
+            This creates the signed distance function of a <b>1-D</b> edge.
+            With <b>negative</b> values extend infinitely to the left of <b>P</b> where <b>Q&lt;P</b> and <b>positive</b> values extend infinitely to the right of <b>P</b> where <b>Q&gt;P</b>.
+          </p>
+          <br/>
+          <Figure src_light="/images/projects/sdf/foundation_sdf_edge_light.png"
+                  src_dark="/images/projects/sdf/foundation_sdf_edge_dark.png"
+                  alt="Abstract (1-D) number line illustrating the signed-distance function 'Q-P'." />
+        </li>
+        <li>
+          <p>
+            Taking the absolute value raises the floor of the function to zero while maintaining relative distances to the boundary.
+            This creates the signed distance function of a <b>1-D</b> point.
+          </p>
+          <br/>
+          <Figure src_light="/images/projects/sdf/foundation_sdf_point_light.png"
+                  src_dark="/images/projects/sdf/foundation_sdf_point_dark.png"
+                  alt="Abstract (1-D) number line illustrating the signed-distance function 'abs(Q-P)'." />
+        </li>
+        <li>
+          <p>
+            Subtracting a <b>radius</b>, <b>extents</b>, or <b>half-width</b> from the distance function inflates the boundary uniformly in all directions.
+            This creates the signed distance function of a <b>1-D</b> line segment; a region centered around <b>P</b> extended by <b>R</b> in each direction.
+            The distance is zero at both endpoints of the line segment, falling negative inside the region, and growing positive outside the region.
+          </p>
+          <br/>
+          <Figure src_light="/images/projects/sdf/foundation_sdf_segment_light.png"
+                  src_dark="/images/projects/sdf/foundation_sdf_segment_dark.png"
+                  alt="Abstract (1-D) number line illustrating the signed-distance function 'abs(Q-P) - R'." />
+        </li>
+        <li>
+          <p>
+            Steps (2) and (3) can be repeated to inflate from the new boundary of the shape.
+            Taking the absolute value of the distance field then subtracting another <b>radius</b> amount <b>L</b> inflates both endpoints of the line segment into new line segments that are each <b>2L</b> wide.
+          </p>
+          <br/>
+          <Figure src_light="/images/projects/sdf/foundation_sdf_segment_abs_light.png"
+                  src_dark="/images/projects/sdf/foundation_sdf_segment_abs_dark.png"
+                  alt="Abstract (1-D) number line illustrating the signed-distance function 'abs(abs(Q-P) - R)'." />
+          <Figure src_light="/images/projects/sdf/foundation_sdf_segment_abs_inflated_light.png"
+                  src_dark="/images/projects/sdf/foundation_sdf_segment_abs_inflated_dark.png"
+                  alt="Abstract (1-D) number line illustrating the signed-distance function 'abs(abs(Q-P) - R) - L'." />
+        </li>
+      </ol>
+    </Section>
+
+    <Section heading="Points, Circles, and Rings">
+      <p>
+        The easiest shape to implement is likely a point, or its inflated 2D/3D forms (circle, sphere) which are offsets of the point function.
+        Intuitively the signed-distance from a point is either <b>0</b> at the exact center or <b>&gt;0</b>.
+        Subtracting a radius from this value inflates the shape, with negative values falling inside the boundary formed at the radius.
+      </p>
+      <br />
+      <Code lang="cpp"
+            caption="Circle signed-distance function."
+            :text="shader_templates.get('circle').sdf_function" />
+      <br />
+      <Player :ref="makePlayerRef('circle')"
+              title="Circle"
+              :date="date"
+              :lastmod="lastmod"
+              :frame="frame"
+              :state="player_states['circle']"
+              @load="(frame) => onPlayerLoaded(frame, editors['circle'], 'circle')" />
+      <br />
+      <PropertyEditor :ref="makeEditorRef('circle')"
+                      :properties="getShaderProperties('circle')"
+                      @property-changed="(name) => onPlayerPropertyChanged(players['circle'].inner_frame, name)" />
+    </Section>
+
+    <Section heading="Planes and Lines">
+      <p>
+        Next is a plane, defined with a <b>unit vector normal</b> and an amount to offset the plane from the origin along the normal.
+        The signed-distance between a point and a plane is the projected length onto the <b><u>unit</u> vector</b> using the <ExternalLink to="https://en.wikipedia.org/wiki/Dot_product">vector dot product</ExternalLink>.
+        Creating a region of positive values on the side the <b>normal</b> vector is pointing, and negative values in the opposite direction.
+      </p>
+      <br />
+      <p>
+        A plane can be transformed into a line by taking the absolute value of the signed-distance, then subtract half the line width to <b>inflate</b> the shape boundary.
+        This process is like how the signed-distance of a point can be <b>inflated</b> into a circle or sphere, or how the <i>absolute</i> distance field of a circle inflates into a torus.
+        Taking the absolute value makes the lowest value <i>possible</i> in the distance field <b>zero</b> while maintaining distance to the boundary of the shape.
+        Subtracting from the distance field <b>inflates</b> the boundary of the shape by shifting the field uniformly <b>away from the boundary</b>.
+      </p>
+      <br />
+      <Code lang="cpp"
+            caption="Plane signed-distance function."
+            :text="shader_templates.get('plane').sdf_function" />
+      <br />
+      <Player :ref="makePlayerRef('plane')"
+              title="Plane"
+              :date="date"
+              :lastmod="lastmod"
+              :frame="frame"
+              :state="player_states['plane']"
+              @load="(frame) => onPlayerLoaded(frame, editors['plane'], 'plane')" />
+      <br />
+      <PropertyEditor :ref="makeEditorRef('plane')"
+                      :properties="getShaderProperties('plane', {
+                        'uShowReticle': { default_value: true },
+                        'uShowAxisX': { default_value: true },
+                        'uShowAxisY': { default_value: true },
+                      })"
+                      @property-changed="(name) => onPlayerPropertyChanged(players['plane'].inner_frame, name)" />
+    </Section>
+
+    <Section heading="Symmetry">
+      <p>
+        When a shape can be mirrored, centering the shape along the origin may simplify the math involved.
+        For example, mirroring across the horizontal or vertical axis can be achieved by using the absolute value of their respective UV component when the shape is centered at the origin, causing anything drawn on the <b>positive</b> side of the axis to be mirrored, or the first quadrant when both axes are mirrored.
+      </p>
+      <br />
+      <Details summary="Mirrored Shapes Signed-distance Function">
+        <Code lang="cpp"
+              caption="Mirrored shapes signed-distance function."
+              :text="shader_templates.get('mirror').sdf_function" />
+      </Details>
+      <br />
+      <Player :ref="makePlayerRef('mirror')"
+              title="Mirrored Shapes"
+              :date="date"
+              :lastmod="lastmod"
+              :frame="frame"
+              :state="player_states['mirror']"
+              @load="(frame) => onPlayerLoaded(frame, editors['mirror'], 'mirror')" />
+      <br />
+      <PropertyEditor :ref="makeEditorRef('mirror')"
+                      :properties="getShaderProperties('mirror', {
+                        'uShowAxisX': { default_value: true },
+                        'uShowAxisY': { default_value: true },
+                      })"
+                      @property-changed="(name) => onPlayerPropertyChanged(players['mirror'].inner_frame, name)" />
+    </Section>
+
+    <Section heading="Boolean Operations">
+      <p>
+        Shapes can be combined with an equivalent to boolean operators.
+        These make it easier to create complex shapes, but don't guarantee the signed-distance field is accurate.
+        Accurate signed-distance fields are generally preferred since they're more flexible, but boolean operations can quickly compose a shape when only the shape boundary or mask is needed.
+      </p>
+      <br />
+      <Details summary="Venn Diagram: Boolean Operators">
+        <Code lang="cpp"
+              caption="SDF Venn Diagram boolean operators."
+              :text="shader_templates.get('venn-diagram').sdf_function" />
+      </Details>
+      <br />
+      <Player :ref="makePlayerRef('venn-diagram')"
+              title="Venn Diagram"
+              :date="date"
+              :lastmod="lastmod"
+              :frame="frame"
+              :state="player_states['venn-diagram']"
+              @load="(frame) => onPlayerLoaded(frame, editors['venn-diagram'], 'venn-diagram')" />
+      <br />
+      <PropertyEditor :ref="makeEditorRef('venn-diagram')"
+                      :properties="getShaderProperties('venn-diagram')"
+                      @property-changed="(name) => onPlayerPropertyChanged(players['venn-diagram'].inner_frame, name)" />
+    </Section>
+
+    <Section heading="Drawing Regions">
+      <p>
+        Another approach to compositing a shape is to slice the render into different drawing regions.
+        Consider a capsule shape which is effectively an inflated line segment.
+      </p>
+      <br />
+      <p>
+        Fortunately, capsules have symmetry across two perpendicular axes, so an aligned capsule can be mirrored from the first quadrant.
+        One method of drawing a line segment is to draw a mirrored plane for the line body and a point at each endpoint.
+        However, a plane extends infinitely and is always "closest" when compared with a collinear point, so the two shapes can't join with boolean operations.
+      </p>
+      <br />
+      <p>
+        To fix this, one approach is to split the render into two drawing regions:
+      </p>
+      <ul>
+        <li>A plane drawn for any points between the origin and the end of the line segment.</li>
+        <li>A point/circle drawn for any points further than the end of the line segment.</li>
+      </ul>
+      <br />
+      <p>
+        The default settings for the demo below inverts the <abbr>SDF</abbr> of the plane connecting the two points to highlight the drawing regions.
+      </p>
+      <br />
+      <Details summary="Aligned Capsule: Drawing Regions">
+        <Code lang="cpp"
+              caption="Aligned capsule signed-distance function. Draws a circle and plane, mirrored across both axes, with two drawing regions."
+              :text="shader_templates.get('capsule').sdf_function" />
+      </Details>
+      <br />
+      <Player :ref="makePlayerRef('capsule')"
+              title="Aligned Capsule"
+              :date="date"
+              :lastmod="lastmod"
+              :frame="frame"
+              :state="player_states['capsule']"
+              @load="(frame) => onPlayerLoaded(frame, editors['capsule'], 'capsule')" />
+      <br />
+      <PropertyEditor :ref="makeEditorRef('capsule')"
+                      :properties="getShaderProperties('capsule', {
+                        'uShowAxisX': { default_value: true },
+                        'uShowAxisY': { default_value: true },
+                      })"
+                      @property-changed="(name) => onPlayerPropertyChanged(players['capsule'].inner_frame, name)" />
+    </Section>
+
+    <Section heading="Boundaries, Insets, and Outsets">
+      <p>
+        Outlines can easily be rendered by creating a value band near zero, the boundary of the shape.
+        Taking this a step further, negative and positive values could have different colors, creating separate inset and outset color bands.
+        Rendering both insets and outsets as separate high contrast colors can help make shapes more readable over noisy backgrounds.
+      </p>
+      <br />
+      <p>
+        This is one example for how to draw separate layers, but how to approach this really depends on your design requirements.
+        If the final texture was going to be a compositing mask, then maybe only values <b class="no-wrap"><= 0.0</b> need to be filled and everything else could be <b>discard</b>-ed.
+        To the opposite extreme, arrays could be used to specify many colors and distance-threshold values, through shader uniforms, constants, or encoded in texture data if you have a suitable use case.
+      </p>
+      <br />
+      <Code lang="cpp"
+            caption="Simple SDF draw call with 4 layers: [outside, outset, inset, inside]."
+            text="
+        vec4 draw(float sdf) {
+          if (sdf + uInsetWidth <= 0.0) {
+            return uInsideColor;
+          } else if (sdf - uOutsetWidth > 0.0) {
+            return uOutsideColor;
+          } else {
+            return (sdf > 0.0) ? uOutsetColor : uInsetColor;
+          }
+        }
+      " />
     </Section>
 
     <Section heading="Adding Animations">
