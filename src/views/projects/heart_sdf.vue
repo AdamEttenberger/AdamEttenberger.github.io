@@ -882,7 +882,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       </p>
     </Section>
 
-    <Section heading="Scope and Inspiration">
+    <Section heading="Scope">
       <p>
         This page is a somewhat structured accumulation of notes and demos related to signed-distance fields and their properties.
         While the goal for this page isn't a comprehensive guide, readers familiar with <ExternalLink to="https://en.wikipedia.org/wiki/Shading_language">shading languages</ExternalLink> and the graphics pipeline should be able to recreate the demos and create simple scenes after reading.
@@ -893,15 +893,6 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
         For this exercise I wanted to experiment with signed-distance fields (<abbr>SDF</abbr>) for rendering game user interface elements and shader effects.
         This also gave me an excuse to begin implementing a shader viewport for more interesting demos going forward.
         The new viewport behaves like the viewport in <ExternalLink to="https://www.shadertoy.com/">ShaderToy</ExternalLink>, providing a few predefined uniforms like elapsed time and viewport size automatically, built with my simple <RouterLink to="/projects/proto_engine">WebGL Proto-Engine</RouterLink>.
-      </p>
-      <br />
-      <p>
-        This was heavily inspired by the work of Inigo Quilez on <ExternalLink to='https://iquilezles.org/articles/distfunctions2d/'>2D distance functions</ExternalLink>.
-        I recreated the heart shape and designed it to fill a 1x1 UV unit, with adjustable heart lobes which are used to animate and morph the shape.
-      </p>
-      <br />
-      <p>
-        I strongly encourage readers to also review the <b>References</b> section at the end for more information on signed-distance functions.
       </p>
     </Section>
 
@@ -1581,6 +1572,17 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       <p>
         The WebGL context is configured with an orthographic projection, drawing a single quad to fill the render target with the results of an attached shader.
         Before calling the signed-distance function, UV coordinates are translated so the resulting image is centered and scaled based on frame resolution to fit the frame vertically and avoid stretching or <ExternalLink to="https://en.wikipedia.org/wiki/Letterboxing_(filming)">letterboxing</ExternalLink> the final image.
+      </p>
+    </Section>
+
+    <Section heading="Inspiration">
+      <p>
+        This was heavily inspired by the work of Inigo Quilez on <ExternalLink to='https://iquilezles.org/articles/distfunctions2d/'>2D distance functions</ExternalLink>.
+        I recreated the heart shape and designed it to fill a 1x1 UV unit, with adjustable heart lobes which are used to animate and morph the shape.
+      </p>
+      <br />
+      <p>
+        I strongly encourage readers to also review the <b>References</b> section at the end for more information on signed-distance functions.
       </p>
     </Section>
 
