@@ -222,6 +222,12 @@ function createSdfShader(uniforms: Array<Uniform>, sdf_function) {
       return length(max(d, 0.0)) + min(max(d.x, d.y), 0.0);
     }
 
+    float sdf_smooth_union(float a, float b, float k) {
+        // https://iquilezles.org/articles/smin/
+        float h = clamp( 0.5+0.5*(b-a)/k, 0.0, 1.0 );
+        return mix( b, a, h ) - k*h*(1.0-h);
+    }
+
     float sdf_reticle(vec2 p) {
       p = abs(p) / uScale;
       float sdf_plus = sdf_union(sdf_rectangle(p, vec2(kReticleMinor, kReticleMajor)),
@@ -610,6 +616,7 @@ const shader_templates = new Map([
         new Uniform(UniformType.int, 'uShape',),
         new Uniform(UniformType.bool, 'uHorizontalMirror'),
         new Uniform(UniformType.bool, 'uVerticalMirror'),
+        new Uniform(UniformType.bool, 'uSmoothMinimum'),
       ],
       sdf_function: `
         if (uHorizontalMirror) {
@@ -628,11 +635,17 @@ const shader_templates = new Map([
             float t = uTime * TAU * 0.25;
             vec2 path = vec2(cos(t), sin(t)) * ring_core;
 
-            float sdf = sdf_torus(p, ring_core, ring_inflate);
-            sdf = sdf_union(sdf, sdf_circle(p - path, dot_size));
-            sdf = sdf_union(sdf, sdf_rectangle(p - rot90_cw(path), vec2(dot_size)));
-            sdf = sdf_union(sdf, sdf_circle(p - vec2(cos45) * ring_core, dot_size));
-            return sdf;
+            float orbitals_sdf = sdf_circle(p - path, dot_size);
+            orbitals_sdf = sdf_union(orbitals_sdf, sdf_circle(p - vec2(cos45) * ring_core, dot_size));
+            orbitals_sdf = sdf_union(orbitals_sdf, sdf_rectangle(p - rot90_cw(path), vec2(dot_size)));
+            float ring_sdf = sdf_torus(p, ring_core, ring_inflate);
+
+            if (uSmoothMinimum) {
+              float smooth_factor = mix(0.025, 0.1, (1.0-cos(t*0.5)));
+              return sdf_smooth_union(ring_sdf, orbitals_sdf, smooth_factor);
+            } else {
+              return sdf_union(ring_sdf, orbitals_sdf);
+            }
           case 1: // Plane
             return sdf_plane(p, vec2(cos45, -cos45));
         }
@@ -767,6 +780,7 @@ function getShaderProperties(shader_key, property_overlay) {
         ]).setModel(mirror_shape),
         new ToggleOptions('mirror.uHorizontalMirror', 'Mirror Horizontally', false),
         new ToggleOptions('mirror.uVerticalMirror', 'Mirror Vertically', false),
+        new ToggleOptions('mirror.uSmoothMinimum', 'Smooth Minimum', true).setCollapsed(computed(() => mirror_shape.value !== 0)),
         new NumberRangeOptions('game.time_scale', 'Time Scale', 1.0, -2.0, 2.0, 0.25).setCollapsed(computed(() => mirror_shape.value !== 0)),
       ];
       break;
@@ -1575,6 +1589,9 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       <WebPageCitation firstname='Inigo' lastname='Quilez'
                        website_title='Inigo Quilez' webpage_title='3D Distance Functions'
                        url='https://iquilezles.org/articles/distfunctions/' />
+      <WebPageCitation firstname='Inigo' lastname='Quilez'
+                       website_title='Inigo Quilez' webpage_title='smooth minimum - 2013'
+                       url='https://iquilezles.org/articles/smin/' />
     </Section>
   </Column>
 </template>
