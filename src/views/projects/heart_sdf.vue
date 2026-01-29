@@ -888,12 +888,6 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
         While the goal for this page isn't a comprehensive guide, readers familiar with <ExternalLink to="https://en.wikipedia.org/wiki/Shading_language">shading languages</ExternalLink> and the graphics pipeline should be able to recreate the demos and create simple scenes after reading.
         I'll briefly discuss how to derive the distance field of a few shape primitives, and how to compose simple complex shapes including a <b>heart</b> and an <b>aligned capsule</b>.
       </p>
-      <br />
-      <p>
-        For this exercise I wanted to experiment with signed-distance fields (<abbr>SDF</abbr>) for rendering game user interface elements and shader effects.
-        This also gave me an excuse to begin implementing a shader viewport for more interesting demos going forward.
-        The new viewport behaves like the viewport in <ExternalLink to="https://www.shadertoy.com/">ShaderToy</ExternalLink>, providing a few predefined uniforms like elapsed time and viewport size automatically, built with my simple <RouterLink to="/projects/proto_engine">WebGL Proto-Engine</RouterLink>.
-      </p>
     </Section>
 
     <Section heading="Colors Used">
@@ -1572,6 +1566,14 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       <p>
         The WebGL context is configured with an orthographic projection, drawing a single quad to fill the render target with the results of an attached shader.
         Before calling the signed-distance function, UV coordinates are translated so the resulting image is centered and scaled based on frame resolution to fit the frame vertically and avoid stretching or <ExternalLink to="https://en.wikipedia.org/wiki/Letterboxing_(filming)">letterboxing</ExternalLink> the final image.
+      </p>
+    </Section>
+
+    <Section heading="Project Goals">
+      <p>
+        For this exercise I wanted to experiment with signed-distance fields (<abbr>SDF</abbr>) to render shader effects and interesting user interface elements like health and mini-map indicators for a game in development.
+        This also gave me an excuse to begin implementing a shader viewport for more interesting demos going forward.
+        The new viewport behaves like the viewport in <ExternalLink to="https://www.shadertoy.com/">ShaderToy</ExternalLink>, providing a few predefined uniforms like elapsed time and viewport size automatically, built with my simple <RouterLink to="/projects/proto_engine">WebGL Proto-Engine</RouterLink>.
       </p>
     </Section>
 
