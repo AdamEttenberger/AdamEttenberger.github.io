@@ -23,8 +23,8 @@ const routes = [
     component: () => import('@/views/projects/heart_sdf.vue'),
     props: {
       title: "Anatomy of a Heart (SDF)",
-      date: new Date('2026/01/01'),
-      lastmod: new Date('2026/01/01'),
+      date: new Date('2026/01/29'),
+      lastmod: new Date('2026/01/29'),
       frame: "/library/projects/shader_loader/shader_loader.html",
     },
   },
