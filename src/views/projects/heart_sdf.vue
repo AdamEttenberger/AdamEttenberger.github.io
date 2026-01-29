@@ -1071,7 +1071,8 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       </p>
       <br />
       <p>
-        With the length <b>Q</b> we can solve for <b class="no-wrap">cos(θ)</b> and <b class="no-wrap">sin(θ)</b>, rather than <b>θ</b> itself.
+        With the lengths <b>Q</b>, <b>R</b>, and <b>S</b> we can solve for <b class="no-wrap">cos(θ)</b> and <b class="no-wrap">sin(θ)</b>, rather than <b>θ</b> itself.
+        Since <b>R</b> is known and <b>S</b> has been solved, use the <ExternalLink to="https://en.wikipedia.org/wiki/Pythagorean_theorem">pythagorean theorem</ExternalLink> to find the remaining leg.
       </p>
       <br />
       <Formula caption="Q is the length between vertex A and T.">
