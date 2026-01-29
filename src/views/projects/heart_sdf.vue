@@ -25,6 +25,7 @@ import {
 //
 import useIntersectionObserver from '@/util/use_intersection_observer';
 import default_vertex_shader from '@/assets/shaders/default.vert?raw'
+import { NoteKind } from '@/types/note_kind'
 
 const players = {};
 const editors = {};
@@ -1313,6 +1314,11 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
               :state="getPlayerState('compositing-a-heart', `heart-composition-step-0`)"
               @load="(frame) => onStepByStepPlayerLoaded(frame, 0)" />
       <br />
+      <Note>
+        The demos in this section have been adjusted to show some space outside the 1x1 UV unit to make some details more apparent.
+        In particular, the area below vertex <b>A</b>.
+      </Note>
+      <br />
       <p>
         To draw the slope connecting vertex <b>A</b> and vertex <b>T</b>, we'll need to find the <b><i>direction</i></b> from vertex <b>C</b> to tangent vertex <b>T</b>, the location of the tangent isn't needed.
         There are a few ways to derive this value, and it's worth reviewing some of them.
@@ -1338,7 +1344,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
         Finally, the sum of the angles can be used to compute <b>N</b> using cosine and sine for the x and y components respectively.
       </p>
       <br />
-      <Note>
+      <Note :kind="NoteKind.Warning">
         This solution uses 4 trig functions which are relatively expensive operations.
       </Note>
       <br />
