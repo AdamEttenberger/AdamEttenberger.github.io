@@ -1315,14 +1315,14 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       <br />
       <p>
         To draw the slope connecting vertex <b>A</b> and vertex <b>T</b>, we'll need to find the <b><i>direction</i></b> from vertex <b>C</b> to tangent vertex <b>T</b>, the location of the tangent isn't needed.
-        There are a few ways to derive this value, and it's worth reviewing a few of them.
+        There are a few ways to derive this value, and it's worth reviewing some of them.
       </p>
       <br />
       <p>
-        To find the tangent direction, we'll need the length <b>S</b>, the distance between vertices <b>A</b> and <b>C</b>.
+        To find the tangent direction, we'll need the length <b>S</b> between vertices <b>A</b> and <b>C</b>, the length of the hypotenuse.
       </p>
       <br />
-      <Formula caption="S is the length between vertex A and C.">
+      <Formula caption="S is the length hypotenuse between vertex A and C.">
         \begin{aligned}
         S &=& ||\vec{CA}|| = \sqrt{\left(\vec{CA} \cdot \vec{CA}\right)} \\
           &=& \sqrt{(\vec{A}_{x}-\vec{C}_{x})^2 + (\vec{A}_{y}-\vec{C}_{y})^2} \\
@@ -1338,9 +1338,9 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
         Finally, the sum of the angles can be used to compute <b>N</b> using cosine and sine for the x and y components respectively.
       </p>
       <br />
-      <p>
-        This solution requires 4 trig functions which are relatively expensive operations.
-      </p>
+      <Note>
+        This solution uses 4 trig functions which are relatively expensive operations.
+      </Note>
       <br />
       <Formula caption="unit vector N, computed through trig functions.">
         \begin{aligned}
