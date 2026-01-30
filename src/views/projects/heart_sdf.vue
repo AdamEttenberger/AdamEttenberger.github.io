@@ -235,17 +235,20 @@ function createSdfShader(uniforms: Array<Uniform>, sdf_function) {
       ${sdf_function}
     }
 
-    vec4 gradient_bands(vec4 color, float sdf, float bandsize) {
-      // Flat stepped gradient falloff brightest at the border of the shape.
-      float band = floor(abs(sdf) / bandsize) * bandsize;
-      return vec4(mix(color.rgb, vec3(0.0), band), color.a);
+    vec4 sdf_smooth_gradient(float sdf, vec4 a, vec4 b) {
+      return mix(a, b, smoothstep(0.0, 1.0, abs(sdf)));
     }
 
-    vec4 draw(float sdf) {
+    vec4 sdf_flat_gradient(float sdf, vec4 a, vec4 b) {
+      float t = floor(abs(sdf) / 0.1) * 0.1;
+      return mix(a, b, t);
+    }
+
+    vec4 draw(float sdf, vec4 color_inside, vec4 color_outside) {
       if (sdf + uInsetWidth <= 0.0) {
-        return uInsideColor;
+        return color_inside;
       } else if (sdf - uOutsetWidth > 0.0) {
-        return uOutsideColor;
+        return color_outside;
       } else {
         return (sdf > 0.0) ? uOutsetColor : uInsetColor;
       }
@@ -347,12 +350,58 @@ function createSdfShader(uniforms: Array<Uniform>, sdf_function) {
         return;
       }
       float sdf = sdf_function(p);
-      vColor = gradient_bands(draw(sdf), sdf, 0.1);
+
+      const vec4 kBlack = vec4(vec3(0.0), 1.0);
+      const vec4 kWhite = vec4(1.0);
+      switch (uDrawMode) {
+        default:
+        case 0: { // Flat (1)
+          vColor = draw(sdf, uInsideColor, uOutsideColor);
+          break;
+        }
+        case 1: { // Flat Gradient (0 towards 1)
+          vColor = draw(sdf, uInsideColor, uOutsideColor);
+          vColor = sdf_flat_gradient(sdf, kBlack, vColor);
+          break;
+        }
+        case 2: { // Flat Gradient Falloff (1 towards 0)
+          vColor = draw(sdf, uInsideColor, uOutsideColor);
+          vColor = sdf_flat_gradient(sdf, vColor, kBlack);
+          break;
+        }
+        case 3: { // Gradient (0 towards 1)
+          vColor = draw(sdf, uInsideColor, uOutsideColor);
+          vColor = sdf_smooth_gradient(sdf, kBlack, vColor);
+          break;
+        }
+        case 4: { // Gradient Falloff (1 towards 0)
+          vColor = draw(sdf, uInsideColor, uOutsideColor);
+          vColor = sdf_smooth_gradient(sdf, vColor, kBlack);
+          break;
+        }
+        case 5: { // Mask (0 or 1)
+          vColor = draw(sdf, kWhite, kBlack);
+          break;
+        }
+        case 6: { // Mask Gradient (0, or 0 towards 1)
+          float t = smoothstep(-1.0, 0.0, sdf);
+          vColor = mix(kWhite, kBlack, t);
+          break;
+        }
+        case 7: { // Mask Gradient Falloff (0, or 1 towards 0)
+          float t = 1.0 - smoothstep(-1.0, 0.0, sdf);
+          vColor = (sdf <= 0.0)
+              ? mix(kWhite, kBlack, t)
+              : kBlack;
+          break;
+        }
+      }
     }
   `;
 }
 
 const shared_uniforms = [
+  new Uniform(UniformType.int, 'uDrawMode'),
   new Uniform(UniformType.bool, 'uShowClock'),
   new Uniform(UniformType.bool, 'uShowReticle'),
   new Uniform(UniformType.bool, 'uShowAxisX'),
@@ -731,18 +780,28 @@ const shader_definitions = Object.fromEntries(shader_templates.entries().map(([s
  * @param property_overlay Object containing key-value pairs ([uniform_key, IPropertyOptions_instance_overrides]). The key names the uniform which will be overridden, and the value is an object which partially implements the derived IPropertyOptions type containing which key/value pairs to override.
  */
 function getShaderProperties(shader_key, property_overlay) {
-  const group_overlays_open = ref(null);
+  const group_rendering_open = ref(null);
   const group_camera_open = ref(null);
   const group_colors_open = ref(null);
   const group_border_open = ref(null);
   const camera_scale = ref(null);
   var common_properties = [
     new DividerOptions('divider-common', 'Common'),
-    new GroupOptions('group-overlays', 'Overlays', false).setModel(group_overlays_open),
-    new ToggleOptions('uShowClock', 'Show Clock', true).setCollapsed(computed(() => !group_overlays_open.value)),
-    new ToggleOptions('uShowReticle', 'Show Origin Reticle', false).setCollapsed(computed(() => !group_overlays_open.value)),
-    new ToggleOptions('uShowAxisX', 'Show X-Axis', false).setCollapsed(computed(() => !group_overlays_open.value)),
-    new ToggleOptions('uShowAxisY', 'Show Y-Axis', false).setCollapsed(computed(() => !group_overlays_open.value)),
+    new GroupOptions('group-rendering', 'Rendering', false).setModel(group_rendering_open),
+    new ComboBoxOptions('uDrawMode', 'Draw Mode', 2, [
+      [0, 'Flat'],
+      [1, 'Flat Gradient'],
+      [2, 'Flat Gradient Falloff'],
+      [3, 'Gradient'],
+      [4, 'Gradient Falloff'],
+      [5, 'Mask'],
+      [6, 'Mask Gradient'],
+      [7, 'Mask Gradient Falloff'],
+    ]).setCollapsed(computed(() => !group_rendering_open.value)),
+    new ToggleOptions('uShowClock', 'Show Clock', false).setCollapsed(computed(() => !group_rendering_open.value)),
+    new ToggleOptions('uShowReticle', 'Show Origin Reticle', false).setCollapsed(computed(() => !group_rendering_open.value)),
+    new ToggleOptions('uShowAxisX', 'Show X-Axis', false).setCollapsed(computed(() => !group_rendering_open.value)),
+    new ToggleOptions('uShowAxisY', 'Show Y-Axis', false).setCollapsed(computed(() => !group_rendering_open.value)),
     new GroupOptions('group-camera', 'Camera', false).setModel(group_camera_open),
     new NumberRangeOptions('uPositionX', 'Position X', 0.0, -1.0, 1.0, 0.01).setCollapsed(computed(() => !group_camera_open.value)),
     new NumberRangeOptions('uPositionY', 'Position Y', 0.0, -1.0, 1.0, 0.01).setCollapsed(computed(() => !group_camera_open.value)),
@@ -786,7 +845,7 @@ function getShaderProperties(shader_key, property_overlay) {
           [2, 'Ring (Centered on Radius)'],
         ]).setModel(circle_mode),
         new NumberRangeOptions('circle.uRadius', 'Core Radius', 0.5, 0, 1, 0.01),
-        new NumberRangeOptions('circle.uRingStrokeWidth', 'Annulus Radius', 0.1, 0, 1, 0.01).setCollapsed(computed(() => circle_mode.value == 0)),
+        new NumberRangeOptions('circle.uRingStrokeWidth', 'Annulus Radius', 0.1, 0, 1, 0.01).setCollapsed(computed(() => circle_mode.value === 0)),
       ];
       break;
     case 'plane':
@@ -896,20 +955,21 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
     sources: shader_definitions['heart'].sources,
     uniforms: [
       // Common
-      ['uShowClock',      {type: UniformType.bool,    value: false}],
-      ['uShowReticle',    {type: UniformType.bool,    value: false}],
-      ['uShowAxisX',      {type: UniformType.bool,    value: false}],
-      ['uShowAxisY',      {type: UniformType.bool,    value: true}],
-      ['uPositionX',      {type: UniformType.float,   value: 0}],
-      ['uPositionY',      {type: UniformType.float,   value: 0}],
-      ['uRotation',       {type: UniformType.float,   value: 0}],
-      ['uScale',          {type: UniformType.float,   value: 1.5}],
-      ['uInsideColor',    {type: UniformType.vec4,    value: [0.0, 0.0, 1.0, 1.0]}],
-      ['uOutsideColor',   {type: UniformType.vec4,    value: [1.0, 0.0, 0.0, 1.0]}],
-      ['uInsetColor',     {type: UniformType.vec4,    value: [1.0, 1.0, 1.0, 1.0]}],
-      ['uOutsetColor',    {type: UniformType.vec4,    value: [0.0, 0.0, 0.0, 1.0]}],
-      ['uInsetWidth',     {type: UniformType.float,   value: 0.01}],
-      ['uOutsetWidth',    {type: UniformType.float,   value: 0.01}],
+      ['uDrawMode',           {type: UniformType.int,     value: 2}],
+      ['uShowClock',          {type: UniformType.bool,    value: false}],
+      ['uShowReticle',        {type: UniformType.bool,    value: false}],
+      ['uShowAxisX',          {type: UniformType.bool,    value: false}],
+      ['uShowAxisY',          {type: UniformType.bool,    value: true}],
+      ['uPositionX',          {type: UniformType.float,   value: 0}],
+      ['uPositionY',          {type: UniformType.float,   value: 0}],
+      ['uRotation',           {type: UniformType.float,   value: 0}],
+      ['uScale',              {type: UniformType.float,   value: 1.5}],
+      ['uInsideColor',        {type: UniformType.vec4,    value: [0.0, 0.0, 1.0, 1.0]}],
+      ['uOutsideColor',       {type: UniformType.vec4,    value: [1.0, 0.0, 0.0, 1.0]}],
+      ['uInsetColor',         {type: UniformType.vec4,    value: [1.0, 1.0, 1.0, 1.0]}],
+      ['uOutsetColor',        {type: UniformType.vec4,    value: [0.0, 0.0, 0.0, 1.0]}],
+      ['uInsetWidth',         {type: UniformType.float,   value: 0.01}],
+      ['uOutsetWidth',        {type: UniformType.float,   value: 0.01}],
       // Heart Shape
       ['uMode',                       {type: UniformType.int, value: 1}],
       ['uAnimationAmplitude',         {type: UniformType.float, value: 1}],
