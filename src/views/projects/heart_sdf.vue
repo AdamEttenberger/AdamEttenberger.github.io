@@ -251,36 +251,100 @@ function createSdfShader(uniforms: Array<Uniform>, sdf_function) {
       }
     }
 
+    bool draw_reticle(vec2 p) {
+      if (!uShowReticle) {
+        return false;
+      }
+      float reticle = sdf_reticle(p);
+      if (abs(reticle) > kReticleMinor) {
+        return false;
+      }
+      vColor = vec4(vec3((reticle <= 0.0) ? 1.0 : 0.0), 1.0);
+      return true;
+    }
+
+    bool draw_axes(vec2 p) {
+      if (!uShowAxisX && !uShowAxisY) {
+        return false;
+      }
+      float axis_extent = kAxisSize * 0.5;
+      vec2 axis_sdf = vec2(
+        uShowAxisX ? sdf_axis(p, 0u, axis_extent) : 0.0,
+        uShowAxisY ? sdf_axis(p, 1u, axis_extent) : 0.0
+      );
+      float sdf = (uShowAxisX && uShowAxisY)
+          ? sdf_union(axis_sdf.x, axis_sdf.y)
+          : axis_sdf.x + axis_sdf.y;
+      if (sdf > 0.0) {
+        return false;
+      }
+      float smooth_sdf = smoothstep(-axis_extent, 0.0, sdf);
+      vColor = vec4(vec3(mix(1.0, 0.0, smooth_sdf)), 1.0);
+      return true;
+    }
+
+    bool draw_ray(vec2 p, vec2 forward, vec4 color) {
+      if (dot(p, forward) <= 0.0) {
+        return false;
+      }
+      float line = abs(sdf_plane(p, rot90_ccw(forward))) - kAxisSize;
+      if (line > 0.0) {
+        return false;
+      }
+      float smooth_sdf = smoothstep(-kAxisSize, 0.0, line);
+      vColor = vec4(mix(color.rgb, vec3(0.0), smooth_sdf), color.a);
+      return true;
+    }
+
+    bool draw_clock(vec2 p) {
+      if (!uShowClock) {
+        return false;
+      }
+      const float clock_radius = 0.1;
+      const float clock_outline = 0.0125;
+      vec2 clock_pos = p - vec2(0.5666, -0.4);
+      float clock_mask = sdf_circle(clock_pos, clock_radius);
+      if (clock_mask > 0.0) {
+        return false;
+      }
+      // Border inset and core.
+      if (clock_mask + clock_outline > 0.0 ||
+          clock_mask + clock_radius - clock_radius*0.1 <= 0.0) {
+        vColor = vec4(vec3(0.0), 1.0);
+        return true;
+      }
+      float animation_time = uTime*TAU;
+      for (int i = 0; i < 3; ++i) {
+        float t = animation_time / float(1 << i);
+        vec3 color = vec3(0.0);
+        color[i] = 1.0;
+        vec2 rads = vec2(cos(t), sin(t));
+        if (draw_ray(clock_pos, rads, vec4(color, 1.0))) {
+          return true;
+        }
+      }
+      vColor = vec4(0.7);
+      return true;
+    }
+
     void main() {
       vec2 p = UV;
       p -= vec2(0.5);       // move the origin to the center of the view.
       p.x *= uResolution.z; // scale to the aspect ratio of the container, to fit vertically.
+
+      if (draw_clock(p)) {
+        return;
+      }
+
       p *= vec2(uScale);                  // camera zoom
       p -= vec2(uPositionX, uPositionY);  // camera translation
       p = rotate2d(uRotation) * p;        // camera rotation
 
-      if (uShowReticle) {
-        float reticle = sdf_reticle(p);
-        if (abs(reticle) <= kReticleMinor) {
-          vColor = vec4(vec3((reticle <= 0.0) ? 1.0 : 0.0), 1.0);
-          return;
-        }
+      if (draw_reticle(p)) {
+        return;
       }
-
-      if (uShowAxisX || uShowAxisY) {
-        float axis_extent = kAxisSize * 0.5;
-        vec2 axis_sdf = vec2(
-          uShowAxisX ? sdf_axis(p, 0u, axis_extent) : 0.0,
-          uShowAxisY ? sdf_axis(p, 1u, axis_extent) : 0.0
-        );
-        float sdf = (uShowAxisX && uShowAxisY)
-            ? sdf_union(axis_sdf.x, axis_sdf.y)
-            : axis_sdf.x + axis_sdf.y;
-        if (sdf <= 0.0) {
-          float smooth_sdf = smoothstep(-axis_extent, 0.0, sdf);
-          vColor = vec4(vec3(mix(1.0, 0.0, smooth_sdf)), 1.0);
-          return;
-        }
+      if (draw_axes(p)) {
+        return;
       }
       float sdf = sdf_function(p);
       vColor = gradient_bands(draw(sdf), sdf, 0.1);
@@ -289,6 +353,7 @@ function createSdfShader(uniforms: Array<Uniform>, sdf_function) {
 }
 
 const shared_uniforms = [
+  new Uniform(UniformType.bool, 'uShowClock'),
   new Uniform(UniformType.bool, 'uShowReticle'),
   new Uniform(UniformType.bool, 'uShowAxisX'),
   new Uniform(UniformType.bool, 'uShowAxisY'),
@@ -671,9 +736,10 @@ function getShaderProperties(shader_key, property_overlay) {
   const group_colors_open = ref(null);
   const group_border_open = ref(null);
   const camera_scale = ref(null);
-  var local_properties = [
+  var common_properties = [
     new DividerOptions('divider-common', 'Common'),
     new GroupOptions('group-overlays', 'Overlays', false).setModel(group_overlays_open),
+    new ToggleOptions('uShowClock', 'Show Clock', true).setCollapsed(computed(() => !group_overlays_open.value)),
     new ToggleOptions('uShowReticle', 'Show Origin Reticle', false).setCollapsed(computed(() => !group_overlays_open.value)),
     new ToggleOptions('uShowAxisX', 'Show X-Axis', false).setCollapsed(computed(() => !group_overlays_open.value)),
     new ToggleOptions('uShowAxisY', 'Show Y-Axis', false).setCollapsed(computed(() => !group_overlays_open.value)),
@@ -692,11 +758,11 @@ function getShaderProperties(shader_key, property_overlay) {
     new NumberRangeOptions('uOutsetWidth', 'Outset Width', 0.01, 0, 0.1, 0.001).setCollapsed(computed(() => !group_border_open.value)),
   ];
 
+  var local_properties;
   switch (shader_key) {
     case 'heart':
       const mode = ref(null);
       local_properties = [
-        ...local_properties,
         new DividerOptions('divider-heart', 'SDF Heart'),
         new ComboBoxOptions('heart.uMode', 'Mode', 0, [
           [0, 'Heartbeat Animation'],
@@ -713,7 +779,6 @@ function getShaderProperties(shader_key, property_overlay) {
     case 'circle':
       const circle_mode = ref(null);
       local_properties = [
-        ...local_properties,
         new DividerOptions('divider-circle', 'SDF Circle'),
         new ComboBoxOptions('circle.uMode', 'Mode', 0, [
           [0, 'Circle'],
@@ -726,7 +791,6 @@ function getShaderProperties(shader_key, property_overlay) {
       break;
     case 'plane':
       local_properties = [
-        ...local_properties,
         new DividerOptions('divider-plane', 'SDF Plane'),
         new ToggleOptions('plane.uMirror', 'Mirror Plane', false),
         new NumberRangeOptions('plane.uNormal', 'Normal Angle', 0.0, 0, 360, 1),
@@ -735,7 +799,6 @@ function getShaderProperties(shader_key, property_overlay) {
       break;
     case 'capsule':
       local_properties = [
-        ...local_properties,
         new DividerOptions('divider-capsule', 'SDF Capsule'),
         new ToggleOptions('capsule.uInvertPlane', 'Invert Plane SDF', true),
         new ComboBoxOptions('capsule.uAxis', 'Axis', 0, [
@@ -748,7 +811,6 @@ function getShaderProperties(shader_key, property_overlay) {
       break;
     case 'venn-diagram':
       local_properties = [
-        ...local_properties,
         new DividerOptions('divider-venn-diagram', 'SDF Capsule'),
         new ComboBoxOptions('venn-diagram.uOp', 'Function', 0, [
           [0, 'Union'],
@@ -761,7 +823,6 @@ function getShaderProperties(shader_key, property_overlay) {
     case 'mirror':
       const mirror_shape = ref(null);
       local_properties = [
-        ...local_properties,
         new DividerOptions('divider-mirror', 'Mirrored Plane'),
         new ComboBoxOptions('mirror.uShape', 'Shape', 0, [
           [0, 'Ring and Circles'],
@@ -777,8 +838,12 @@ function getShaderProperties(shader_key, property_overlay) {
       console.log(`unknown shader_key: ${shader_key}`);
       break;
   }
+  const result = [
+    ...local_properties,
+    ...common_properties,
+  ];
   if (property_overlay && Object.keys(property_overlay).length) {
-    for (var props of local_properties) {
+    for (var props of result) {
       var overlay = property_overlay[props.name];
       if (!overlay) {
         continue;
@@ -786,7 +851,7 @@ function getShaderProperties(shader_key, property_overlay) {
       Object.entries(overlay).forEach(([key, value]) => props[key] = value);
     }
   }
-  return local_properties;
+  return result;
 }
 
 function degToRad(deg) {
@@ -831,25 +896,26 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
     sources: shader_definitions['heart'].sources,
     uniforms: [
       // Common
-      ['uShowReticle',  {type: UniformType.bool, value: false}],
-      ['uShowAxisX',     {type: UniformType.bool, value: false}],
-      ['uShowAxisY',     {type: UniformType.bool, value: true}],
-      ['uPositionX', {type: UniformType.float, value: 0}],
-      ['uPositionY', {type: UniformType.float, value: 0}],
-      ['uRotation', {type: UniformType.float, value: 0}],
-      ['uScale', {type: UniformType.float, value: 1.5}],
-      ['uInsideColor', {type: UniformType.vec4, value: [0.0, 0.0, 1.0, 1.0]}],
-      ['uOutsideColor', {type: UniformType.vec4, value: [1.0, 0.0, 0.0, 1.0]}],
-      ['uInsetColor', {type: UniformType.vec4, value: [1.0, 1.0, 1.0, 1.0]}],
-      ['uOutsetColor', {type: UniformType.vec4, value: [0.0, 0.0, 0.0, 1.0]}],
-      ['uInsetWidth', {type: UniformType.float, value: 0.01}],
-      ['uOutsetWidth', {type: UniformType.float, value: 0.01}],
+      ['uShowClock',      {type: UniformType.bool,    value: false}],
+      ['uShowReticle',    {type: UniformType.bool,    value: false}],
+      ['uShowAxisX',      {type: UniformType.bool,    value: false}],
+      ['uShowAxisY',      {type: UniformType.bool,    value: true}],
+      ['uPositionX',      {type: UniformType.float,   value: 0}],
+      ['uPositionY',      {type: UniformType.float,   value: 0}],
+      ['uRotation',       {type: UniformType.float,   value: 0}],
+      ['uScale',          {type: UniformType.float,   value: 1.5}],
+      ['uInsideColor',    {type: UniformType.vec4,    value: [0.0, 0.0, 1.0, 1.0]}],
+      ['uOutsideColor',   {type: UniformType.vec4,    value: [1.0, 0.0, 0.0, 1.0]}],
+      ['uInsetColor',     {type: UniformType.vec4,    value: [1.0, 1.0, 1.0, 1.0]}],
+      ['uOutsetColor',    {type: UniformType.vec4,    value: [0.0, 0.0, 0.0, 1.0]}],
+      ['uInsetWidth',     {type: UniformType.float,   value: 0.01}],
+      ['uOutsetWidth',    {type: UniformType.float,   value: 0.01}],
       // Heart Shape
-      ['uMode', {type: UniformType.int, value: 1}],
-      ['uAnimationAmplitude', {type: UniformType.float, value: 1}],
-      ['uBlendToCircle', {type: UniformType.float, value: 0.2}],
+      ['uMode',                       {type: UniformType.int, value: 1}],
+      ['uAnimationAmplitude',         {type: UniformType.float, value: 1}],
+      ['uBlendToCircle',              {type: UniformType.float, value: 0.2}],
       ['uHiddenCompositionAnimation', {type: UniformType.bool, value: true}],
-      ['uCompositionStep', {type: UniformType.int, value: composition_step}],
+      ['uCompositionStep',            {type: UniformType.int, value: composition_step}],
     ],
   }, window.location.origin);
 }
