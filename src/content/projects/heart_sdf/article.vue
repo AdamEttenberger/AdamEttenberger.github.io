@@ -1763,8 +1763,8 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       <p>
         This section is kind of magic.
         When drawing it's a common practice to begin with a rough approximation using primitive shapes, then add fine details.
-        This is similar for signed-distance functions.
-        <ExternalLink to="https://iquilezles.org/articles/smin/">Smooth minimum</ExternalLink> is one mechanism for blending shapes to add detail or polish to the shape.
+        This is a tool which allows a similar progression for signed-distance functions, taking roughly laid out shapes and smoothly blending them together.
+        <ExternalLink to="https://iquilezles.org/articles/smin/">Smooth minimum</ExternalLink> is one mechanism for blending shapes to add detail or polish to a shape.
       </p>
       <br />
       <Details summary="Smooth Union">
