@@ -1483,9 +1483,11 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
         Subtracting a radius from this value inflates the shape, with negative values falling inside the boundary formed at the radius.
       </p>
       <br />
-      <Code lang="cpp"
-            caption="Circle signed-distance function."
-            :text="shader_templates.get('circle').sdf_function" />
+      <Details summary="Circle Signed-distance Functions">
+        <Code lang="cpp"
+              caption="Circle signed-distance function."
+              :text="shader_templates.get('circle').sdf_function" />
+      </Details>
       <br />
       <Player :ref="makePlayerRef('circle')"
               title="Circle"
@@ -1514,9 +1516,11 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
         Subtracting from the distance field <b>inflates</b> the boundary of the shape by shifting the field uniformly <b>away from the boundary</b>.
       </p>
       <br />
-      <Code lang="cpp"
-            caption="Plane signed-distance function."
-            :text="shader_templates.get('plane').sdf_function" />
+      <Details summary="Plane signed-distance functions">
+        <Code lang="cpp"
+              caption="Plane signed-distance function."
+              :text="shader_templates.get('plane').sdf_function" />
+      </Details>
       <br />
       <Player :ref="makePlayerRef('plane')"
               title="Plane"
