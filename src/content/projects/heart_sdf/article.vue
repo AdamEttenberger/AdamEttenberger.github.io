@@ -751,6 +751,31 @@ const shader_templates = new Map([
       `,
     }
   ],
+  [
+    'pattern', {
+      label: "Patterns",
+      uniforms: [
+        new Uniform(UniformType.int, 'uMode'),
+        new Uniform(UniformType.bool, 'uClipImage'),
+        new Uniform(UniformType.float, 'uDivisions'),
+      ],
+      sdf_function: `
+        if (uClipImage && sdf_rectangle(p, vec2(0.5)) > 0.0) {
+          discard;
+        }
+        float animation_time = (uTime * TAU) * 0.0125;
+        float t = TAU * uDivisions;
+        switch (uMode) {
+          default:
+          case 0: // Grid Cells
+            vec2 rad = vec2(cos(p.x*t), cos(p.y*t));
+            return sdf_union(rad.x, rad.y);
+          case 1: // Ripples
+            return sin((length(p)-animation_time)*t);
+        }
+      `,
+    }
+  ],
 ]);
 
 const shader_definitions = Object.fromEntries(shader_templates.entries().map(([shader_key, value]) =>
@@ -887,6 +912,18 @@ function getShaderProperties(shader_key, property_overlay) {
         new ToggleOptions('mirror.uVerticalMirror', 'Mirror Vertically', false),
         new ToggleOptions('mirror.uSmoothMinimum', 'Smooth Minimum', true).setCollapsed(computed(() => mirror_shape.value !== 0)),
         new NumberRangeOptions('game.time_scale', 'Time Scale', 1.0, -2.0, 2.0, 0.25).setCollapsed(computed(() => mirror_shape.value !== 0)),
+      ];
+      break;
+    case 'pattern':
+      const pattern_mode = ref(null);
+      local_properties = [
+        new ComboBoxOptions('uMode', 'Mode', 0, [
+          [0, 'Grid Cells'],
+          [1, 'Ripples'],
+        ]).setModel(pattern_mode),
+        new ToggleOptions('uClipImage', 'Clip Image', true),
+        new NumberRangeOptions('uDivisions', 'Divisions', 9.0, 1.0, 33.0, 1.0),
+        new NumberRangeOptions('game.time_scale', 'Time Scale', 1.0, -2.0, 2.0, 0.25).setDisabled(computed(() => pattern_mode.value !== 1)),
       ];
       break;
     default:
@@ -1683,6 +1720,34 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
         float amp = mix(kMinAnimationRadius, kMaxRadius, uAnimationAmplitude);
         r = mix(kMinAnimationRadius, amp, t);
       " />
+    </Section>
+
+    <Section heading="Patterns">
+      <p>
+        Not specific to SDF rendering; wave functions can be useful for creating repeating patterns by repeating some domain of the coordinate space.
+        For example, taking <b>cos(x)</b> and <b>cos(y)</b> will create a repeating grid centered around the origin, and <b>sin(length)</b> will create a ripple pattern.
+        Other approaches could be using the <b>fract</b> or <b>mod</b> methods to create a repeating domain, for example the range <b class="no-wrap">[0, 1]</b>, or <b class="no-wrap">[-&frac12;, &frac12;]</b>.
+      </p>
+      <br />
+      <Details summary="Patterns">
+        <Code lang="cpp"
+              caption="Shape pattern signed-distance function."
+              :text="shader_templates.get('pattern').sdf_function" />
+      </Details>
+      <br />
+      <Player :ref="makePlayerRef('pattern')"
+          title="Pattern"
+          :date="date"
+          :lastmod="lastmod"
+          frame="/library/projects/shader_loader/shader_loader.html"
+          :state="player_states['pattern']"
+          @load="(frame) => onPlayerLoaded(frame, editors['pattern'], 'pattern')" />
+      <br />
+      <PropertyEditor :ref="makeEditorRef('pattern')"
+                      :properties="getShaderProperties('pattern', {
+                        'uDrawMode': { default_value: 6},
+                      })"
+                      @property-changed="(name) => onPlayerPropertyChanged(players['pattern'].inner_frame, name)" />
     </Section>
 
     <Section heading="Technical Notes">

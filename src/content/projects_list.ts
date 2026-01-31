@@ -7,7 +7,7 @@ export default [
                   'Anatomy of a Heart (SDF)',
                   '/images/projects/sdf/icon.png',
                   new Date('2026/01/29'),
-                  new Date('2026/01/29')),
+                  new Date('2026/01/31')),
   new ProjectInfo('match_three',
                   () => import('@/content/projects/match_three/summary.vue'),
                   () => import('@/content/projects/match_three/article.vue'),
