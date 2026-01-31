@@ -10,6 +10,8 @@ import Column from '@/components/column.vue'
         &middot;
         <RouterLink to="/privacy">Privacy</RouterLink>
         &middot;
+        <RouterLink to="/licenses">Licenses</RouterLink>
+        &middot;
       </div>
       <div class="copyright">&nbsp;&copy;&nbsp;{{ new Date().getFullYear() }} Adam Ettenberger</div>
     </Column>

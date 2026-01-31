@@ -1,6 +1,8 @@
 import { createWebHashHistory, createRouter } from 'vue-router'
 import { useScrollAffectingContentWaiterStore } from '@/stores/scroll_affecting_content_waiter'
+import { ILicenseInfo } from '@/types/license_types'
 import { IProjectInfo } from '@/types/project_types';
+import LicensesList from '@/content/licenses_list'
 import ProjectsList from '@/content/projects_list'
 
 const routes = [
@@ -14,6 +16,23 @@ const routes = [
   {
     path: "/about/",
     component: () => import('@/views/about.vue'),
+  },
+  {
+    path: "/licenses",
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/licenses.vue'),
+        props: {
+          licenses: LicensesList,
+        },
+      },
+      ...LicensesList.map(item => ({
+        path: item.subpath,
+        component: () => import('@/views/files/license_file.vue'),
+        props: item as ILicenseInfo,
+      }))
+    ],
   },
   {
     path: "/privacy/",
