@@ -1303,7 +1303,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       <br />
       <Figure src_light="/images/projects/sdf/heart_cut_planes_light.png"
               src_dark="/images/projects/sdf/heart_cut_planes_dark.png"
-              alt="Illustration of cut edges CB and CT, showing how the angle can be acute or obtuse." />
+              alt="Illustration of cut edges CB and CT, showing the angle from vertices A, C, and B can be acute or obtuse." />
       <br />
       <TermList heading="Drawing Regions">
         <Term term="Planes">Mostly the slope connecting vertex <b>A</b> and vertex <b>T</b>, and a triangle region cut out of circle <b>C</b> with vertex <b>B</b>.</Term>
