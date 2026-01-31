@@ -10,16 +10,12 @@ import {
   ButtonOptions,
   NumberRangeOptions,
 } from '@/util/property_editor/property_types'
+import { IProjectInfo } from '@/types/project_types'
+
+const props = defineProps<IProjectInfo>();
 
 const main_editor = useTemplateRef('main_editor_ref');
 const main_player = useTemplateRef('main_player_ref');
-
-defineProps({
-  title: { type: String, required: true },
-  date: { type: Date, required: true },
-  lastmod: { type: Date },
-  frame: { type: String, required: true },
-})
 
 const editor_properties = [
   new ButtonOptions('reload', 'Restart Scene'),
@@ -83,20 +79,22 @@ function onPropertyButtonClick(name) {
 </script>
 
 <template>
-  <Player ref="main_player_ref"
-          :title="title"
-          :date="date"
-          :lastmod="lastmod"
-          :frame="frame"
-          :state="PlayerState.Playing"
-          @load="onPlayerLoaded" />
-  <UnderConstruction />
-  <Column>
-    <Section heading="Controls">
-      <PropertyEditor ref="main_editor_ref"
-                      :properties="editor_properties"
-                      @property-changed="onPropertyChanged"
-                      @property-click="onPropertyButtonClick" />
-    </Section>
-  </Column>
+  <article>
+    <Player ref="main_player_ref"
+            :title="title"
+            :date="date"
+            :lastmod="lastmod"
+            frame="/library/projects/flocking/main.html"
+            :state="PlayerState.Playing"
+            @load="onPlayerLoaded" />
+    <UnderConstruction />
+    <Column>
+      <Section heading="Controls">
+        <PropertyEditor ref="main_editor_ref"
+                        :properties="editor_properties"
+                        @property-changed="onPropertyChanged"
+                        @property-click="onPropertyButtonClick" />
+      </Section>
+    </Column>
+  </article>
 </template>

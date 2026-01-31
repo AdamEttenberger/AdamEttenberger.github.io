@@ -12,6 +12,10 @@ import {
 } from '@/util/property_editor/property_types'
 import { useMatchThreeScorecardStore } from '@/stores/match_three_scorecard'
 import { useConsentStore } from '@/stores/consent'
+import { IProjectInfo } from '@/types/project_types'
+
+defineProps<IProjectInfo>();
+
 const gamedata = useMatchThreeScorecardStore();
 const { allow_saving_match_three_scorecard } = storeToRefs(useConsentStore());
 
@@ -19,13 +23,6 @@ const editor_properties = [
   new ToggleOptions('consent.allow_saving_match_three_scorecard', 'Save Match-3 Personal Scorecard', false).setModel(allow_saving_match_three_scorecard),
   new ButtonOptions('action.delete_match_three_scorecard', 'Delete Scorecard').setClasses(['delete']).setDisabled(computed(() => !gamedata?.scorecard)),
 ];
-
-defineProps({
-  title: { type: String, required: true },
-  date: { type: Date, required: true },
-  lastmod: { type: Date },
-  frame: { type: String, required: true },
-})
 
 onMounted(() => {
   // Uninstall service workers to fix caching issue when re-visiting the page
@@ -61,20 +58,22 @@ function onPropertyButtonClick(name) {
 </script>
 
 <template>
-  <Player :title="title"
-          :date="date"
-          :lastmod="lastmod"
-          :frame="frame"
-          @load="bindGodotBridge" />
-  <Column>
-    <Section heading="Controls">
-      <p>
-        This game supports saving your personal scorecard to device local storage.
-      </p>
-      <br />
-      <PropertyEditor :properties="editor_properties"
-                      @property-click="onPropertyButtonClick" />
-    </Section>
-  </Column>
-  <UnderConstruction />
+  <article>
+    <Player :title="title"
+            :date="date"
+            :lastmod="lastmod"
+            frame="/library/projects/tile_match/tile_match.html"
+            @load="bindGodotBridge" />
+    <Column>
+      <Section heading="Controls">
+        <p>
+          This game supports saving your personal scorecard to device local storage.
+        </p>
+        <br />
+        <PropertyEditor :properties="editor_properties"
+                        @property-click="onPropertyButtonClick" />
+      </Section>
+    </Column>
+    <UnderConstruction />
+  </article>
 </template>

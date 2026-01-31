@@ -1,10 +1,15 @@
 import { createWebHashHistory, createRouter } from 'vue-router'
 import { useScrollAffectingContentWaiterStore } from '@/stores/scroll_affecting_content_waiter'
+import { IProjectInfo } from '@/types/project_types';
+import ProjectsList from '@/content/projects_list'
 
 const routes = [
   {
     path: "/",
     component: () => import('@/views/projects.vue'),
+    props: {
+      projects: ProjectsList,
+    },
   },
   {
     path: "/about/",
@@ -15,77 +20,18 @@ const routes = [
     component: () => import('@/views/privacy.vue'),
   },
   {
-    path: "/projects/",
-    component: () => import('@/views/projects.vue'),
-  },
-  {
-    path: "/projects/heart_sdf/",
-    component: () => import('@/views/projects/heart_sdf.vue'),
-    props: {
-      title: "Anatomy of a Heart (SDF)",
-      date: new Date('2026/01/29'),
-      lastmod: new Date('2026/01/29'),
-      frame: "/library/projects/shader_loader/shader_loader.html",
-    },
-  },
-  {
-    path: "/projects/match_three/",
-    component: () => import('@/views/projects/match_three.vue'),
-    props: {
-      title: "Match-3 Game",
-      date: new Date('2025/05/27'),
-      lastmod: new Date('2025/07/14'),
-      frame: "/library/projects/tile_match/tile_match.html",
-    },
-  },
-  {
-    path: "/projects/renu/",
-    component: () => import('@/views/projects/renu.vue'),
-    props: {
-      title: "RENU - Imagine Cup 2013 @ RIT",
-      date: new Date('2012/12/01'),
-      lastmod: new Date('2012/12/01'),
-      frame: "/library/projects/renu/main.html",
-    },
-  },
-  {
-    path: "/projects/proto_engine/",
-    component: () => import('@/views/projects/proto_engine.vue'),
-    props: {
-      title: "WebGL Proto-Engine",
-      date: new Date('2012/09/01'),
-      lastmod: new Date('2025/06/25'),
-      frame: "/library/projects/proto_engine/main.html",
-    },
-  },
-  {
-    path: "/projects/flocking/",
-    component: () => import('@/views/projects/flocking.vue'),
-    props: {
-      title: "WebGL Flocking",
-      date: new Date('2012/10/05'),
-      lastmod: new Date('2025/07/07'),
-      frame: "/library/projects/flocking/main.html",
-    },
-  },
-  {
-    path: "/projects/metaballs/",
-    component: () => import('@/views/projects/metaballs.vue'),
-    props: {
-      title: "WebGL Metaballs",
-      date: new Date('2012/10/08'),
-      lastmod: new Date('2025/06/18'),
-      frame: "/library/projects/metaballs/main.html",
-    },
-  },
-  {
-    path: "/projects/website/",
-    component: () => import('@/views/projects/website.vue'),
-    props: {
-      title: "This Website",
-      date: new Date('2012/09/19'),
-      lastmod: new Date(__BUILD_TIMESTAMP__),
-    },
+    path: "/projects",
+    children: [
+      {
+        path: '',
+        redirect: '/', // TODO: Implement standalone landing page.
+      },
+      ...ProjectsList.map(item => ({
+        path: item.subpath,
+        component: item.article,
+        props: item as IProjectInfo,
+      }))
+    ],
   },
   {
     path: "/settings/",

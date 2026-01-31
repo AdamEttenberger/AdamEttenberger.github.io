@@ -26,6 +26,9 @@ import {
 import useIntersectionObserver from '@/util/use_intersection_observer';
 import default_vertex_shader from '@/assets/shaders/default.vert?raw'
 import { NoteKind } from '@/types/note_kind'
+import { IProjectInfo } from '@/types/project_types'
+
+defineProps<IProjectInfo>();
 
 const players = {};
 const editors = {};
@@ -137,13 +140,6 @@ class FrameState {
     this.update((update_type == UPDATE.Auto) ? UPDATE.Schedule : update_type);
   }
 }
-
-defineProps({
-  title: { type: String, required: true },
-  date: { type: Date, required: true },
-  lastmod: { type: Date },
-  frame: { type: String, required: true },
-})
 
 function createSdfShader(uniforms: Array<Uniform>, sdf_function) {
   return `#version 300 es
@@ -982,11 +978,12 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
 </script>
 
 <template>
+  <article>
   <Player :ref="makePlayerRef('main')"
           :title="title"
           :date="date"
           :lastmod="lastmod"
-          :frame="frame"
+          frame="/library/projects/shader_loader/shader_loader.html"
           :state="player_states['main']"
           @load="(frame) => onPlayerLoaded(frame, editors['main'], 'heart')" />
   <Column>
@@ -1142,7 +1139,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
               :title="`(Fig. 0) Mirrored Heart Lobe + Lower Point`"
               :date="date"
               :lastmod="lastmod"
-              :frame="frame"
+              frame="/library/projects/shader_loader/shader_loader.html"
               :state="player_states['heart-composition-step-0']"
               @load="(frame) => onStepByStepPlayerLoaded(frame, 0)" />
       <br />
@@ -1279,7 +1276,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
               :title="`(Fig. 1) Mirrored Plane`"
               :date="date"
               :lastmod="lastmod"
-              :frame="frame"
+              frame="/library/projects/shader_loader/shader_loader.html"
               :state="player_states['heart-composition-step-1']"
               @load="(frame) => onStepByStepPlayerLoaded(frame, 1)" />
       <br />
@@ -1352,21 +1349,21 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
               :title="`(Fig. 2) Draw Region #1, Outer Circles`"
               :date="date"
               :lastmod="lastmod"
-              :frame="frame"
+              frame="/library/projects/shader_loader/shader_loader.html"
               :state="player_states['heart-composition-step-2']"
               @load="(frame) => onStepByStepPlayerLoaded(frame, 2)" />
       <Player :ref="makePlayerRef(`heart-composition-step-3`)"
               :title="`(Fig. 3) Draw Region #2, Plane (Incomplete)`"
               :date="date"
               :lastmod="lastmod"
-              :frame="frame"
+              frame="/library/projects/shader_loader/shader_loader.html"
               :state="player_states['heart-composition-step-3']"
               @load="(frame) => onStepByStepPlayerLoaded(frame, 3)" />
       <Player :ref="makePlayerRef(`heart-composition-step-4`)"
               :title="`(Fig. 4) Heart Shape (Incomplete)`"
               :date="date"
               :lastmod="lastmod"
-              :frame="frame"
+              frame="/library/projects/shader_loader/shader_loader.html"
               :state="player_states['heart-composition-step-4']"
               @load="(frame) => onStepByStepPlayerLoaded(frame, 4)" />
       <br />
@@ -1379,14 +1376,14 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
               :title="`(Fig. 5) Outer Circles + Inverted Point in Draw Region #2`"
               :date="date"
               :lastmod="lastmod"
-              :frame="frame"
+              frame="/library/projects/shader_loader/shader_loader.html"
               :state="player_states['heart-composition-step-5']"
               @load="(frame) => onStepByStepPlayerLoaded(frame, 5)" />
       <Player :ref="makePlayerRef(`heart-composition-step-6`)"
               :title="`(Fig. 6) Draw Region #2, Plane + Inverted Point`"
               :date="date"
               :lastmod="lastmod"
-              :frame="frame"
+              frame="/library/projects/shader_loader/shader_loader.html"
               :state="player_states['heart-composition-step-6']"
               @load="(frame) => onStepByStepPlayerLoaded(frame, 6)" />
       <br />
@@ -1404,7 +1401,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
           title="Heart"
           :date="date"
           :lastmod="lastmod"
-          :frame="frame"
+          frame="/library/projects/shader_loader/shader_loader.html"
           :state="player_states['heart']"
           @load="(frame) => onPlayerLoaded(frame, editors['heart'], 'heart')" />
       <br />
@@ -1494,7 +1491,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
               title="Circle"
               :date="date"
               :lastmod="lastmod"
-              :frame="frame"
+              frame="/library/projects/shader_loader/shader_loader.html"
               :state="player_states['circle']"
               @load="(frame) => onPlayerLoaded(frame, editors['circle'], 'circle')" />
       <br />
@@ -1525,7 +1522,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
               title="Plane"
               :date="date"
               :lastmod="lastmod"
-              :frame="frame"
+              frame="/library/projects/shader_loader/shader_loader.html"
               :state="player_states['plane']"
               @load="(frame) => onPlayerLoaded(frame, editors['plane'], 'plane')" />
       <br />
@@ -1554,7 +1551,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
               title="Mirrored Shapes"
               :date="date"
               :lastmod="lastmod"
-              :frame="frame"
+              frame="/library/projects/shader_loader/shader_loader.html"
               :state="player_states['mirror']"
               @load="(frame) => onPlayerLoaded(frame, editors['mirror'], 'mirror')" />
       <br />
@@ -1583,7 +1580,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
               title="Venn Diagram"
               :date="date"
               :lastmod="lastmod"
-              :frame="frame"
+              frame="/library/projects/shader_loader/shader_loader.html"
               :state="player_states['venn-diagram']"
               @load="(frame) => onPlayerLoaded(frame, editors['venn-diagram'], 'venn-diagram')" />
       <br />
@@ -1626,7 +1623,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
               title="Aligned Capsule"
               :date="date"
               :lastmod="lastmod"
-              :frame="frame"
+              frame="/library/projects/shader_loader/shader_loader.html"
               :state="player_states['capsule']"
               @load="(frame) => onPlayerLoaded(frame, editors['capsule'], 'capsule')" />
       <br />
@@ -1782,6 +1779,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
                        url='https://iquilezles.org/articles/smin/' />
     </Section>
   </Column>
+  </article>
 </template>
 
 <style scoped>
