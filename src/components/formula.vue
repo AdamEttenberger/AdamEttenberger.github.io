@@ -68,15 +68,6 @@ onMounted(() => {
 </template>
 
 <style scoped>
-@font-face {
-    font-family: 'STIX-Two-Math';
-    src: url('@/assets/fonts/stixfonts-2.13b171/static_otf_woff2/STIXTwoMath-Regular.woff2') format('opentype');
-}
-
-math {
-  font-family: STIX-Two-Math;
-}
-
 .math {
   text-align: center;
   font-size: x-large;
