@@ -178,6 +178,12 @@ function createSdfShader(uniforms: Array<Uniform>, sdf_function) {
     float sdf_intersection(float a, float b) { return max(a, b); }
     float sdf_subtraction(float a, float b) { return max(a, -b); }
 
+    // Creates a bidirectional sawtooth wave.
+    // Within range [0.0, 1.0], starting at 0.0.
+    float sawtooth(float x) {
+      return 1.0 - abs(mod(x, 2.0) - 1.0);
+    }
+
     float sdf_circle(vec2 p, float inflate) {
       return length(p) - inflate;
     }
@@ -752,6 +758,28 @@ const shader_templates = new Map([
     }
   ],
   [
+    'smooth-union', {
+      label: "Smooth Union",
+      uniforms: [
+        new Uniform(UniformType.bool, 'uSmoothMinimum'),
+        new Uniform(UniformType.float, 'uSmoothFactor'),
+      ],
+      sdf_function: `
+        float animation_time = (uTime * TAU) * 0.025;
+        float a = sin((length(p + vec2(0.25, 0.0))-animation_time)*9.0);
+        float b = sin((length(p - vec2(0.25, 0.0))-animation_time)*9.0);
+        if (uSmoothMinimum) {
+          // https://iquilezles.org/articles/smin/
+          // quadratic polynomial
+          float h = clamp( 0.5+0.5*(b-a)/uSmoothFactor, 0.0, 1.0 );
+          return mix( b, a, h ) - uSmoothFactor*h*(1.0-h);
+        } else {
+          return sdf_union(a, b);
+        }
+      `,
+    }
+  ],
+  [
     'pattern', {
       label: "Patterns",
       uniforms: [
@@ -912,6 +940,15 @@ function getShaderProperties(shader_key, property_overlay) {
         new ToggleOptions('mirror.uVerticalMirror', 'Mirror Vertically', false),
         new ToggleOptions('mirror.uSmoothMinimum', 'Smooth Minimum', true).setCollapsed(computed(() => mirror_shape.value !== 0)),
         new NumberRangeOptions('game.time_scale', 'Time Scale', 1.0, -2.0, 2.0, 0.25).setCollapsed(computed(() => mirror_shape.value !== 0)),
+      ];
+      break;
+    case 'smooth-union':
+      const enable_smooth_min = ref(null);
+      local_properties = [
+        new DividerOptions('divider-smooth-union', 'Smooth Union'),
+        new ToggleOptions('smooth-union.uSmoothMinimum', 'Smooth Minimum', true).setModel(enable_smooth_min),
+        new NumberRangeOptions('smooth-union.uSmoothFactor', 'uSmoothFactor', 1.0, 0.0, 1.0, 0.01).setDisabled(computed(() => !enable_smooth_min.value)),
+        new NumberRangeOptions('game.time_scale', 'Time Scale', 1.0, -2.0, 2.0, 0.25),
       ];
       break;
     case 'pattern':
@@ -1720,6 +1757,35 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
         float amp = mix(kMinAnimationRadius, kMaxRadius, uAnimationAmplitude);
         r = mix(kMinAnimationRadius, amp, t);
       " />
+    </Section>
+
+    <Section heading="Smooth Minimum">
+      <p>
+        This section is kind of magic.
+        When drawing it's a common practice to begin with a rough approximation using primitive shapes, then add fine details.
+        This is similar for signed-distance functions.
+        <ExternalLink to="https://iquilezles.org/articles/smin/">Smooth minimum</ExternalLink> is one mechanism for blending shapes to add detail or polish to the shape.
+      </p>
+      <br />
+      <Details summary="Smooth Union">
+        <Code lang="cpp"
+              caption="Quadratic smooth union signed-distance function."
+              :text="shader_templates.get('smooth-union').sdf_function" />
+      </Details>
+      <br />
+      <Player :ref="makePlayerRef('smooth-union')"
+              title="Smooth Union"
+              :date="date"
+              :lastmod="lastmod"
+              frame="/library/projects/shader_loader/shader_loader.html"
+              :state="player_states['smooth-union']"
+              @load="(frame) => onPlayerLoaded(frame, editors['smooth-union'], 'smooth-union')" />
+      <br />
+      <PropertyEditor :ref="makeEditorRef('smooth-union')"
+                      :properties="getShaderProperties('smooth-union', {
+                        'uDrawMode': { default_value: 4 }
+                      })"
+                      @property-changed="(name) => onPlayerPropertyChanged(players['smooth-union'].inner_frame, name)" />
     </Section>
 
     <Section heading="Patterns">
