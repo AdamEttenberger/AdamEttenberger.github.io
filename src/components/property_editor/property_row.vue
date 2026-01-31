@@ -27,6 +27,27 @@ import PropertyToggle from '@/components/property_editor/property_toggle.vue'
 
 import Button from '@/components/button.vue'
 
+const PropertyPicker = new Map([
+  [PropertyKind.Button, PropertyButton],
+  [PropertyKind.Color3, null],
+  [PropertyKind.Color4, null],
+  [PropertyKind.ComboBox, PropertyComboBox],
+  [PropertyKind.Divider, PropertyDivider],
+  [PropertyKind.Group, PropertyGroup],
+  [PropertyKind.NumberRange, PropertyNumberRange],
+  [PropertyKind.Toggle, PropertyToggle],
+]);
+const PropertyClickable = new Map([
+  [PropertyKind.Button, true],
+  [PropertyKind.Color3, false],
+  [PropertyKind.Color4, false],
+  [PropertyKind.ComboBox, false],
+  [PropertyKind.Divider, false],
+  [PropertyKind.Group, false],
+  [PropertyKind.NumberRange, false],
+  [PropertyKind.Toggle, true],
+]);
+
 const emit = defineEmits([
   'property-changing', // (new_value: any)
   'property-changed', // ()
@@ -48,7 +69,7 @@ const model = defineModel({
 });
 const is_model_changed = computed(() => unref(model) != unref((props.options as IPropertyValueOptions)?.default_value));
 
-const kind = computed(() => unref(props.options.kind));
+// const kind = computed(() => unref(props.options.kind));
 const classes = computed(() => unref(props.options.classes) ?? []);
 const name = computed(() => unref(props.options.name));
 const label = computed(() => unref(props.options.label));
@@ -57,6 +78,14 @@ const visible = computed(() => !unref(props.options.collapsed));
 const has_value = computed(() => unref(model) !== undefined);
 const show_label = computed(() => unref(props.options.show_label));
 const show_undo = computed(() => has_value.value && unref(props.options.show_undo));
+const dynamic_component = computed(() => PropertyPicker.get(unref(props.options.kind)));
+
+function onPropertyClicked() {
+  if (!PropertyClickable.get(unref(props.options.kind))) {
+    return;
+  }
+  emit('property-click');
+}
 </script>
 
 <template>
@@ -69,35 +98,11 @@ const show_undo = computed(() => has_value.value && unref(props.options.show_und
             :icon="['fas', 'rotate-left']"
             @click="model = unref((props.options as IPropertyValueOptions)?.default_value)" />
     <!-- Filter by property control type -->
-    <PropertyButton v-if="kind === PropertyKind.Button"
-                    :name="name"
-                    class="editor"
-                    v-bind="options as IPropertyButtonOptions"
-                    @click="$emit('property-click')" />
-    <PropertyComboBox v-else-if="kind === PropertyKind.ComboBox"
-                      :name="name"
-                      class="editor"
-                      v-bind="options as IPropertyComboBoxOptions"
-                      v-model="model" />
-    <PropertyDivider v-else-if="kind === PropertyKind.Divider"
-                     class="editor"
-                     v-bind="options as IPropertyDividerOptions" />
-    <PropertyGroup v-else-if="kind === PropertyKind.Group"
-                   class="editor"
-                   v-bind="options as IPropertyGroupOptions"
-                   v-model="model" />
-    <PropertyNumberRange v-else-if="kind === PropertyKind.NumberRange"
-                         :name="name"
-                         class="editor"
-                         v-bind="options as IPropertyNumberRangeOptions"
-                         v-model="model" />
-    <PropertyToggle v-else-if="kind === PropertyKind.Toggle"
-                    :name="name"
-                    class="editor"
-                    v-bind="options as IPropertyToggleOptions"
-                    v-model="model"
-                    @click="$emit('property-click')" />
-    <div v-else></div>
+    <component :is="dynamic_component" :component-props="options"
+               class="editor"
+               v-bind="options"
+               v-model="model"
+               @click="onPropertyClicked()" />
   </div>
 </template>
 
