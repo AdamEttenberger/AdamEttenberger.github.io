@@ -7,8 +7,8 @@ const props = defineProps({
   text: { type: String, default: null },
 })
 const note_classes = computed(() => ({
-  note: true,
-  info: [NoteKind.Info, NoteKind.Question].includes(props.kind),
+  info: props.kind === NoteKind.Info,
+  question: props.kind === NoteKind.Question,
   warn: props.kind === NoteKind.Warning,
   error: props.kind === NoteKind.Error,
 }));
@@ -57,6 +57,13 @@ const fallback_heading = computed(() => {
     color: var(--color-text-heading-info);
   }
 }
+.question {
+  background-color: var(--color-background-question);
+  color: var(--color-text-question);
+  & > .heading {
+    color: var(--color-text-heading-question);
+  }
+}
 .warn {
   background-color: var(--color-background-warn);
   color: var(--color-text-warn);
@@ -65,7 +72,7 @@ const fallback_heading = computed(() => {
   }
 }
 
-aside.note {
+aside {
   padding: var(--size-padding-hard) var(--size-padding-round);
   border-radius: var(--size-border-radius);
 }

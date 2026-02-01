@@ -69,20 +69,27 @@
   --color-divider:                    light-dark(var(--theme-divider-light),              var(--theme-divider-dark));
   --color-scrollbar:                  light-dark(var(--theme-divider-light),              var(--theme-divider-dark));
 
-  /* Info and Question Cards */
-  --color-background-info:            light-dark(#bec5d4,                               #35373b);
-  --color-text-info:                  light-dark(var(--theme-black),                      var(--theme-white));
-  --color-text-heading-info:          light-dark(var(--them-text-light-2),                var(--them-text-dark-2));
-
-  /* Warning and Error Cards
+  /**
+   * Info, Question, Warning, and Error Cards.
    * Try to keep these unified across light/dark.
    */
-  --color-background-warn:            #d6da6c;
-  --color-background-error:           #DA6C6C;
+  --overlay-card-saturation:          60%;
+  --overlay-card-lightness:           65%;
+  --overlay-heading-saturation:       60%;
+  --overlay-heading-lightness:        15%;
+
+  --color-background-info:            hsl(225, var(--overlay-card-saturation), var(--overlay-card-lightness));
+  --color-background-question:        hsl(120, var(--overlay-card-saturation), var(--overlay-card-lightness));
+  --color-background-warn:            hsl(60, var(--overlay-card-saturation), var(--overlay-card-lightness));
+  --color-background-error:           hsl(0, var(--overlay-card-saturation), var(--overlay-card-lightness));
+  --color-text-info:                  var(--theme-black);
+  --color-text-question:              var(--theme-black);
   --color-text-warn:                  var(--theme-black);
   --color-text-error:                 var(--theme-black);
-  --color-text-heading-warn:          #6d5430;
-  --color-text-heading-error:         #8E3B46;
+  --color-text-heading-info:          hsl(from var(--color-background-info) h var(--overlay-heading-saturation) var(--overlay-heading-lightness));
+  --color-text-heading-question:      hsl(from var(--color-background-question) h var(--overlay-heading-saturation) var(--overlay-heading-lightness));
+  --color-text-heading-warn:          hsl(from var(--color-background-warn) h var(--overlay-heading-saturation) var(--overlay-heading-lightness));
+  --color-text-heading-error:         hsl(from var(--color-background-error) h var(--overlay-heading-saturation) var(--overlay-heading-lightness));
 }
 
 /* sizing variables */
@@ -165,8 +172,12 @@ b {
   font-weight: bold;
 }
 
-b, h1, h2, h3, h4, h5, h6, figcaption {
+:is(b, h1, h2, h3, h4, h5, h6, figcaption) {
   color: var(--color-text-heading);
+  .info &       { color: var(--color-text-heading-info); }
+  .question &   { color: var(--color-text-heading-question); }
+  .warn &       { color: var(--color-text-heading-warn); }
+  .error &      { color: var(--color-text-heading-error); }
 }
 
 ul, ol {
