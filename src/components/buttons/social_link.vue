@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Button from '@/components/button.vue'
+import Button from '@/components/buttons/button.vue'
 import { useEmailTemplateStore } from '@/stores/email_template'
 
 defineProps({

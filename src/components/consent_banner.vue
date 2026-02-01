@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import Button from '@/components/button.vue'
+import Button from '@/components/buttons/button.vue'
 import Column from '@/components/column.vue'
 import { useConsentStore } from '@/stores/consent'
 

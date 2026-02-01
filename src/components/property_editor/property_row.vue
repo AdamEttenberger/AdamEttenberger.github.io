@@ -1,5 +1,6 @@
 <script setup lang="ts" generic="T extends AnyPropertyOptions">
 import { computed, unref, nextTick } from 'vue'
+import Button from '@/components/buttons/button.vue'
 
 import {
   AnyPropertyOptions,
@@ -24,8 +25,6 @@ import PropertyDivider from '@/components/property_editor/property_divider.vue'
 import PropertyGroup from '@/components/property_editor/property_group.vue'
 import PropertyNumberRange from '@/components/property_editor/property_number_range.vue'
 import PropertyToggle from '@/components/property_editor/property_toggle.vue'
-
-import Button from '@/components/button.vue'
 
 const PropertyPicker = new Map([
   [PropertyKind.Button, PropertyButton],

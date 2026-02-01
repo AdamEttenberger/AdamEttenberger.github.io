@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import Button from '@/components/button.vue'
 import Term from '@/components/term.vue'
 import TermList from '@/components/term_list.vue'
 import { ILicenseInfo } from '@/types/license_types'

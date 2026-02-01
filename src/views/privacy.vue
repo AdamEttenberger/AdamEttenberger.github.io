@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import Button from '@/components/button.vue'
+import Button from '@/components/buttons/button.vue'
 import Code from '@/components/code.vue'
 import Column from '@/components/column.vue'
 import EmailLink from '@/components/email_link.vue'
 import ExternalLink from '@/components/external_link.vue'
 import Section from '@/components/section.vue'
 import Quote from '@/components/quote.vue'
-import SettingsButton from '@/components/settings_button.vue'
+import SettingsButton from '@/components/buttons/settings.vue'
 import { useEmailTemplateStore } from '@/stores/email_template'
 
 const emails = useEmailTemplateStore();

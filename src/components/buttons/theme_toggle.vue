@@ -1,6 +1,5 @@
 <script setup labg="ts">
-import { watch } from 'vue'
-import Button from '@/components/button.vue'
+import Button from '@/components/buttons/button.vue'
 // Pinia Stores
 import { useUserPreferencesStore } from '@/stores/user_preferences'
 const user_preferences = useUserPreferencesStore();

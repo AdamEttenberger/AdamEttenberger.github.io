@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Button from '@/components/button.vue'
+import Button from '@/components/buttons/button.vue'
 import Column from '@/components/column.vue'
 import ExternalLink from '@/components/external_link.vue'
 import ProjectLabel from '@/components/project_label.vue'

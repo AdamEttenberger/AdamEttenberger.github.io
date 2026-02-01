@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
-import Button from '@/components/button.vue'
+import Button from '@/components/buttons/button.vue'
 import Column from '@/components/column.vue'
 import PropertyEditor from '@/components/property_editor/property_editor.vue'
 import Section from '@/components/section.vue'

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import Button from '@/components/button.vue'
+import Button from '@/components/buttons/button.vue'
 import DateUtil from '@/util/date'
 
 const props = defineProps<{
