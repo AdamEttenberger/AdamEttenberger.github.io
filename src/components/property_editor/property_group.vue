@@ -14,6 +14,6 @@ const model = defineModel({
   <Details class="property-editor-group"
            :summary="label"
            :disabled="unref(disabled)"
-           v-model:open="model">
+           v-model="model">
   </Details>
 </template>

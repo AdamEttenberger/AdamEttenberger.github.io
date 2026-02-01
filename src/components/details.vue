@@ -2,16 +2,18 @@
 defineProps({
   summary: { type: String, default: null },
 });
-const open = defineModel('open', {
+const open = defineModel({
   type: Boolean,
   default: false,
 });
 </script>
 
 <template>
-  <details :open="open" @toggle="open = !open">
-    <summary v-if="$slots.summary"><slot name="summary"></slot></summary>
-    <summary v-else>{{ summary }}</summary>
+  <details :open="open">
+    <summary @click.prevent="open = !open">
+      <slot v-if="!summary" name="summary"></slot>
+      <span v-else>{{ summary }}</span>
+    </summary>
     <slot></slot>
   </details>
 </template>
