@@ -23,7 +23,7 @@ import {
   ToggleOptions,
 } from '@/util/property_editor/property_types'
 //
-import useIntersectionObserver from '@/util/use_intersection_observer';
+import useIntersectionObserver from '@/composables/intersection_observer';
 import default_vertex_shader from '@/assets/shaders/default.vert?raw'
 import { NoteKind } from '@/types/note_kind'
 import { IProjectInfo } from '@/types/project_types'

@@ -4,7 +4,7 @@ export type IntersectionObserverEntryCallback = (key: string, entry: Intersectio
 
 export default function useIntersectionObserver(entry_callback: IntersectionObserverEntryCallback, observer_init?: IntersectionObserverInit) {
   const key_to_target = new Map();
-  const target_to_key = new Map();
+  const target_to_key = new WeakMap();
 
   const observer = new IntersectionObserver((entries, _observer) => {
       entries.forEach((entry, index, array) => {
@@ -17,7 +17,7 @@ export default function useIntersectionObserver(entry_callback: IntersectionObse
     }, observer_init ?? undefined);
 
   function observe(key: any, target_element: Element) {
-    const old_target = key_to_target.get(key);
+    const old_target = key_to_target.get(key)?.deref();
     if (old_target !== undefined) {
       if (target_element === old_target) {
         return;
@@ -32,7 +32,8 @@ export default function useIntersectionObserver(entry_callback: IntersectionObse
       return;
     }
 
-    key_to_target.set(key, target_element);
+    var weak_element = new WeakRef(target_element);
+    key_to_target.set(key, weak_element);
     target_to_key.set(target_element, key);
     observer.observe(target_element);
   }
