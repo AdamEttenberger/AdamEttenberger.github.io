@@ -11,11 +11,14 @@ defineProps({
     <blockquote :cite="cite_url">
       <p>&#x275D;<slot></slot>&#x275E;</p>
     </blockquote>
-    <p class="name">&mdash;{{ name }} <cite v-if="cite_title">{{ cite_title }}</cite></p>
+    <p class="name">&mdash;{{ name }}<cite v-if="cite_title">{{ cite_title }}</cite></p>
   </div>
 </template>
 
 <style scoped>
+cite::before {
+  content: ', '
+}
 .quote {
   text-align: center;
 }
