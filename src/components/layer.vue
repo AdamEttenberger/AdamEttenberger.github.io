@@ -32,7 +32,8 @@ const props = defineProps({
   /**
    * Prevents the layer from drawing a background or adding to the layer depth.
    * This is useful for situations where you want a <Section> or <Details> without
-   * adding a background or affecting descendant colors.
+   * adding a background or affecting descendant colors, or to temporarily disable
+   * stop drawing the background of a layer.
    */
   transparent: { type: Boolean, default: false },
   show_hover: { type: Boolean, default: false },
