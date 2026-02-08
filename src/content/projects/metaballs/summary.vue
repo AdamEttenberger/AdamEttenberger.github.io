@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import ExternalLink from '@/components/external_link.vue'
+import Link from '@/components/link.vue'
 </script>
 
 <template>
   <p>
-    Demonstrates something like <ExternalLink to="https://en.wikipedia.org/wiki/Deferred_shading">Deferred shading</ExternalLink> to achieve 2D <ExternalLink to="https://en.wikipedia.org/wiki/Metaballs">Metaballs</ExternalLink>.
-    WebGL Metaballs used <ExternalLink to="https://github.com/toji/gl-matrix">gl-matrix</ExternalLink> to speed production.
+    Demonstrates something like <Link to="https://en.wikipedia.org/wiki/Deferred_shading">Deferred shading</Link> to achieve 2D <Link to="https://en.wikipedia.org/wiki/Metaballs">Metaballs</Link>.
+    WebGL Metaballs used <Link to="https://github.com/toji/gl-matrix">gl-matrix</Link> to speed production.
   </p>
 </template>
