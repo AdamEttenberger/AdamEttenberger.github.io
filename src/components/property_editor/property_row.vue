@@ -1,7 +1,7 @@
 <script setup lang="ts" generic="T extends AnyPropertyOptions">
 import { computed, unref, nextTick } from 'vue'
 import Button from '@/components/buttons/button.vue'
-
+import useTheme, { ThemeColor } from '@/composables/theme'
 import {
   AnyPropertyOptions,
   PropertyKind,
@@ -69,7 +69,6 @@ const model = defineModel({
 const is_model_changed = computed(() => unref(model) != unref((props.options as IPropertyValueOptions)?.default_value));
 
 // const kind = computed(() => unref(props.options.kind));
-const classes = computed(() => unref(props.options.classes) ?? []);
 const name = computed(() => unref(props.options.name));
 const label = computed(() => unref(props.options.label));
 const disabled = computed(() => unref(props.options.disabled));
@@ -85,10 +84,12 @@ function onPropertyClicked() {
   }
   emit('property-click');
 }
+
+useTheme(() => ({ color: unref(props.options.color) }));
 </script>
 
 <template>
-  <div v-show="visible" :class="['property-row', ...classes]">
+  <div v-show="visible" class="property-row">
     <label v-if="show_label && label" class="label" :for="name">{{ label }}</label>
     <Button v-if="show_undo && model !== undefined"
             :class="['undo', is_model_changed ? '' : 'hidden']"

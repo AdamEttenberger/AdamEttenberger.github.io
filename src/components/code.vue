@@ -4,6 +4,8 @@ import {basicSetup} from "codemirror"
 import {EditorState} from "@codemirror/state"
 import {EditorView} from "@codemirror/view"
 import Figure from '@/components/figure.vue'
+import Note from '@/components/note.vue'
+// Language Packs
 import { cpp } from "@codemirror/lang-cpp"
 import { css } from "@codemirror/lang-css"
 import { go } from "@codemirror/lang-go"
@@ -16,6 +18,7 @@ import { yaml } from "@codemirror/lang-yaml"
 import { oneDark } from "@codemirror/theme-one-dark"
 // Pinia Stores
 import { useScrollAffectingContentWaiterStore } from '@/stores/scroll_affecting_content_waiter'
+import { ThemeColor } from '@/composables/theme'
 
 const scrollAffectingContentWaiter = useScrollAffectingContentWaiterStore();
 
@@ -131,18 +134,9 @@ onMounted(() => {
 
 <template>
   <Figure :caption="caption">
-    <div v-if="init_failed" class="error">
-      <font-awesome-icon :icon="['fas', 'file-circle-xmark']" />
-      <br />
-      <div>Error loading code view</div>
-    </div>
+    <Note v-if="init_failed" :color="ThemeColor.Error">
+      Error loading code view
+    </Note>
     <div v-else ref="editor" class="editor"></div>
   </Figure>
 </template>
-
-<style scoped>
-.error {
-  text-align: center;
-  font-size: xx-large;
-}
-</style>

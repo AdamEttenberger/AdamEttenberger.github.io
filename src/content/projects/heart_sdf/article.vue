@@ -1246,8 +1246,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
         The angle needed to rotate a vector pointing from <b>C</b> to <b>A</b> counter-clockwise, to point towards vertex <b>T</b> can be computed as the arccosine of radius <b>R</b> and length <b>S</b>.
         Finally, the sum of the angles can be used to compute <b>N</b> using cosine and sine for the x and y components respectively.
       </p>
-      <br />
-      <Note :kind="NoteKind.Warning">
+      <Note :color="ThemeColor.Warning">
         This solution uses 4 trig functions which are relatively expensive operations; this approach isn't recommended for production.
       </Note>
       <br />

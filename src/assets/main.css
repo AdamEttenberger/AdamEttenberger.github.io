@@ -1,6 +1,8 @@
 @import './base.css';
 
 .app {
+  --size-app-column-width: 55rem;
+
   display: flex;
   flex-direction: column;
   margin: 0 auto;
@@ -8,7 +10,7 @@
   width: 100%;
   height: 100%;
   min-height: 100vh;
-  max-width: var(--size-column-width);
+  max-width: var(--size-app-column-width);
 
   & > main {
     flex: 1;
@@ -22,4 +24,13 @@
 
 math {
   font-family: STIX-Two-Math;
+}
+
+article {
+  container: article / inline-size;
+  display: flex;
+  flex-direction: column;
+  text-align: justify;
+  gap: var(--padding-xxlarge);
+  padding: var(--padding-xxlarge) var(--padding-xlarge);
 }

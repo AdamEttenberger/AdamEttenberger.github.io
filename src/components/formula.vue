@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { ref, onMounted, useSlots } from 'vue'
+import { useTemplateRef, ref, onMounted, useSlots } from 'vue'
 import Figure from '@/components/figure.vue'
+import { ThemeColor } from '@/composables/theme'
+import Note from '@/components/note.vue'
 import { useScrollAffectingContentWaiterStore } from '@/stores/scroll_affecting_content_waiter'
 
 const scrollAffectingContentWaiter = useScrollAffectingContentWaiterStore();
 
 const slots = useSlots();
-const mathml_parent = ref();
+const mathml_parent = useTemplateRef('mathml_parent');
 const init_failed = ref(false);
 
 const props = defineProps({
@@ -58,11 +60,9 @@ onMounted(() => {
 
 <template>
   <Figure :caption="caption">
-    <div v-if="init_failed" class="error">
-      <font-awesome-icon :icon="['fas', 'file-circle-xmark']" />
-      <br />
-      <div>Error loading math view</div>
-    </div>
+    <Note v-if="init_failed" :color="ThemeColor.Error">
+      Error loading math view
+    </Note>
     <div v-else ref="mathml_parent" class="math"></div>
   </Figure>
 </template>

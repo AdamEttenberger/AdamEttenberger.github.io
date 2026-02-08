@@ -47,8 +47,8 @@ export interface IPropertyOptions {
   disabled?: any;
   /** Whether the editor should be made invisible and collapsed so it does not consume any space. */
   collapsed?: any;
-  /** An array of string HTML class names to append to the generated row item. */
-  classes?: any;
+  /** Theme color of the control An array of string HTML class names to append to the generated row item. */
+  color?: any;
 };
 
 /**

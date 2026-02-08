@@ -20,5 +20,8 @@ defineProps({
 section {
   display: flex;
   flex-direction: column;
+  text-align: justify;
+  gap: var(--padding-normal);
+  padding: var(--padding-normal);
 }
 </style>

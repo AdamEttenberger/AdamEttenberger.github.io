@@ -1,91 +1,85 @@
 <script setup lang="ts">
-import { computed, PropType } from 'vue'
-import { NoteKind } from '@/types/note_kind'
+import { PropType } from 'vue'
+import { ThemeColor, NoteKindDisplayStrings } from '@/composables/theme'
+
 const props = defineProps({
-  kind: { type: String as PropType<NoteKind>, default: NoteKind.Info },
+  color: { type: [null, String, ThemeColor] as PropType<null|String|ThemeColor>, default: ThemeColor.Info },
   heading: { type: String, default: null },
   text: { type: String, default: null },
 })
-const note_classes = computed(() => ({
-  info: props.kind === NoteKind.Info,
-  question: props.kind === NoteKind.Question,
-  warn: props.kind === NoteKind.Warning,
-  error: props.kind === NoteKind.Error,
-}));
-const fallback_heading = computed(() => {
-  switch (props.kind) {
-    case NoteKind.Error:    return 'Error';
-    case NoteKind.Info:     return 'Note';
-    case NoteKind.Question: return 'Question';
-    case NoteKind.Warning:  return 'Warning';
-  }
-  return null;
-});
 </script>
 
 <template>
-  <aside :class="note_classes">
-    <div class="heading">
-      <font-awesome-icon class="icon" v-if="kind === NoteKind.Error" :icon="['fas', 'circle-exclamation']" />
-      <font-awesome-icon class="icon" v-else-if="kind === NoteKind.Info" :icon="['fas', 'circle-info']" />
-      <font-awesome-icon class="icon" v-else-if="kind === NoteKind.Question" :icon="['fas', 'circle-question']" />
-      <font-awesome-icon class="icon" v-else-if="kind === NoteKind.Warning" :icon="['fas', 'triangle-exclamation']" />
+  <aside :class="`note-${color}`">
+    <div class="note round">
+      <div class="heading">
+        <font-awesome-icon class="icon" v-if="color === ThemeColor.Error" :icon="['fas', 'circle-exclamation']" />
+        <font-awesome-icon class="icon" v-else-if="color === ThemeColor.Question" :icon="['fas', 'circle-question']" />
+        <font-awesome-icon class="icon" v-else-if="color === ThemeColor.Warning" :icon="['fas', 'triangle-exclamation']" />
+        <font-awesome-icon class="icon" v-else-if="color === ThemeColor.Todo" :icon="['fas', 'road-barrier']" />
+        <font-awesome-icon class="icon" v-else :icon="['fas', 'circle-info']" />
 
-      <span v-if="$slots.heading"><slot></slot></span>
-      <span v-else-if="heading">{{ heading }}</span>
-      <span v-else>{{ fallback_heading }}</span>
-    </div>
-    <div class="message">
-      <p v-if="$slots.default"><slot></slot></p>
-      <p v-else-if="text">{{ text }}</p>
+        <span v-if="$slots.heading"><slot></slot></span>
+        <span v-else-if="heading">{{ heading }}</span>
+        <span v-else>{{ NoteKindDisplayStrings[color] }}</span>
+      </div>
+      <div class="message">
+        <p v-if="$slots.default"><slot></slot></p>
+        <p v-else-if="text">{{ text }}</p>
+      </div>
     </div>
   </aside>
 </template>
 
 <style scoped>
-.error {
-  background-color: var(--color-background-error);
-  color: var(--color-text-error);
-  & > .heading {
-    color: var(--color-text-heading-error);
-  }
-}
-.info {
-  background-color: var(--color-background-info);
-  color: var(--color-text-info);
-  & > .heading {
-    color: var(--color-text-heading-info);
-  }
-}
-.question {
-  background-color: var(--color-background-question);
-  color: var(--color-text-question);
-  & > .heading {
-    color: var(--color-text-heading-question);
-  }
-}
-.warn {
-  background-color: var(--color-background-warn);
-  color: var(--color-text-warn);
-  & > .heading {
-    color: var(--color-text-heading-warn);
-  }
-}
-
 aside {
-  padding: var(--size-padding-hard) var(--size-padding-round);
-  border-radius: var(--size-border-radius);
+  display: flex;
+  flex-direction: column;
+}
+.note {
+  --link-hue-rotation: 180deg;
+  --note-background-saturation: 50%;
+  --note-background-lightness: 65%;
+  --note-heading-saturation: 65%;
+  --note-heading-lightness: 15%;
+  --note-link-saturation: 50%;
+  --note-link-lightness: 65%;
+
+  color: hsl(var(--hue-todo), var(--note-heading-saturation), calc(var(--note-heading-lightness) - 10%));
+  padding: var(--padding-small) var(--padding-normal);
+
+  & .icon {
+    padding-right: var(--padding-normal);
+  }
+
+  & .heading {
+    font-size: larger;
+  }
+
+  & .message {
+    font-size: smaller;
+  }
+
+  :is(b, h1, h2, h3, h4, h5, h6, figcaption, .heading) {
+    .note-todo      :deep(&)  { color: hsl(var(--hue-todo),     var(--note-heading-saturation), var(--note-heading-lightness)); }
+    .note-info      :deep(&)  { color: hsl(var(--hue-info),     var(--note-heading-saturation), var(--note-heading-lightness)); }
+    .note-question  :deep(&)  { color: hsl(var(--hue-question), var(--note-heading-saturation), var(--note-heading-lightness)); }
+    .note-warning   :deep(&)  { color: hsl(var(--hue-warning),  var(--note-heading-saturation), var(--note-heading-lightness)); }
+    .note-error     :deep(&)  { color: hsl(var(--hue-error),    var(--note-heading-saturation), var(--note-heading-lightness)); }
+  }
+
+  :any-link {
+    .note-todo      .note :deep(&) { color: hsl(calc(var(--hue-todo)      + var(--link-hue-rotation)), var(--note-link-saturation), var(--note-link-lightness)); }
+    .note-info      .note :deep(&) { color: hsl(calc(var(--hue-info)      + var(--link-hue-rotation)), var(--note-link-saturation), var(--note-link-lightness)); }
+    .note-question  .note :deep(&) { color: hsl(calc(var(--hue-question)  + var(--link-hue-rotation)), var(--note-link-saturation), var(--note-link-lightness)); }
+    .note-warning   .note :deep(&) { color: hsl(calc(var(--hue-warning)   + var(--link-hue-rotation)), var(--note-link-saturation), var(--note-link-lightness)); }
+    .note-error     .note :deep(&) { color: hsl(calc(var(--hue-error)     + var(--link-hue-rotation)), var(--note-link-saturation), var(--note-link-lightness)); }
+  }
 }
 
-.icon {
-  padding-right: var(--size-padding-hard);
-}
-
-.heading {
-  font-size: larger;
-}
-
-.message {
-  font-size: smaller;
-}
+.note-todo      .note { background-color: var(--background-todo); }
+.note-error     .note { background-color: var(--background-error); }
+.note-info      .note { background-color: var(--background-info); }
+.note-question  .note { background-color: var(--background-question); }
+.note-warning   .note { background-color: var(--background-warning); }
 </style>

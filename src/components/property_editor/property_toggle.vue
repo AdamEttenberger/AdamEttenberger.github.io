@@ -11,7 +11,7 @@ const model = defineModel({
 
 <template>
   <div class="property-editor-toggle">
-    <Button class="button"
+    <Button class="property-editor-toggle-button"
             :icon="model ? (icon ?? ['fas', 'xmark']) : undefined"
             :disabled="disabled"
             @click="model = !model" />
@@ -22,11 +22,9 @@ const model = defineModel({
 .property-editor-toggle {
   display: flex;
   flex-direction: row-reverse;
-  height: 1lh;
 
-  & .button {
+  & .property-editor-toggle-button {
     aspect-ratio: 1;
-    width: auto;
   }
 }
 </style>

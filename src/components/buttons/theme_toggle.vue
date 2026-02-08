@@ -1,4 +1,4 @@
-<script setup labg="ts">
+<script setup lang="ts">
 import Button from '@/components/buttons/button.vue'
 // Pinia Stores
 import { useUserPreferencesStore } from '@/stores/user_preferences'
@@ -15,9 +15,3 @@ user_preferences.$subscribe(() => {
           :icon="['fas', 'lightbulb']"
           @click="user_preferences.toggleColorScheme()" />
 </template>
-
-<style scoped>
-.button :deep(svg.image-button-fa-icon) {
-  color: light-dark(var(--theme-white), var(--theme-black));
-}
-</style>

@@ -12,7 +12,7 @@ import ThemeToggle from '@/components/buttons/theme_toggle.vue'
 import { useConsentStore } from '@/stores/consent'
 import { useUserPreferencesStore } from '@/stores/user_preferences'
 import { useMatchThreeScorecardStore } from '@/stores/match_three_scorecard'
-import { onMounted } from 'vue'
+import useTheme, { ThemeColor } from '@/composables/theme'
 
 const consent = useConsentStore();
 const {
@@ -29,6 +29,12 @@ onMounted(() => {
   LocalStorageHelper.bind(useUserPreferencesStore(), allow_saving_user_preferences);
   LocalStorageHelper.bind(useMatchThreeScorecardStore(), allow_saving_match_three_scorecard);
 });
+
+useTheme(() => ({
+  color: ThemeColor.Primary,
+  depth: 0,
+  absolute: true,
+}));
 </script>
 
 <template>
@@ -65,27 +71,21 @@ onMounted(() => {
 </template>
 
 <style scoped>
-
 header {
-  display: flex;
-  flex-direction: row;
   place-items: center;
   align-items: center;
 }
 
+header .links {
+  justify-content: space-between;
+}
+
 header .socials,
 header .controls {
-  display: flex;
-  flex-direction: row;
   height: 2em;
-  gap: 0 var(--size-padding-round);
   & > * {
     height: 100%;
   }
-}
-
-header .controls {
-  margin-left: auto;
 }
 
 header {
@@ -99,8 +99,6 @@ header {
   }
 
   & .links {
-    display: flex;
-    flex-direction: row;
     flex-wrap: nowrap;
   }
 }
