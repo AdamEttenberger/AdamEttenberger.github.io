@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import Button from '@/components/buttons/button.vue'
-import Column from '@/components/column.vue'
+import Layer from '@/components/layer.vue'
 import { useConsentStore } from '@/stores/consent'
 
 const consent = useConsentStore();
@@ -36,34 +36,34 @@ function onUserConsentGiven() {
 </script>
 
 <template>
-  <Column v-if="dialog_state == ConsentDialogState.Default" class="dialog">
-    <div class="split">
+  <Layer v-if="dialog_state == ConsentDialogState.Default" class="dialog">
+    <div class="split gap">
       <div>
         This website is designed to be cookie-free and will not collect personal data beyond what's required for the site to function, but would like to collect anonymized first-party analytics to monitor performance over time.
         This website may write a small amount of data to device local storage to ensure a good user experience, for example to honor your selected preferences.
         Games played on this website may write to device local storage for behavior such as a personal high-scores or save files.
       </div>
-      <div class="row">
-        <Button class="button" text="Learn More" route="/privacy" />
+      <div class="button-list columns gap">
+        <Button class="button" text="Learn More" to="/privacy" />
         <Button class="button" text="Reject All" @click="dialog_state = ConsentDialogState.ShowAskToRememberChoice" />
-        <Button class="button" text="Settings" route="/settings" />
+        <Button class="button" text="Settings" to="/settings" />
         <Button class="button" text="Ok" @click="onUserConsentGiven" />
       </div>
     </div>
-  </Column>
+  </Layer>
 
-  <Column v-if="dialog_state == ConsentDialogState.ShowAskToRememberChoice" class="dialog">
-    <div class="split">
+  <Layer v-if="dialog_state == ConsentDialogState.ShowAskToRememberChoice" class="dialog">
+    <div class="split gap">
       <div>
         May this site remember your choice if you visit again?
         Otherwise your selection will only be remembered until you leave or reload the website.
       </div>
-      <div class="row">
+      <div class="button-list columns gap">
         <Button class="button" text="Hide" @click="onUserConsentRejectAllRememberMeOption(false)" />
         <Button class="button" text="Remember choice" @click="onUserConsentRejectAllRememberMeOption(true)" />
       </div>
     </div>
-  </Column>
+  </Layer>
 </template>
 
 <style scoped>
@@ -74,23 +74,19 @@ function onUserConsentGiven() {
 .split {
   display: flex;
   flex-direction: column;
-  gap: var(--size-padding-round);
 }
 
-.row {
-  display: flex;
-  flex-direction: row;
+.button-list {
   align-items: stretch;
   justify-content: stretch;
-  gap: var(--size-padding-round);
 }
 
-.row > .button {
-  max-width: initial;
+.button-list > .button {
+  flex: 1;
 }
 
 @media only screen and (max-width: 30rem) {
-  .row {
+  .button-list {
     flex-direction: column-reverse;
   }
 }
