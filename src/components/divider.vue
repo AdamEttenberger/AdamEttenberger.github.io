@@ -1,13 +1,13 @@
 <script setup lang="ts">
 defineProps({
-  text: { type: String, default: null },
+  heading: { type: String, default: null },
 });
 </script>
 
 <template>
   <div class="divider">
     <h2 v-if="$slots.default" class="heading"><slot></slot></h2>
-    <h2 v-else class="heading">{{ text }}</h2>
+    <h2 v-else-if="heading" class="heading">{{ heading }}</h2>
   </div>
 </template>
 
@@ -16,12 +16,12 @@ defineProps({
   display: flex;
   align-items: center;
   text-align: center;
-  margin: 1lh 0;
+  padding: var(--padding-normal) var(--padding-xxlarge);
 
   & .heading {
     border: 3px solid var(--color-divider);
-    padding: var(--size-padding-round) calc(var(--size-padding-round) * 2);
     border-radius: var(--size-border-radius);
+    padding: 0 var(--padding-xxlarge);
   }
 
   &::before,
