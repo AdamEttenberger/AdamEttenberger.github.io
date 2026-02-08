@@ -1,26 +1,35 @@
 <script setup lang="ts">
+import { PropType } from 'vue'
 import Button from '@/components/buttons/button.vue'
+import Layer from '@/components/layer.vue'
 import ProjectLabel from '@/components/project_label.vue'
+import { ThemeColor } from '@/composables/theme'
 
 defineProps({
+  color: { type: [null, String, ThemeColor] as PropType<null|String|ThemeColor>, default: null },
   image: { type: String, required: true },
   title: { type: String, required: true },
-  route: { type: String, required: true },
+  to: { type: String, required: true },
   date: { type: Date },
-  lastmod: { default: null },
 })
 </script>
 
 <template>
-  <article class="container">
-    <Button class="icon" :src="image" :alt="title" :route="route" :transparent="true" />
-    <ProjectLabel class="label" :title="title" :date="date" :route="route" />
-    <section class="summary">
-      <div class="scroller">
-        <slot></slot>
+  <div class="project-card gap">
+    <div class="icon">
+      <Button class="button" :to :icon="image" :alt="title" transparent />
+    </div>
+    <Layer class="panel" :color>
+      <Button class="button" :to>
+        <ProjectLabel class="project-label" :title="title" :date="date" />
+      </Button>
+      <div class="summary">
+        <div class="scroller">
+          <slot />
+        </div>
       </div>
-    </section>
-  </article>
+    </Layer>
+  </div>
 </template>
 
 <style setup>
@@ -30,90 +39,70 @@ defineProps({
 </style>
 
 <style scoped>
-.container {
-  display: grid;
-  grid-template-columns: var(--project-card-item-height) auto;
-  grid-template-rows: auto minmax(0, 1fr);
-  grid-template-areas: "image header"
-                       "image content";
-  margin: 0.33rem 0;
-  overflow: hidden;
-  max-height: var(--project-card-item-height);
+.project-card {
+  display: flex;
+  flex-direction: row;
 
-  & > .icon {
+  & :is(.icon, .panel) {
+    max-height: var(--project-card-item-height);
+  }
+
+  & .icon {
+    align-self: center;
     aspect-ratio: 1;
-    grid-column: 1 / 2;
-    grid-row: 1 / 3;
+    height: var(--project-card-item-height);
   }
 
   & .icon {
     transition: padding var(--anim-transition);
-    padding: 5%;
+    padding: var(--padding-large);
     &:hover {
       padding: 0;
     }
   }
 
-  & > .label {
-    background-color: var(--color-background-soft);
-    grid-column: 2 / 3;
-    grid-row: 1 / 2;
-    padding: var(--size-padding-round);
-    border-radius: var(--size-border-radius) var(--size-border-radius) 0 0;
-    transition: background-color var(--anim-transition);
-    &:hover {
-      background-color: var(--color-link-hover);
-    }
-    &:active {
-      background-color: var(--color-link-active);
+  & > .panel {
+    /**
+     * If the summary is less than 1 line, ensures the
+     * panel fills any remaining space in the parent.
+     */
+    flex: 1;
+  }
+
+  & .panel .button {
+    /**
+     * See comment in '@/components/layer.vue' for details.
+     * Make the button overlap the entire visual area of the project
+     * label by inflating (subtracting the margin  equal to the padding
+     * of the containing layer.
+     */
+    margin: var(--inverse-component-layer-padding);
+
+    & .project-label {
+      flex: 1; /* Fill the container */
+      padding: 0 var(--padding-large);
     }
   }
 
-  & > .summary {
-    background-color: var(--color-background-soft);
-    grid-column: 2 / 3;
-    grid-row: 2 / 3;
-    padding: var(--size-padding-round);
-    border-radius: 0 0 var(--size-border-radius) var(--size-border-radius);
-    justify-content: stretch;
-    & > .scroller {
+  & .summary {
+    overflow: hidden;
+    /**
+     * Negative margin on `.summary` with an equivalent positive padding on `.scroller`
+     * child leaves the layout of <slot/> contents of .scroller unaffected while pushing
+     * the scrollbar (when visible) into gutter of the layer, maximizing <slot/> area.
+     */
+    margin-right: calc(-1 * var(--padding-normal));
+    & .scroller {
       overflow-y: auto;
       height: 100%;
+      padding-right: var(--padding-normal);
     }
   }
 }
 
-@media only screen and (max-width: 45rem) {
-  .container {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    grid-template-rows: auto minmax(0, 1fr);
-    grid-template-areas: "image header"
-                         "content content";
-
-    max-height: calc(var(--project-card-item-height) * 2);
-
-    & > .icon {
-      max-height: calc(var(--project-card-item-height) / 2);
-      grid-column: 1 / 2;
-      grid-row: 1 / 2;
-    }
-
-    /* Favor image size over animations for small devices, likely mobile. */
-    & > .icon {
-      padding: 0;
-    }
-
-    & > .label {
-      grid-column: 2 / 3;
-      grid-row: 1 / 2;
-    }
-
-    & > .summary {
-      grid-column: 1 / 3;
-      grid-row: 2 / 3;
-      border-radius: var(--size-border-radius) 0 var(--size-border-radius) var(--size-border-radius);
-    }
+@container article (max-width: 35rem) {
+  .project-card {
+    flex-direction: column;
   }
 }
 </style>

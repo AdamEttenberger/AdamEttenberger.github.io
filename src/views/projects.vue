@@ -9,12 +9,15 @@ const summary_components = computed(() => unref(props.projects).map(item => defi
 </script>
 
 <template>
-  <ProjectCard v-for="(item, index) in projects"
-               :title="item.title"
-               :image="item.icon"
-               :route="`/projects/${item.subpath}/`"
-               :date="item.date"
-               :lastmod="item.lastmod">
-    <component :is="summary_components[index]" />
-  </ProjectCard>
+  <article>
+    <ProjectCard v-for="(item, index) in projects"
+                :key="item.subpath"
+                :title="item.title"
+                :image="item.icon"
+                :to="`/projects/${item.subpath}/`"
+                :date="item.date"
+                :lastmod="item.lastmod">
+      <component :is="summary_components[index]" />
+    </ProjectCard>
+  </article>
 </template>
