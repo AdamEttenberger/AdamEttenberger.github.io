@@ -1,15 +1,28 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import Code from '@/components/code.vue'
-import Column from '@/components/column.vue'
+import Layer from '@/components/layer.vue'
 import Details from '@/components/details.vue'
-import ExternalLink from '@/components/external_link.vue'
+import Link from '@/components/link.vue'
 import Figure from '@/components/figure.vue'
 import Player from '@/components/player.vue'
 import { PlayerState } from '@/types/player_state'
 import Section from '@/components/section.vue'
 import { IProjectInfo } from '@/types/project_types'
+import useIntersectionObserver from '@/composables/intersection_observer'
 
 defineProps<IProjectInfo>();
+const player_states = ref({});
+
+const { observe: mapPlayerIntersectionObserver } = useIntersectionObserver((key, entry, _index, _array) => {
+  player_states.value[key] = entry.isIntersecting
+      ? PlayerState.Playing
+      : PlayerState.Empty;
+});
+
+function makePlayerRef(key) {
+  return (e) => mapPlayerIntersectionObserver(key, e?.$el);
+}
 
 function onPlayerLoaded(target_frame, filepath) {
   postMessageToFrame(target_frame, filepath);
@@ -24,23 +37,22 @@ function postMessageToFrame(target_frame, filepath) {
 
 <template>
   <article>
-    <Player :title="title"
+    <Player :ref="makePlayerRef('main')" :state="player_states['main']"
+            :title="title"
             :date="date"
             :lastmod="lastmod"
-            frame="/library/projects/proto_engine/main.html"
-            :state="PlayerState.Playing" />
+            frame="/library/projects/proto_engine/main.html" />
 
-    <Column>
+    <!-- <Layer> -->
       <Section heading="What's this?">
         <p>
-          This project is a simple proof-of-concept component based game engine, heavily inspired by Unity's component based <ExternalLink to="https://docs.unity3d.com/ScriptReference/GameObject.html">GameObject</ExternalLink> + <ExternalLink to="https://docs.unity3d.com/ScriptReference/MonoBehaviour.html">MonoBehavior</ExternalLink> model.
+          This project is a simple proof-of-concept component based game engine, heavily inspired by Unity's component based <Link to="https://docs.unity3d.com/ScriptReference/GameObject.html">GameObject</Link> + <Link to="https://docs.unity3d.com/ScriptReference/MonoBehaviour.html">MonoBehavior</Link> model.
           This is the foundation for the WebGL Flocking and Metaballs projects which are projects I worked on while at college.
           The flocking demo was originally a ShockWave Flash application, and the Metaballs project was originally a Windows based C++ OpenGL application.
         </p>
-        <br />
         <p>
-          <ExternalLink to="https://en.wikipedia.org/wiki/Adobe_Flash">Adobe Flash</ExternalLink> was a powerful animation and media tool, and popular choice for browser games.
-          However <ExternalLink to="https://en.wikipedia.org/wiki/WebGL">WebGL</ExternalLink>, a new experimental technology became available around the same time Flash's end-of-life discussions began.
+          <Link to="https://en.wikipedia.org/wiki/Adobe_Flash">Adobe Flash</Link> was a powerful animation and media tool, and popular choice for browser games.
+          However <Link to="https://en.wikipedia.org/wiki/WebGL">WebGL</Link>, a new experimental technology became available around the same time Flash's end-of-life discussions began.
           This project was driven by both a desire to learn a new technology and to get ahead of the deprecation of Flash.
           At this point in time I had some experience working with the native C++ OpenGL API on Windows, but browser support for WebGL was still in its infancy.
         </p>
@@ -58,7 +70,6 @@ function postMessageToFrame(target_frame, filepath) {
         <p>
           This program was designed to be a simple and minimal prototyping environment, and a quick way to migrate my Flocking demo away from a dying web technology. It consists of a few key objects:
         </p>
-        <br />
         <ul class="list-none">
           <li>
             <Details summary="Game">
@@ -76,12 +87,10 @@ function postMessageToFrame(target_frame, filepath) {
             </Details>
           </li>
         </ul>
-        <br />
 
         <p>
           This demo utilizes the following set of components:
         </p>
-        <br />
         <ul class="list-none">
           <li>
             <Details summary="Transform">
@@ -109,7 +118,6 @@ function postMessageToFrame(target_frame, filepath) {
             </Details>
           </li>
         </ul>
-        <br />
         <Figure src_light="/images/projects/proto_engine/architecture_light.png"
                 src_dark="/images/projects/proto_engine/architecture_dark.png"
                 alt="UML-like class relationship diagram." />
@@ -121,10 +129,10 @@ function postMessageToFrame(target_frame, filepath) {
       <Section heading="WebGL Tutorial?">
         <p>
           This isn't a WebGL tutorial.
-          For a deeper dive I encourage checking out the excellent MDN <ExternalLink to="https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API">WebGL API documentation</ExternalLink> and <ExternalLink to="https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial">WebGL tutorial</ExternalLink> for modern best practices.
-          Also check out <ExternalLink to="https://learnopengl.com/">https://learnopengl.com/</ExternalLink> which is a great primer for OpenGL and rendering concepts.
+          For a deeper dive I encourage checking out the excellent MDN <Link to="https://developer.mozilla.org/docs/Web/API/WebGL_API">WebGL API documentation</Link> and <Link to="https://developer.mozilla.org/docs/Web/API/WebGL_API/Tutorial">WebGL tutorial</Link> for modern best practices.
+          Also check out <Link to="https://learnopengl.com/">https://learnopengl.com/</Link> which is a great primer for OpenGL and rendering concepts.
           Keep in mind that this project is fairly old and was quickly thrown together.
-          Something to consider if you're starting a new WebGL project is <ExternalLink to="https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/getContext">HTMLCanvasElement.getContext</ExternalLink> now supports more modern advanced OpenGL APIs like "webgl2" and "webgpu".
+          Something to consider if you're starting a new WebGL project is <Link to="https://developer.mozilla.org/docs/Web/API/HTMLCanvasElement/getContext">HTMLCanvasElement.getContext</Link> now supports more modern advanced OpenGL APIs like "webgl2" and "webgpu".
           This project originally targeted "webgl" and "experimental-webgl" APIs.
         </p>
       </Section>
@@ -134,7 +142,6 @@ function postMessageToFrame(target_frame, filepath) {
           There are a few concepts I want to briefly mention, as rendering APIs can differ significantly in their default behavior, even if that behavior is configurable.
           This demo relies on WebGL APIs which are based on OpenGL.
         </p>
-        <br />
         <p>
           OpenGL uses a "right-handed" coordinate system while DirectX uses a "left-handed" coordinate system.
           The main differences are the z-axis is inverted and rotations other than the z-axis are opposite one another.
@@ -142,29 +149,23 @@ function postMessageToFrame(target_frame, filepath) {
           With rotation the "rule of thumb" is to point your thumb (based on the coordinate system "handed-ness") along a positive-axis and positive-rotation turns the direction your fingers curl when making a fist.
           Since the z-axis is inverted, rotation around the positive z-axis is the same direction for both systems.
         </p>
-        <br />
         <Figure src_light="/images/projects/proto_engine/coordinate_system_light.png"
                 src_dark="/images/projects/proto_engine/coordinate_system_dark.png"
                 alt="Illustration of the default coordinate system in OpenGL (left) and DirectX (right)." />
-        <br />
         <p>
           Texture coordinates are also inverted along the y-axis.
           In OpenGL the UV origin is the bottom-left corner while in DirectX the UV origin is the top-left corner.
         </p>
-        <br />
         <Figure src_light="/images/projects/proto_engine/uv_coordinate_system_light.png"
                 src_dark="/images/projects/proto_engine/uv_coordinate_system_dark.png"
                 alt="Illustration of the default UV coordinate system in OpenGL (left) and DirectX (right)." />
-        <br />
         <p>
-          When considering <ExternalLink to="https://en.wikipedia.org/wiki/Back-face_culling">back-face culling</ExternalLink> the windings are opposite as well.
+          When considering <Link to="https://en.wikipedia.org/wiki/Back-face_culling">back-face culling</Link> the windings are opposite as well.
           By default OpenGL uses a counter-clockwise front-face winding while DirectX uses a clockwise front-face winding.
         </p>
-        <br />
         <Figure src_light="/images/projects/proto_engine/winding_order_light.png"
                 src_dark="/images/projects/proto_engine/winding_order_dark.png"
                 alt="Illustration of the default winding order in OpenGL (left) and DirectX (right)." />
-        <br />
         <p>
           Keep in mind this is just the tip of the iceberg; a few important high-level differences that can be confusing when first getting started with rendering.
         </p>
@@ -174,7 +175,6 @@ function postMessageToFrame(target_frame, filepath) {
         <p>
           First the Game object is initialized:
         </p>
-        <br />
         <Code lang="javascript"
               caption="Creates a new `Game` object."
               text="
@@ -182,11 +182,9 @@ function postMessageToFrame(target_frame, filepath) {
           game = new Game(canvas);
           game.clear_color = vec4.fromValues( 0.0, 0.0, 0.0, 1.0 );
         " />
-        <br />
         <p>
           Then Model data is loaded:
         </p>
-        <br />
         <Code lang="javascript"
               caption="Load vertex position, color, and index buffers for a unit equilateral triangle into WebGL."
               text="
@@ -222,11 +220,9 @@ function postMessageToFrame(target_frame, filepath) {
                 1),
             ];
         " />
-        <br />
         <p>
           Then the scene is populated and the camera is setup:
         </p>
-        <br />
         <Code lang="javascript"
               caption="Creates a new parent and child GameObject then adds the parent to the scene root."
               text="
@@ -234,7 +230,6 @@ function postMessageToFrame(target_frame, filepath) {
           triangle.addComponent(new ModelComponent().setBuffers(buffers));
           triangle.addComponent(new RotateComponent().pushEuler(0, 0, -120));
           game.m_root.addChildGameObject(triangle);" />
-        <br />
         <Code lang="javascript"
               caption="Setup the camera."
               text="
@@ -242,18 +237,16 @@ function postMessageToFrame(target_frame, filepath) {
           mat4.perspective(game.pMatrix, 45, game.aspect, 1.0, 1000.0);
           mat4.fromTranslation(game.vMatrix, vec3.fromValues(0.0, 0.0, -5.0));
         " />
-        <br />
         <p>
           Finally, the game loop is started and any further updates should be driven by GameObjectComponent logic.
         </p>
-        <br />
         <Code lang="javascript"
               caption="Start the core game loop."
               text="
           game.start();
         " />
-        <br />
-        <Player title="Hello Triangle"
+        <Player :ref="makePlayerRef('triangle')" :state="player_states['triangle']"
+                title="Hello Triangle"
                 :date="new Date('2025/06/26')"
                 :lastmod="new Date('2025/06/26')"
                 frame="/library/projects/proto_engine/hello_triangle.html" />
@@ -263,21 +256,16 @@ function postMessageToFrame(target_frame, filepath) {
         <p>
           All components implement the same interface, GameObjectComponent, which contains an update and draw method which are called by the Game instance.
         </p>
-        <br />
         <Code lang="javascript" file="/library/proto_engine/GameObjectComponent.js" />
-        <br />
         <p>
           A simple component example is the RotateComponent, which applies an angular velocity to the object's transform each frame:
         </p>
-        <br />
         <Details summary="RotateComponent.js">
           <Code lang="javascript" file="/library/proto_engine/RotateComponent.js" />
         </Details>
-        <br />
         <p>
           A more complex example is the ColorTextureModelComponent which creates a ShaderProgram used to render itself:
         </p>
-        <br />
         <Details summary="ColorTextureModelComponent.js">
           <Code lang="javascript" file="/library/proto_engine/ColorTextureModelComponent.js" />
         </Details>
@@ -287,42 +275,36 @@ function postMessageToFrame(target_frame, filepath) {
         <p>
           Scenes or individual GameObjects can be serialized and deserialized, which enables support for saving and loading levels or prefab objects.
         </p>
-        <br />
         <p>
           For example, the "Hello Triangle" scene has been exported as the following JSON file:
         </p>
-        <br />
         <Details summary="hello_triangle.json">
           <Code file="/library/proto_engine/scenes/hello_triangle.json" />
         </Details>
-        <br />
         <p>
           The JSON may be loaded into the Proto-Engine, for example with this minimal project loader:
         </p>
-        <br />
         <Details summary="project_loader.js">
           <Code lang="javascript" file="/library/projects/proto_engine/project_loader.js" />
         </Details>
-        <br />
-        <Player title="hello_triangle.json"
+        <Player :ref="makePlayerRef('json-loader')" :state="player_states['json-loader']"
+                title="hello_triangle.json"
                 :date="new Date('2025/06/26')"
                 :lastmod="new Date('2025/06/26')"
                 frame="/library/projects/proto_engine/project_loader.html"
                 @load="(e) => onPlayerLoaded(e, '/library/proto_engine/scenes/hello_triangle.json')" />
-        <br />
         <p>
-          The following demo loads <ExternalLink to="/library/proto_engine/scenes/deserialization_example.json">deserialization_example.json</ExternalLink> which is a scene composed of parts from the demo at the top of the page and the giant textured cube from the <RouterLink to="/projects/flocking">WebGL Flocking</RouterLink> project page.
+          The following demo loads <Link public to="/library/proto_engine/scenes/deserialization_example.json">deserialization_example.json</Link> which is a scene composed of parts from the demo at the top of the page and the giant textured cube from the <RouterLink to="/projects/flocking">WebGL Flocking</RouterLink> project page.
           This also includes binary data such as models and textures which are output as a JSON array and base64 encoded string respectively.
           While JSON isn't the most space efficient file format, this does make it possible to deploy a game or demo with a single self-contained JSON file.
           JSON is very flexible for prototyping and very easy to work with in JavaScript.
         </p>
-        <br />
-        <Player title="deserialization_example.json"
+        <Player :ref="makePlayerRef('json-deserialize-example')" :state="player_states['json-deserialize-example']"
+                title="deserialization_example.json"
                 :date="new Date('2025/06/25')"
                 :lastmod="new Date('2025/06/25')"
                 frame="/library/projects/proto_engine/project_loader.html"
                 @load="(e) => onPlayerLoaded(e, '/library/proto_engine/scenes/deserialization_example.json')" />
-        <br />
         <p>
           Serialization and deserialization are handled asynchronously, and JavaScript Promises make it easy to schedule parallel and order dependent tasks together.
           One challenge that came up involved serialization being called before a scene was fully loaded, since models and textures are bundled into the output.
@@ -330,7 +312,6 @@ function postMessageToFrame(target_frame, filepath) {
           However the fix was simple, the only change needed was to `await` the resource loader during serialization.
           This allows other serialization tasks to continue asynchronously while resource dependent tasks are blocked until they're ready.
         </p>
-        <br />
         <Code lang="javascript"
               caption="Texture serialization seamlessly waits until the texture is ready without blocking other tasks."
               text="
@@ -354,7 +335,6 @@ function postMessageToFrame(target_frame, filepath) {
             };
           }
         " />
-        <br />
         <Code lang="javascript"
               caption="High-level deserialization logic."
               text="
@@ -377,6 +357,17 @@ function postMessageToFrame(target_frame, filepath) {
           }
         " />
       </Section>
-    </Column>
+    <!-- </Layer> -->
   </article>
 </template>
+
+<style scoped>
+.list-none {
+  padding-inline-start: 0;
+}
+
+.list-none li:not(:last-child) {
+  padding-left: 0;
+  padding-bottom: var(--padding-normal);
+}
+</style>
