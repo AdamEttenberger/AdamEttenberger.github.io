@@ -92,10 +92,11 @@ useTheme(() => ({ color: unref(props.options.color) }));
   <div v-show="visible" class="property-row">
     <label v-if="show_label && label" class="label" :for="name">{{ label }}</label>
     <Button v-if="show_undo && model !== undefined"
+            :color="ThemeColor.Error"
             :class="['undo', is_model_changed ? '' : 'hidden']"
             :name="'undo:' + name"
             :disabled="disabled"
-            :icon="['fas', 'rotate-left']"
+            :icon="['fas', 'trash']"
             @click="model = unref((props.options as IPropertyValueOptions)?.default_value)" />
     <!-- Filter by property control type -->
     <component :is="dynamic_component" :component-props="options"
@@ -119,11 +120,6 @@ useTheme(() => ({ color: unref(props.options.color) }));
   & .property-editor-group {
     grid-column: 1 / 4;
   }
-}
-
-.undo :deep(svg.image-button-fa-icon) {
-  font-size: 1rem;
-  font-weight: bolder;
 }
 
 .hidden {
