@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import ConsentBanner from '@/components/consent_banner.vue'
 import Footer from '@/components/footer.vue'
+import Link from '@/components/link.vue'
 import LocalStorageHelper from '@/types/local_storage_helper'
 import LogoHomeButton from '@/components/buttons/logo_home_button.vue'
 import SettingsButton from '@/components/buttons/settings.vue'
@@ -39,20 +40,20 @@ useTheme(() => ({
 
 <template>
   <div class="app">
-    <header>
+    <header class="columns">
       <div class="logo">
         <LogoHomeButton />
       </div>
       <div class="title">
-        <RouterLink to="/"><h1>Adam Ettenberger</h1></RouterLink>
-        <div class="links">
-          <div class="socials">
+        <h1><Link to="/">Adam Ettenberger</Link></h1>
+        <div class="links columns">
+          <div class="socials columns gap-s">
             <SocialLink type="about" />
             <SocialLink type="hire-me" />
             <SocialLink type="linkedin" />
             <SocialLink type="github" />
           </div>
-          <div class="controls">
+          <div class="controls columns gap-s">
             <ThemeToggle />
             <SettingsButton />
           </div>
