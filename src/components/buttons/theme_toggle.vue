@@ -10,8 +10,7 @@ user_preferences.$subscribe(() => {
 </script>
 
 <template>
-  <Button class="button"
-          :title="`set theme to ${user_preferences.useDarkMode ? 'light' : 'dark'} mode`"
+  <Button :title="`set theme to ${user_preferences.useDarkMode ? 'light' : 'dark'} mode`"
           :icon="['fas', 'lightbulb']"
           @click="user_preferences.toggleColorScheme()" />
 </template>

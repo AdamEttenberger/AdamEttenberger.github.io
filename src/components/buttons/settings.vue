@@ -1,10 +1,11 @@
-<script setup labg="ts">
+<script setup lang="ts">
 import Button from '@/components/buttons/button.vue'
+import { ThemeColor } from '@/composables/theme'
 </script>
 
 <template>
-  <Button class="button"
-          route="/settings"
+  <Button to="/settings"
           :icon="['fas', 'gear']"
-          aria-label="settings" />
+          aria-label="settings"
+          :color="ThemeColor.Accent" />
 </template>

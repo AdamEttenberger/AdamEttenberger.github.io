@@ -19,8 +19,8 @@ const emails = useEmailTemplateStore();
           alt="GitHub" :icon="['fab', 'github']" />
   <Button v-else-if="type === 'hire-me'" title="E-mail, hire me!"
           alt="E-mail, hire me!" :icon="['fas', 'envelope']"
-          :mailto="emails.hiring" />
+          :to="emails.hiring" />
   <Button v-else-if="type === 'about'" title="About me"
           alt="About me" :icon="['fas', 'question']"
-          route="/about" />
+          to="/about" />
 </template>
