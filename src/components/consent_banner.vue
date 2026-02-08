@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import Button from '@/components/buttons/button.vue'
 import Layer from '@/components/layer.vue'
 import { useConsentStore } from '@/stores/consent'
+import { ThemeColor } from '@/composables/theme'
 
 const consent = useConsentStore();
 
@@ -45,9 +46,9 @@ function onUserConsentGiven() {
       </div>
       <div class="button-list columns gap">
         <Button class="button" text="Learn More" to="/privacy" />
-        <Button class="button" text="Reject All" @click="dialog_state = ConsentDialogState.ShowAskToRememberChoice" />
+        <Button class="button" text="Reject All" @click="dialog_state = ConsentDialogState.ShowAskToRememberChoice" :color="ThemeColor.Error" />
         <Button class="button" text="Settings" to="/settings" />
-        <Button class="button" text="Ok" @click="onUserConsentGiven" />
+        <Button class="button" text="Ok" @click="onUserConsentGiven" :color="ThemeColor.Accent" />
       </div>
     </div>
   </Layer>
