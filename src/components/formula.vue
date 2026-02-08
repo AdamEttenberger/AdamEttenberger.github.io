@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useTemplateRef, ref, onMounted, useSlots } from 'vue'
 import Figure from '@/components/figure.vue'
+import Layer from '@/components/layer.vue'
 import { ThemeColor } from '@/composables/theme'
 import Note from '@/components/note.vue'
 import { useScrollAffectingContentWaiterStore } from '@/stores/scroll_affecting_content_waiter'
@@ -12,6 +13,7 @@ const mathml_parent = useTemplateRef('mathml_parent');
 const init_failed = ref(false);
 
 const props = defineProps({
+  color: { type: [null, String, ThemeColor] as PropType<null|String|ThemeColor>, default: null },
   text: { type: String, default: null },
   file: { type: String, default: null },
   caption: { type: String, required: true },
@@ -63,7 +65,9 @@ onMounted(() => {
     <Note v-if="init_failed" :color="ThemeColor.Error">
       Error loading math view
     </Note>
-    <div v-else ref="mathml_parent" class="math"></div>
+    <Layer :color>
+      <div ref="mathml_parent" class="math"></div>
+    </Layer>
   </Figure>
 </template>
 
@@ -71,12 +75,10 @@ onMounted(() => {
 .math {
   text-align: center;
   font-size: x-large;
-  padding: var(--size-padding-round);
   overflow-x: auto;
-}
-
-.error {
-  text-align: center;
-  font-size: xx-large;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: none;
 }
 </style>
