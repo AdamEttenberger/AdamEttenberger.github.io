@@ -49,7 +49,7 @@ const emails = useEmailTemplateStore();
       <p>
         If you believe I do not meet this standard and have feedback that is both specific and actionable, please use the following email template including as much detail as possible and I will attempt to mitigate or resolve concerns in a timely manner.
       </p>
-      <Button class="feedback" :to="emails.feedback" />
+      <Button class="centered feedback" :to="emails.feedback" />
       <p>
         Reasons may include, but are not limited to:
       </p>
@@ -149,6 +149,7 @@ const emails = useEmailTemplateStore();
 .inline-button {
   width: 2rem;
   vertical-align: sub;
+  text-align: center;
 }
 
 .section-quote {
