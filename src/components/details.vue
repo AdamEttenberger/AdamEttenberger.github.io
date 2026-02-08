@@ -32,7 +32,6 @@ const open = defineModel({
 summary {
   user-select: none;
   cursor: pointer;
-  font-size: medium;
   border-radius: var(--size-border-radius);
 
   /**
