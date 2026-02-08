@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { computed, ref, toRaw, unref } from 'vue'
 import Code from '@/components/code.vue'
-import Column from '@/components/column.vue'
 import Term from '@/components/term.vue'
 import TermList from '@/components/term_list.vue'
 import Details from '@/components/details.vue'
-import ExternalLink from '@/components/external_link.vue'
+import Link from '@/components/link.vue'
 import Figure from '@/components/figure.vue'
 import Formula from '@/components/formula.vue'
 import Note from '@/components/note.vue'
@@ -13,6 +12,7 @@ import Player from '@/components/player.vue'
 import { PlayerState } from '@/types/player_state'
 import PropertyEditor from '@/components/property_editor/property_editor.vue'
 import Section from '@/components/section.vue'
+import { ThemeColor } from '@/composables/theme'
 import WebPageCitation from '@/components/citation/web_page_citation.vue'
 import {
   Color4Options,
@@ -23,9 +23,8 @@ import {
   ToggleOptions,
 } from '@/util/property_editor/property_types'
 //
-import useIntersectionObserver from '@/composables/intersection_observer';
+import useIntersectionObserver from '@/composables/intersection_observer'
 import default_vertex_shader from '@/assets/shaders/default.vert?raw'
-import { NoteKind } from '@/types/note_kind'
 import { IProjectInfo } from '@/types/project_types'
 
 defineProps<IProjectInfo>();
@@ -703,10 +702,14 @@ const shader_templates = new Map([
         float right = sdf_circle(p - vec2(0.25, 0.0), 0.4);
 
         switch (uOp) {
-          case 0: return min(left, right);                          // union
-          case 1: return max(left, right);                          // intersection
-          case 2: return max(left, -right);                         // subtraction
-          case 3: return max(min(left, right), -max(left, right));  // Xor
+          // union
+          case 0: return min(left, right);
+          // intersection
+          case 1: return max(left, right);
+          // subtraction
+          case 2: return max(left, -right);
+          // Xor
+          case 3: return max(min(left, right), -max(left, right));
         }
       `,
     }
@@ -1060,7 +1063,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
           frame="/library/projects/shader_loader/shader_loader.html"
           :state="player_states['main']"
           @load="(frame) => onPlayerLoaded(frame, editors['main'], 'heart')" />
-  <Column>
+
     <Section heading="Controls">
       <PropertyEditor :ref="makeEditorRef('main')"
                       :properties="getShaderProperties('heart', {
@@ -1075,7 +1078,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
     <Section heading="Scope">
       <p>
         This page is a somewhat structured accumulation of notes and demos related to signed-distance fields and their properties.
-        While the goal for this page isn't a comprehensive guide, readers familiar with <ExternalLink to="https://en.wikipedia.org/wiki/Shading_language">shading languages</ExternalLink> and the graphics pipeline should be able to recreate the demos and create simple scenes after reading.
+        While the goal for this page isn't a comprehensive guide, readers familiar with <Link to="https://en.wikipedia.org/wiki/Shading_language">shading languages</Link> and the graphics pipeline should be able to recreate the demos and create simple scenes after reading.
         I'll briefly discuss how to derive the distance field of a few shape primitives, and how to compose simple complex shapes including a <b>heart</b> and an <b>aligned capsule</b>.
       </p>
     </Section>
@@ -1091,36 +1094,31 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
     <Section heading="Compositing a Heart">
       <p>
         To begin lets first analyze the shape to decide how to approach drawing it.
-        There are many subtle variations and methods of drawing the <ExternalLink to="https://en.wikipedia.org/wiki/Heart_symbol">heart symbol</ExternalLink>.
+        There are many subtle variations and methods of drawing the <Link to="https://en.wikipedia.org/wiki/Heart_symbol">heart symbol</Link>.
         To keep things simple and keep the complexity of the shape low, this demo draws overlapping circles for the heart lobes and a mirrored plane for tangent lines that meet at the bottom forming a point.
       </p>
-      <br />
       <p>
         The shape can be broken down as illustrated by the following diagram and key components:
       </p>
-      <br />
       <Figure src_light="/images/projects/sdf/heart_geometry_light.png"
               src_dark="/images/projects/sdf/heart_geometry_dark.png"
               alt="Illustration of the geometry composing the heart shape used for this demo." />
-      <br />
       <h2 class="heart-terms-heading"></h2>
       <TermList class="heart-terms" heading="Components">
         <Term term="A: Vertex">Where the tangent lines meet forming a triangular point, lowest point in the shape.</Term>
         <Term term="B: Vertex">Highest point where the mirrored heart lobes meet.</Term>
         <Term term="C: Vertex">Center point of the mirrored heart lobe.</Term>
         <Term term="T: Vertex">Point that forms a tangent between vertex <b>A</b> and circle <b>C</b>.</Term>
-        <Term term="N: Unit Vector">A <b><u>unit</u></b> vector pointing from vertex <b>C</b> towards vertex <b>T</b>.</Term>
+        <Term term="N: Unit Vector">A <u><b>unit</b></u> vector pointing from vertex <b>C</b> towards vertex <b>T</b>.</Term>
         <Term term="R: Length">The radius of the heart lobes.</Term>
         <Term term="H: Length">The <b>vertical distance</b> between vertex <b>C</b> and vertex <b>B</b>.</Term>
         <Term term="S: Length">The distance between vertex <b>A</b> and vertex <b>C</b>.</Term>
         <Term term="Q: Length">The distance between vertex <b>A</b> and vertex <b>T</b>.</Term>
         <Term term="θ: Angle">The angle required to turn a vector pointing from vertex <b>C</b> to vertex <b>A</b>, to then point towards the tangent vertex <b>T</b>.</Term>
       </TermList>
-      <br />
       <p>
         For clarity, here are definitions for some of the vector math symbols used in the formula frames below.
       </p>
-      <br />
       <Formula caption="2-D vector V, and its 2x1 matrix.">
         \begin{aligned}
           \text{vector} \\
@@ -1161,54 +1159,44 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
           \left(\hat{\vec{AB}}\right) = \left(\tfrac{\vec{AB}}{||\vec{AB}||}\right)
         \end{aligned}
       </Formula>
-      <br />
       <p>
         It's best to start with known variables and constraints.
       </p>
-      <br />
       <ul>
         <li>This shape needs to fill as much of a 1x1 UV unit as possible.</li>
         <li>The radius of the heart lobes will be used as an animation property, for morphing between a heart and a circle.</li>
         <li>The heart lobes must be <i>at least</i> tangent to each other to maintain the illusion of a heart shape.</li>
       </ul>
-      <br />
       <p>
         For inputs, we know that <b>R</b> must be constrained to a minimum of half quadrant 1, and a maximum of half the UV space.
         This is the maximum range allowed for the heart and circle transformation to maintain the illusion and stay within bounds of the 1x1 UV unit space.
       </p>
-      <br />
       <Formula caption="R is within range [0.25, 0.5]">
         R \in \left[\tfrac{1}{4},\tfrac{1}{2}\right]
       </Formula>
-      <br />
       <p>
         So far both vertex <b>A</b> and <b>C</b> are known values.
         Vertex <b>A</b> must be the lower-midpoint of the UV space.
       </p>
-      <br />
       <Formula caption="A is the point [0, -0.5]">
         \vec{A} = \begin{bmatrix}
           0 \\
           -\tfrac{1}{2}
         \end{bmatrix}
       </Formula>
-      <br />
       <p>
         Vertex <b>C</b> is offset from both the top and right edges of the UV space by the radius <b>R</b>.
       </p>
-      <br />
       <Formula caption="C is the point [0.5-R, 0.5-R]">
         \vec{C} = \begin{bmatrix}
           \tfrac{1}{2}-R \\
           \tfrac{1}{2}-R \\
         \end{bmatrix}
       </Formula>
-      <br />
       <p>
         This is enough information to start drawing with.
         So, looking at what's been solved for:
       </p>
-      <br />
       <Player :ref="makePlayerRef(`heart-composition-step-0`)"
               :title="`(Fig. 0) Mirrored Heart Lobe + Lower Point`"
               :date="date"
@@ -1216,21 +1204,17 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
               frame="/library/projects/shader_loader/shader_loader.html"
               :state="player_states['heart-composition-step-0']"
               @load="(frame) => onStepByStepPlayerLoaded(frame, 0)" />
-      <br />
       <Note>
         Demos in this section have been adjusted to show some space outside the 1x1 UV unit to make some details more apparent.
         In particular, the area below vertex <b>A</b>.
       </Note>
-      <br />
       <p>
         To draw the slope connecting vertex <b>A</b> and vertex <b>T</b>, we'll need to find the <b><i>direction</i></b> from vertex <b>C</b> to tangent vertex <b>T</b>, the location of the tangent isn't needed.
         There are a few ways to derive this value, and it's worth reviewing some of them.
       </p>
-      <br />
       <p>
         To find the tangent direction, we'll need the length <b>S</b> between vertices <b>A</b> and <b>C</b>, the length of the hypotenuse.
       </p>
-      <br />
       <Formula caption="S is the length hypotenuse between vertex A and C.">
         \begin{aligned}
         S &=& ||\vec{CA}|| = \sqrt{\left(\vec{CA} \cdot \vec{CA}\right)} \\
@@ -1239,7 +1223,6 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
           &=& \sqrt{2R^2 - 3R + \left(\tfrac{5}{4}\right)} \\
         \end{aligned}
       </Formula>
-      <br />
       <p>
         For the first approach, the tangent direction can be computed with a few trig functions.
         The angle of a vector pointing from vertex <b>C</b> to vertex <b>A</b> can be computed as the arctangent of the difference between their components.
@@ -1249,7 +1232,6 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       <Note :color="ThemeColor.Warning">
         This solution uses 4 trig functions which are relatively expensive operations; this approach isn't recommended for production.
       </Note>
-      <br />
       <Formula caption="unit vector N, computed through trig functions.">
         \begin{aligned}
           \alpha =& \arctan(\tfrac{\vec{CA}_{y}}{\vec{CA}_{x}}) \\
@@ -1260,17 +1242,14 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
           \end{bmatrix}
         \end{aligned}
       </Formula>
-      <br />
       <p>
-        For the second approach, the tangent direction can be computed without trig functions by using a <ExternalLink to="https://en.wikipedia.org/wiki/Rotation_matrix">rotation matrix</ExternalLink> based on <b class="no-wrap">cos(θ)</b> and <b class="no-wrap">sin(θ)</b>, rather than computing the angle <b>θ</b>.
+        For the second approach, the tangent direction can be computed without trig functions by using a <Link to="https://en.wikipedia.org/wiki/Rotation_matrix">rotation matrix</Link> based on <b class="nowrap">cos(θ)</b> and <b class="nowrap">sin(θ)</b>, rather than computing the angle <b>θ</b>.
         The rotation can be solved either with a rotation matrix, or with an identity of the matrix based on perpendicular unit vectors.
       </p>
-      <br />
       <p>
-        With the lengths <b>Q</b>, <b>R</b>, and <b>S</b> we can solve for <b class="no-wrap">cos(θ)</b> and <b class="no-wrap">sin(θ)</b>, rather than <b>θ</b> itself.
-        Since <b>R</b> is known and <b>S</b> has been solved, use the <ExternalLink to="https://en.wikipedia.org/wiki/Pythagorean_theorem">pythagorean theorem</ExternalLink> to find the remaining leg.
+        With the lengths <b>Q</b>, <b>R</b>, and <b>S</b> we can solve for <b class="nowrap">cos(θ)</b> and <b class="nowrap">sin(θ)</b>, rather than <b>θ</b> itself.
+        Since <b>R</b> is known and <b>S</b> has been solved, use the <Link to="https://en.wikipedia.org/wiki/Pythagorean_theorem">pythagorean theorem</Link> to find the remaining leg.
       </p>
-      <br />
       <Formula caption="Q is the length between vertex A and T.">
         Q = \sqrt{S^2 - R^2}
       </Formula>
@@ -1281,23 +1260,19 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
           \sin(\theta)  &=& \left(\tfrac{Q}{S}\right) \\
         \end{aligned}
       </Formula>
-      <br />
       <p>
         Next create a unit vector pointing from vertex <b>C</b> to vertex <b>A</b>, scaling the difference between them by the inverse length <b>S</b> to normalize.
       </p>
-      <br />
       <Formula caption="unit vector pointing from vertex C to vertex A.">
         \hat{\vec{CA}} = \tfrac{\vec{CA}}{S}
       </Formula>
-      <br />
       <p>
         Then there are a few more options to choose from to compute unit vector <b>N</b>:
       </p>
-      <br />
       <ul>
         <li>
           <p>
-            Create a 2-D rotation matrix directly with the precomputed values <b class="no-wrap">cos(θ)</b> and <b class="no-wrap">sin(θ)</b>.
+            Create a 2-D rotation matrix directly with the precomputed values <b class="nowrap">cos(θ)</b> and <b class="nowrap">sin(θ)</b>.
           </p>
           <Formula caption="unit vector N, computed directly with a rotation matrix using matrix multiplication.">
             \begin{aligned}
@@ -1316,15 +1291,13 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
         <li>
           <p>
             Swizzle and flip a component to create a counter-clockwise perpendicular vector.
-            Then multiply each vector by <b class="no-wrap">cos(θ)</b> and <b class="no-wrap">sin(θ)</b> respectively.
+            Then multiply each vector by <b class="nowrap">cos(θ)</b> and <b class="nowrap">sin(θ)</b> respectively.
           </p>
-          <br />
           <Note>
             This is an identity of the matrix above.
-            Game engines often have a <b>local transform</b> API that exposes <b><u>unit</u></b> vectors like <b>forward</b>, <b>right</b>, <b>up</b>, and other <i>local</i> cardinal directions which can be helpful for rotating a vector without constructing a matrix.
+            Game engines often have a <b>local transform</b> API that exposes <u><b>unit</b></u> vectors like <b>forward</b>, <b>right</b>, <b>up</b>, and other <i>local</i> cardinal directions which can be helpful for rotating a vector without constructing a matrix.
             For game logic, an engine likely exposes at least one math API to logically simplify this type of calculation.
           </Note>
-          <br />
           <Formula caption="unit vector N, computed with vector multiplication and addition, another form of the 2-D rotation matrix.">
             \begin{aligned}
               \hat{N} &=& \left(\cos(\theta) \cdot \hat{\vec{CA}} + \sin(\theta) \cdot \hat{\vec{CA}}_{\perp}\right) \\
@@ -1340,11 +1313,9 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
           </Formula>
         </li>
       </ul>
-      <br />
       <p>
         Now that the unit normal <b>N</b> has been solved a plane can be drawn relative to vertex <b>A</b> which is tangent to the heart lobe through vertex <b>T</b>.
       </p>
-      <br />
       <Player :ref="makePlayerRef(`heart-composition-step-1`)"
               :title="`(Fig. 1) Mirrored Plane`"
               :date="date"
@@ -1352,48 +1323,39 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
               frame="/library/projects/shader_loader/shader_loader.html"
               :state="player_states['heart-composition-step-1']"
               @load="(frame) => onStepByStepPlayerLoaded(frame, 1)" />
-      <br />
       <p>
         Unfortunately, the shape can't easily be composed using boolean operations, so the image needs to be sliced into separate drawing regions.
         To create a seamless appearance when joining the plane and circle, the circles need to be cut from their center point to a tangent.
         At least two regions are needed, but at least 3 cutting planes are needed to define the boundary between them.
       </p>
-      <br />
       <p>
         When using planes to slice an image into different regions, be sure their intersection points behave well when animating the shape.
         Two of the planes used for this image are parallel, the region between <b>A</b> and <b>T</b> that extends along the normal <b>N</b>.
         However, the third cutting plane is based on the edge between vertex <b>C</b> towards <b>B</b>, and <b>B</b> can lie on either side of the other plane.
         For the heart shape this issue can be avoided by using the vertical axis to define which plane should be used to cut with.
       </p>
-      <br />
       <p>
         The drawing regions and the cutting planes can roughly be described as follows:
       </p>
-      <br />
       <Figure src_light="/images/projects/sdf/heart_draw_regions_light.png"
               src_dark="/images/projects/sdf/heart_draw_regions_dark.png"
               alt="Illustration of the 3 draw region mask slices are made." />
-      <br />
       <Figure src_light="/images/projects/sdf/heart_cut_planes_light.png"
               src_dark="/images/projects/sdf/heart_cut_planes_dark.png"
               alt="Illustration of cut edges CB and CT, showing the angle from vertices A, C, and B can be acute or obtuse." />
-      <br />
       <TermList heading="Drawing Regions">
         <Term term="Planes">Mostly the slope connecting vertex <b>A</b> and vertex <b>T</b>, and a triangle region cut out of circle <b>C</b> with vertex <b>B</b>.</Term>
         <Term term="Circles">Mostly outward curves like the heart lobes and a section below the point drawn at vertex <b>A</b>.</Term>
       </TermList>
-      <br />
       <TermList heading="Region Edges">
         <Term term="Circle Edge CB"><Formula caption="">\vec{C} \quad \text{towards} \quad \hat{\vec{CB}}_{\perp}</Formula></Term>
         <Term term="Circle Edge CT"><Formula caption="">\vec{C} \quad \text{towards} \quad -\hat{N}_{\perp}</Formula></Term>
         <Term term="Point Edge A"><Formula caption="">\vec{A} \quad \text{towards} \quad \hat{N}_{\perp}</Formula></Term>
       </TermList>
-      <br />
       <p>
         Since vertex <b>B</b> lies on the vertical axis only the <b>Y</b> component is missing, which can be defined as relative to the <b>Y</b> component of vertex <b>C</b>.
         So, the vertical component of <b>B</b> is only missing the value <b>H</b> which can be solved for as follows.
       </p>
-      <br />
       <Formula caption="H is the vertical difference between vertex B and C.">
         \begin{aligned}
           H &=& \sqrt{R^2 - \left(\vec{C}_{x}\right)^2} \\
@@ -1413,11 +1375,9 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
                       \end{bmatrix}
         \end{aligned}
       </Formula>
-      <br />
       <p>
         With drawing regions defined the image can be stitched together.
       </p>
-      <br />
       <Player :ref="makePlayerRef(`heart-composition-step-2`)"
               :title="`(Fig. 2) Draw Region #1, Outer Circles`"
               :date="date"
@@ -1439,12 +1399,10 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
               frame="/library/projects/shader_loader/shader_loader.html"
               :state="player_states['heart-composition-step-4']"
               @load="(frame) => onStepByStepPlayerLoaded(frame, 4)" />
-      <br />
       <p>
         That's close, the silhouette is correct but the area below vertex <b>B</b> doesn't look right.
         To fix this, an <i>inverted</i> point can be drawn at vertex <b>B</b> within the planes draw region, creating the illusion that the heart lobes have one continuous inner curve.
       </p>
-      <br />
       <Player :ref="makePlayerRef(`heart-composition-step-5`)"
               :title="`(Fig. 5) Outer Circles + Inverted Point in Draw Region #2`"
               :date="date"
@@ -1459,17 +1417,14 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
               frame="/library/projects/shader_loader/shader_loader.html"
               :state="player_states['heart-composition-step-6']"
               @load="(frame) => onStepByStepPlayerLoaded(frame, 6)" />
-      <br />
       <p>
         With 2 drawing regions composed of 3 points, 1 plane, and 3 cutting edges; the heart is complete and is ready for animation.
       </p>
-      <br />
       <Details summary="Heart Signed-distance Function">
         <Code lang="cpp"
               caption="Heart signed-distance function."
               :text="shader_templates.get('heart').sdf_function" />
       </Details>
-      <br />
       <Player :ref="makePlayerRef('heart')"
           title="Heart"
           :date="date"
@@ -1477,7 +1432,6 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
           frame="/library/projects/shader_loader/shader_loader.html"
           :state="player_states['heart']"
           @load="(frame) => onPlayerLoaded(frame, editors['heart'], 'heart')" />
-      <br />
       <PropertyEditor :ref="makeEditorRef('heart')"
                       :properties="getShaderProperties('heart', {
                         'uScale': { default_value: 1.5 },
@@ -1490,7 +1444,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
 
     <Section heading="What is a signed-distance function (SDF)?">
       <p>
-        A <ExternalLink to="https://en.wikipedia.org/wiki/Signed_distance_function">signed-distance function</ExternalLink> (<abbr>SDF</abbr>) or signed-distance field, is a function which computes the signed-distance between any point and the nearest surface or boundary.
+        A <Link to="https://en.wikipedia.org/wiki/Signed_distance_function">signed-distance function</Link> (<abbr>SDF</abbr>) or signed-distance field, is a function which computes the signed-distance between any point and the nearest surface or boundary.
         The sign of the result indicates whether a point is inside (negative), outside (positive), or on the surface (0) of a shape boundary, like how the dot product of two vectors indicates whether they point in similar (positive), opposing (negative), or perpendicular (0) directions.
       </p>
     </Section>
@@ -1499,7 +1453,6 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       <p>
         To help illustrate the concept of a signed-distance function, consider the following examples on a <b>1-D</b> number line.
       </p>
-      <br />
       <ol class="foundation-steps">
         <li>
           <p>
@@ -1555,13 +1508,11 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
         Intuitively the signed-distance from a point is either <b>0</b> at the exact center or <b>&gt;0</b>.
         Subtracting a radius from this value inflates the shape, with negative values falling inside the boundary formed at the radius.
       </p>
-      <br />
       <Details summary="Circle Signed-distance Functions">
         <Code lang="cpp"
               caption="Circle signed-distance function."
               :text="shader_templates.get('circle').sdf_function" />
       </Details>
-      <br />
       <Player :ref="makePlayerRef('circle')"
               title="Circle"
               :date="date"
@@ -1569,7 +1520,6 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
               frame="/library/projects/shader_loader/shader_loader.html"
               :state="player_states['circle']"
               @load="(frame) => onPlayerLoaded(frame, editors['circle'], 'circle')" />
-      <br />
       <PropertyEditor :ref="makeEditorRef('circle')"
                       :properties="getShaderProperties('circle')"
                       @property-changed="(name) => onPlayerPropertyChanged(players['circle'].inner_frame, name)" />
@@ -1578,23 +1528,20 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
     <Section heading="Planes and Lines">
       <p>
         Next is a plane, defined with a <b>unit vector normal</b> and an amount to offset the plane from the origin along the normal.
-        The signed-distance between a point and a plane is the projected length onto the <b><u>unit</u> vector</b> using the <ExternalLink to="https://en.wikipedia.org/wiki/Dot_product">vector dot product</ExternalLink>.
+        The signed-distance between a point and a plane is the projected length onto the <b><u>unit</u> vector</b> using the <Link to="https://en.wikipedia.org/wiki/Dot_product">vector dot product</Link>.
         Creating a region of positive values on the side the <b>normal</b> vector is pointing, and negative values in the opposite direction.
       </p>
-      <br />
       <p>
         A plane can be transformed into a line by taking the absolute value of the signed-distance, then subtract half the line width to <b>inflate</b> the shape boundary.
         This process is like how the signed-distance of a point can be <b>inflated</b> into a circle or sphere, or how the <i>absolute</i> distance field of a circle inflates into a torus.
         Taking the absolute value makes the lowest value <i>possible</i> in the distance field <b>zero</b> while maintaining distance to the boundary of the shape.
         Subtracting from the distance field <b>inflates</b> the boundary of the shape by shifting the field uniformly <b>away from the boundary</b>.
       </p>
-      <br />
       <Details summary="Plane signed-distance functions">
         <Code lang="cpp"
               caption="Plane signed-distance function."
               :text="shader_templates.get('plane').sdf_function" />
       </Details>
-      <br />
       <Player :ref="makePlayerRef('plane')"
               title="Plane"
               :date="date"
@@ -1602,7 +1549,6 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
               frame="/library/projects/shader_loader/shader_loader.html"
               :state="player_states['plane']"
               @load="(frame) => onPlayerLoaded(frame, editors['plane'], 'plane')" />
-      <br />
       <PropertyEditor :ref="makeEditorRef('plane')"
                       :properties="getShaderProperties('plane', {
                         'uShowReticle': { default_value: true },
@@ -1617,13 +1563,11 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
         When a shape can be mirrored, centering the shape along the origin may simplify the math involved.
         For example, mirroring across the horizontal or vertical axis can be achieved by using the absolute value of their respective UV component when the shape is centered at the origin, causing anything drawn on the <b>positive</b> side of the axis to be mirrored, or the first quadrant when both axes are mirrored.
       </p>
-      <br />
       <Details summary="Mirrored Shapes Signed-distance Function">
         <Code lang="cpp"
               caption="Mirrored shapes signed-distance function."
               :text="shader_templates.get('mirror').sdf_function" />
       </Details>
-      <br />
       <Player :ref="makePlayerRef('mirror')"
               title="Mirrored Shapes"
               :date="date"
@@ -1631,7 +1575,6 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
               frame="/library/projects/shader_loader/shader_loader.html"
               :state="player_states['mirror']"
               @load="(frame) => onPlayerLoaded(frame, editors['mirror'], 'mirror')" />
-      <br />
       <PropertyEditor :ref="makeEditorRef('mirror')"
                       :properties="getShaderProperties('mirror', {
                         'uShowAxisX': { default_value: true },
@@ -1646,13 +1589,11 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
         These make it easier to create complex shapes, but don't guarantee the signed-distance field is accurate.
         Accurate signed-distance fields are generally preferred since they're more flexible, but boolean operations can quickly compose a shape when only the shape boundary or mask is needed.
       </p>
-      <br />
       <Details summary="Venn Diagram: Boolean Operators">
         <Code lang="cpp"
               caption="SDF Venn Diagram boolean operators."
               :text="shader_templates.get('venn-diagram').sdf_function" />
       </Details>
-      <br />
       <Player :ref="makePlayerRef('venn-diagram')"
               title="Venn Diagram"
               :date="date"
@@ -1660,7 +1601,6 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
               frame="/library/projects/shader_loader/shader_loader.html"
               :state="player_states['venn-diagram']"
               @load="(frame) => onPlayerLoaded(frame, editors['venn-diagram'], 'venn-diagram')" />
-      <br />
       <PropertyEditor :ref="makeEditorRef('venn-diagram')"
                       :properties="getShaderProperties('venn-diagram')"
                       @property-changed="(name) => onPlayerPropertyChanged(players['venn-diagram'].inner_frame, name)" />
@@ -1671,13 +1611,11 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
         Another approach to compositing a shape is to slice the render into different drawing regions.
         Consider a capsule shape which is effectively an inflated line segment.
       </p>
-      <br />
       <p>
         Fortunately, capsules have symmetry across two perpendicular axes, so an aligned capsule can be mirrored from the first quadrant.
         One method of drawing a line segment is to draw a mirrored plane for the line body and a point at each endpoint.
         However, a plane extends infinitely and is always "closest" when compared with a collinear point, so the two shapes can't join with boolean operations.
       </p>
-      <br />
       <p>
         To fix this, one approach is to split the render into two drawing regions:
       </p>
@@ -1685,17 +1623,14 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
         <li>A plane drawn for any points between the origin and the end of the line segment.</li>
         <li>A point/circle drawn for any points further than the end of the line segment.</li>
       </ul>
-      <br />
       <p>
         The default settings for the demo below inverts the <abbr>SDF</abbr> of the plane connecting the two points to highlight the drawing regions.
       </p>
-      <br />
       <Details summary="Aligned Capsule: Drawing Regions">
         <Code lang="cpp"
               caption="Aligned capsule signed-distance function. Draws a circle and plane, mirrored across both axes, with two drawing regions."
               :text="shader_templates.get('capsule').sdf_function" />
       </Details>
-      <br />
       <Player :ref="makePlayerRef('capsule')"
               title="Aligned Capsule"
               :date="date"
@@ -1703,7 +1638,6 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
               frame="/library/projects/shader_loader/shader_loader.html"
               :state="player_states['capsule']"
               @load="(frame) => onPlayerLoaded(frame, editors['capsule'], 'capsule')" />
-      <br />
       <PropertyEditor :ref="makeEditorRef('capsule')"
                       :properties="getShaderProperties('capsule', {
                         'uShowAxisX': { default_value: true },
@@ -1718,13 +1652,11 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
         Taking this a step further, negative and positive values could have different colors, creating separate inset and outset color bands.
         Rendering both insets and outsets as separate high contrast colors can help make shapes more readable over noisy backgrounds.
       </p>
-      <br />
       <p>
         This is one example for how to draw separate layers, but how to approach this really depends on your design requirements.
-        If the final texture was going to be a compositing mask, then maybe only values <b class="no-wrap"><= 0.0</b> need to be filled and everything else could be <b>discard</b>-ed.
+        If the final texture was going to be a compositing mask, then maybe only values <b class="nowrap"><= 0.0</b> need to be filled and everything else could be <b>discard</b>-ed.
         To the opposite extreme, arrays could be used to specify many colors and distance-threshold values, through shader uniforms, constants, or encoded in texture data if you have a suitable use case.
       </p>
-      <br />
       <Code lang="cpp"
             caption="Simple SDF draw call with 4 layers: [outside, outset, inset, inside]."
             text="
@@ -1745,7 +1677,6 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
         Simple animations can be added by looping over one or more wave functions, providing <b>frame time</b> or a similar value to interpolate properties of the scene such as object transformations, colors, or texture coordinates for example.
         This type of animation can easily be adjusted to warp time or play in reverse by scaling the real <b>delta time</b>, unless some property of the animation isn't deterministic or breaks time symmetry.
       </p>
-      <br />
       <Code lang="cpp"
             caption="Time based heartbeat animation cycle composed of two wave functions."
             text="
@@ -1763,15 +1694,13 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
         This section is kind of magic.
         When drawing it's a common practice to begin with a rough approximation using primitive shapes, then add fine details.
         This is a tool which allows a similar progression for signed-distance functions, taking roughly laid out shapes and smoothly blending them together.
-        <ExternalLink to="https://iquilezles.org/articles/smin/">Smooth minimum</ExternalLink> is one mechanism for blending shapes to add detail or polish to a shape.
+        <Link to="https://iquilezles.org/articles/smin/">Smooth minimum</Link> is one mechanism for blending shapes to add detail or polish to a shape.
       </p>
-      <br />
       <Details summary="Smooth Union">
         <Code lang="cpp"
               caption="Quadratic smooth union signed-distance function."
               :text="shader_templates.get('smooth-union').sdf_function" />
       </Details>
-      <br />
       <Player :ref="makePlayerRef('smooth-union')"
               title="Smooth Union"
               :date="date"
@@ -1779,7 +1708,6 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
               frame="/library/projects/shader_loader/shader_loader.html"
               :state="player_states['smooth-union']"
               @load="(frame) => onPlayerLoaded(frame, editors['smooth-union'], 'smooth-union')" />
-      <br />
       <PropertyEditor :ref="makeEditorRef('smooth-union')"
                       :properties="getShaderProperties('smooth-union', {
                         'uDrawMode': { default_value: 4 }
@@ -1791,15 +1719,13 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       <p>
         Not specific to SDF rendering; wave functions can be useful for creating repeating patterns by repeating some domain of the coordinate space.
         For example, taking <b>cos(x)</b> and <b>cos(y)</b> will create a repeating grid centered around the origin, and <b>sin(length)</b> will create a ripple pattern.
-        Other approaches could be using the <b>fract</b> or <b>mod</b> methods to create a repeating domain, for example the range <b class="no-wrap">[0, 1]</b>, or <b class="no-wrap">[-&frac12;, &frac12;]</b>.
+        Other approaches could be using the <b>fract</b> or <b>mod</b> methods to create a repeating domain, for example the range <b class="nowrap">[0, 1]</b>, or <b class="nowrap">[-&frac12;, &frac12;]</b>.
       </p>
-      <br />
       <Details summary="Patterns">
         <Code lang="cpp"
               caption="Shape pattern signed-distance function."
               :text="shader_templates.get('pattern').sdf_function" />
       </Details>
-      <br />
       <Player :ref="makePlayerRef('pattern')"
           title="Pattern"
           :date="date"
@@ -1807,7 +1733,6 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
           frame="/library/projects/shader_loader/shader_loader.html"
           :state="player_states['pattern']"
           @load="(frame) => onPlayerLoaded(frame, editors['pattern'], 'pattern')" />
-      <br />
       <PropertyEditor :ref="makeEditorRef('pattern')"
                       :properties="getShaderProperties('pattern', {
                         'uDrawMode': { default_value: 6},
@@ -1817,13 +1742,12 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
 
     <Section heading="Technical Notes">
       <p>
-        All shaders are targeting <ExternalLink to="https://en.wikipedia.org/wiki/OpenGL_Shading_Language">GLSL ES Version 3</ExternalLink>. As of writing, that's the latest version supported by the <ExternalLink to="https://registry.khronos.org/webgl/specs/latest/2.0/">WebGL 2.0 Specification</ExternalLink>.
-        Using the default UV coordinate system; origin in the lower-left corner, <b>U</b> extends to the right, <b>V</b> extends upwards, positive rotations are counter-clockwise, and UV component ranges are <b class="no-wrap">[0.0, 1.0]</b>.
+        All shaders are targeting <Link to="https://en.wikipedia.org/wiki/OpenGL_Shading_Language">GLSL ES Version 3</Link>. As of writing, that's the latest version supported by the <Link to="https://registry.khronos.org/webgl/specs/latest/2.0/">WebGL 2.0 Specification</Link>.
+        Using the default UV coordinate system; origin in the lower-left corner, <b>U</b> extends to the right, <b>V</b> extends upwards, positive rotations are counter-clockwise, and UV component ranges are <b class="nowrap">[0.0, 1.0]</b>.
       </p>
-      <br />
       <p>
         The WebGL context is configured with an orthographic projection, drawing a single quad to fill the render target with the results of an attached shader.
-        Before calling the signed-distance function, UV coordinates are translated so the resulting image is centered and scaled based on frame resolution to fit the frame vertically and avoid stretching or <ExternalLink to="https://en.wikipedia.org/wiki/Letterboxing_(filming)">letterboxing</ExternalLink> the final image.
+        Before calling the signed-distance function, UV coordinates are translated so the resulting image is centered and scaled based on frame resolution to fit the frame vertically and avoid stretching or <Link to="https://en.wikipedia.org/wiki/Letterboxing_(filming)">letterboxing</Link> the final image.
       </p>
     </Section>
 
@@ -1831,16 +1755,15 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       <p>
         For this exercise I wanted to experiment with signed-distance fields (<abbr>SDF</abbr>) to render shader effects and interesting user interface elements like health and mini-map indicators for a game in development.
         This also gave me an excuse to begin implementing a shader viewport for more interesting demos going forward.
-        The new viewport behaves like the viewport in <ExternalLink to="https://www.shadertoy.com/">ShaderToy</ExternalLink>, providing a few predefined uniforms like elapsed time and viewport size automatically, built with my simple <RouterLink to="/projects/proto_engine">WebGL Proto-Engine</RouterLink>.
+        The new viewport behaves like the viewport in <Link to="https://www.shadertoy.com/">ShaderToy</Link>, providing a few predefined uniforms like elapsed time and viewport size automatically, built with my simple <RouterLink to="/projects/proto_engine">WebGL Proto-Engine</RouterLink>.
       </p>
     </Section>
 
     <Section heading="Inspiration">
       <p>
-        This was heavily inspired by the work of Inigo Quilez on <ExternalLink to='https://iquilezles.org/articles/distfunctions2d/'>2D distance functions</ExternalLink>.
+        This was heavily inspired by the work of Inigo Quilez on <Link to='https://iquilezles.org/articles/distfunctions2d/'>2D distance functions</Link>.
         I recreated the heart shape and designed it to fill a 1x1 UV unit, with adjustable heart lobes which are used to animate and morph the shape.
       </p>
-      <br />
       <p>
         I strongly encourage readers to also review the <b>References</b> section at the end for more information on signed-distance functions.
       </p>
@@ -1853,18 +1776,15 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
           One of which is limiting how many active WebGL contexts allowed.
           This page quickly reached that limit during development, as this is the page with the most demo frames on my website thus far.
         </p>
-        <br />
         <p>
-          To avoid this I implemented a simple Vue composable to encapsulates an <ExternalLink to="https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API">IntersectionObserver</ExternalLink> which can be used to manage renderer states.
+          To avoid this I implemented a simple Vue composable to encapsulates an <Link to="https://developer.mozilla.org/docs/Web/API/Intersection_Observer_API">IntersectionObserver</Link> which can be used to manage renderer states.
           The implementor initializes the observer with a callback for handling events.
         </p>
-        <br />
         <p>
-          Observables are registered with a local key (e.g., a unique name) through a Vue template <ExternalLink to="https://vuejs.org/guide/essentials/template-refs#function-refs">function ref</ExternalLink> which associates the element ref with the provided key.
+          Observables are registered with a local key (e.g., a unique name) through a Vue template <Link to="https://vuejs.org/guide/essentials/template-refs#function-refs">function ref</Link> which associates the element ref with the provided key.
           When the callback is run, the associated key is passed so the implementor can easily act within the callback handler when many elements are bound to the observer.
           This is a work in progress, but avoids the immediate issue as I continue learning Vue.
         </p>
-        <br />
         <Details summary="useIntersectionObserver Example">
           <Code lang="vue"
               caption="Example use of useIntersectionObserver"
@@ -1874,7 +1794,8 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
             import useIntersectionObserver from '@/util/use_intersection_observer';
 
             const observable_states = ref({});
-            const { observe: mapIntersectionObserver } = useIntersectionObserver((key, entry, _index, _array) => {
+            const { observe: mapIntersectionObserver } =
+                useIntersectionObserver((key, entry, _index, _array) => {
               observable_states.value[key] = entry.isIntersecting;
             });
 
@@ -1912,12 +1833,11 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
                        website_title='Inigo Quilez' webpage_title='smooth minimum - 2013'
                        url='https://iquilezles.org/articles/smin/' />
     </Section>
-  </Column>
   </article>
 </template>
 
 <style scoped>
 ol.foundation-steps li {
-  margin: var(--size-padding-round) 0;
+  padding: var(--padding-normal) 0;
 }
 </style>
