@@ -1,6 +1,12 @@
 <script setup lang="ts">
+import { PropType } from 'vue'
+import Layer from '@/components/layer.vue'
+import { ThemeColor } from '@/composables/theme'
+
 defineProps({
-  summary: { type: String, default: null },
+  color: { type: [null, String, ThemeColor] as PropType<null|String|ThemeColor>, default: null },
+  transparent: { type: Boolean, default: false },
+  summary: { type: String, default: 'Details' },
 });
 const open = defineModel({
   type: Boolean,
@@ -9,27 +15,38 @@ const open = defineModel({
 </script>
 
 <template>
-  <details :open="open">
-    <summary @click.prevent="open = !open">
-      <slot v-if="!summary" name="summary"></slot>
-      <span v-else>{{ summary }}</span>
-    </summary>
-    <slot></slot>
-  </details>
+  <Layer :color :transparent :show_hover="!open">
+    <details :open="open">
+      <summary @click.prevent="open = !open">
+        <slot v-if="!summary" name="summary"></slot>
+        <span v-else>{{ summary }}</span>
+      </summary>
+      <div class="contents" v-if="$slots.default && open">
+        <slot></slot>
+      </div>
+    </details>
+  </Layer>
 </template>
 
 <style scoped>
-details:open > *:not(summary) {
-  padding-left: 1rem;
-}
-summary{
+summary {
   user-select: none;
   cursor: pointer;
   font-size: medium;
-  background-color: var(--color-background-button);
-  color: var(--color-text-button);
   border-radius: var(--size-border-radius);
-  padding: 0 var(--size-padding-round);
-  margin: var(--size-property-grid-gap) 0;
+
+  /**
+   * Make the entire visual area of the collapsed <summary> clickable.
+   * See comment in '@/components/layer.vue' for details.
+   */
+  margin: var(--inverse-component-layer-padding);
+  padding: var(--padding-small) var(--padding-large);
+}
+
+.contents {
+  display: flex;
+  flex-direction: column;
+  padding: var(--component-layer-padding);
+  gap: var(--component-layer-gap);
 }
 </style>
