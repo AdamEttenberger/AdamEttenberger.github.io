@@ -4,5 +4,5 @@ import LogoIcon from '@/assets/logo.svg'
 </script>
 
 <template>
-  <Button route="/" :src="LogoIcon" alt="Logo" :transparent="true" />
+  <Button to="/" :icon="LogoIcon" alt="Logo" transparent />
 </template>
