@@ -15,7 +15,7 @@ defineProps({
 <style scoped>
 dt,
 dd {
-  padding-inline-start: var(--size-list-indentation);
+  padding-inline-start: var(--padding-xxlarge);
 }
 
 dt {
