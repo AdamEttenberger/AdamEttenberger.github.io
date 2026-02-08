@@ -3,6 +3,7 @@ import { PropType, useTemplateRef } from 'vue';
 import Figure from '@/components/figure.vue'
 import ProjectLabel from '@/components/project_label.vue'
 import { PlayerState } from '@/types/player_state'
+import Button from '@/components/buttons/button.vue'
 
 const inner_frame = useTemplateRef('inner_frame');
 
@@ -32,7 +33,10 @@ defineExpose({
 <template>
   <Figure class="player">
     <div class="responsive-frame">
-      <button v-if="state != PlayerState.Playing" class="play-button" @click.once="state = PlayerState.Playing"><font-awesome-icon :icon="['fas', 'circle-play']" /></button>
+      <Button v-if="state != PlayerState.Playing"
+              class="play-button"
+              @click.once="state = PlayerState.Playing"
+              :icon="['fas', 'circle-play']" />
       <iframe v-if="state != PlayerState.Empty" ref="inner_frame" class="renderer" :title="title" :src="frame" @load="$emit('load', inner_frame)"></iframe>
     </div>
     <template v-slot:caption>
@@ -45,13 +49,32 @@ defineExpose({
 .player {
   display: flex;
   flex-direction: column;
+
+  & .responsive-frame {
+    display: flex;
+    aspect-ratio: v-bind(aspect);
+
+    & .play-button {
+      cursor: pointer;
+      font-size: 4rem;
+
+      display: flex;
+      flex: 1;
+    }
+
+    & iframe.renderer {
+      user-select: none;
+      flex: 1;
+    }
+  }
 }
 
+/**
+ * Forces the aspect ratio to 4:3 to try and mitigate an issue with
+ * responsive layout causing the <iframe> inside the player to enter
+ * overflow.
+ */
 .responsive-frame {
-  display: block;
-  position: relative;
-  width: 100%;
-  height: 0;
   /**
    * It's important that the `height` is rounded-up to the next-nearest whole pixel
    * to avoid unexpected overflow with responsive layout. Here `padding-bottom`
@@ -60,44 +83,14 @@ defineExpose({
    * e.g., The equivalent `aspect-ratio: 4 / 3` is the inverse (4 / 3) => (3 / 4) ~ 0.75 ~ 75%.
    */
   padding-bottom: round(up, calc(100% / v-bind(aspect)), 1px);
-}
-.responsive-frame > button.play-button,
-.responsive-frame > iframe.renderer {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
 
-button.play-button {
-  font-size: 4rem;
-  color: var(--color-link);
-  transition-property: background-color, color;
-  transition-duration: var(--anim-transition-duration);
-  transition-timing-function: var(--anim-transition-timing-function);
-  background-color: #000;
-  cursor: pointer;
-  &:hover {
-    color: var(--color-link-hover);
-    background-color: #151515;
+  position: relative;
+  & > * {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
   }
-  &:active {
-    color: var(--color-link-active);
-    background-color: #232323;
-  }
-}
-
-iframe.renderer {
-  /**
-   * The background needs to be black for some of the WebGL projects
-   * which involve blending but either expect the canvas to have a
-   * black background, or weren't setup correctly.
-   */
-  background-color: black;
-  /**
-   * Prevent selecting the canvas frame.
-   */
-  user-select: none;
 }
 </style>
