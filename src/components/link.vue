@@ -15,6 +15,7 @@ const props = defineProps({
   icon: { type: [null, String, Array] as PropType<null | String | Array>, default: null },
   button: { type: Boolean, default: false },
   public: { type: Boolean, default: false },
+  disabled: { type: [Boolean, Object] as PropType<Boolean|Object>, default: false },
 })
 const kind = computed(() => {
   if (unref(props.public)) {
@@ -39,20 +40,21 @@ const destination = computed(() => {
 });
 
 const component_type = computed(() => (destination.value || !unref(props.button)) ? 'a' : 'button');
+const tabindex = computed(() => unref(props.disabled) ? -1 : undefined);
 </script>
 
 <template>
-  <router-link v-if="kind === LinkType.Route" :to="to" custom v-slot="{ href, route, navigate, isActive }">
-    <component class="link" :is="component_type" :active="isActive" :href="href" @click="() => { navigate($event); $emit('click', $event); }">
+  <RouterLink v-if="kind === LinkType.Route" :to="to" custom v-slot="{ href, route, navigate, isActive }">
+    <component :class="['link', disabled?'disabled':'']" :is="component_type" :active="isActive" :href="href" :tabindex @click="() => { navigate($event); $emit('click', $event); }">
       <slot>
         <img v-if="icon_file" :src="icon" :alt />
         <font-awesome-icon v-else-if="icon" class="fa-icon" :icon />
         <span v-else>{{ route.fullPath }}</span>
       </slot>
     </component>
-  </router-link>
+  </RouterLink>
 
-  <component v-else-if="button || kind != LinkType.Empty" :is="component_type" class="link" :href="destination" target="_blank" rel="noopener noreferrer" @click="$emit('click', $event)">
+  <component v-else-if="button || kind != LinkType.Empty" :is="component_type" :class="['link', disabled?'disabled':'']" :href="destination" :tabindex target="_blank" rel="noopener noreferrer" @click="$emit('click', $event)">
     <slot>
       <img v-if="icon_file" :src="icon" :alt />
       <font-awesome-icon v-else-if="icon" class="fa-icon" :icon />
@@ -84,5 +86,9 @@ img {
 
 .fa-icon {
   aspect-ratio: 1;
+}
+
+.link.disabled {
+  pointer-events: none;
 }
 </style>
