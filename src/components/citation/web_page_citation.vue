@@ -21,7 +21,7 @@ const display_url = computed(() => {
 
 <template>
   <cite>
-    <Link class="cite-link" :to="url">
+    <Link class="cite-link" :to="url" :alt="`link to webpage: ${webpage_title}`" transparent>
       <span class="author-last-name">{{ lastname }}</span>,
       <span class="author-first-name">{{ firstname }}</span>.
       "<span class="webpage-title">{{ webpage_title  }}</span>."

@@ -20,7 +20,7 @@ const display_url = computed(() => {
 
 <template>
   <cite>
-    <Link :to="url">
+    <Link :to="url" :alt="`link to video: ${video_title}`" transparent>
       "<span class="video-title">{{ video_title  }}</span>."
       <i class="website-title">{{  website_title }}</i>,
       uploaded by
