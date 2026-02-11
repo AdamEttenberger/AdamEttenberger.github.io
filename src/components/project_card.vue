@@ -44,21 +44,36 @@ defineProps({
   flex-direction: row;
 
   & :is(.icon, .panel) {
+    /**
+     * With row layout, `height` both ensure the icon and summary panels are the same size.
+     * With column layout, the summary won't overflow despite having a defined `height`,
+     * setting `max-height` ensures the card doesn't grow too large with narrow displays
+     * and causes the summary to overflow when necessary.
+     */
+    height: var(--project-card-item-height);
     max-height: var(--project-card-item-height);
   }
 
   & .icon {
     align-self: center;
     aspect-ratio: 1;
-    height: var(--project-card-item-height);
   }
 
   & .icon {
-    transition: padding var(--anim-transition);
-    padding: var(--padding-large);
-    &:hover {
+    padding: 0;
+    & .button {
+      height: 100%;
+      aspect-ratio: 1;
       padding: 0;
+      & :deep(a.button-link) {
+        padding: 0;
+      }
     }
+    & .button {
+      transition: scale var(--anim-transition);
+      scale: 85%;
+    }
+    &:hover .button { scale: 100%; }
   }
 
   & > .panel {
@@ -67,36 +82,22 @@ defineProps({
      * panel fills any remaining space in the parent.
      */
     flex: 1;
+    padding: 0;
+    gap: var(--padding-normal);
   }
 
   & .panel .button {
-    /**
-     * See comment in '@/components/layer.vue' for details.
-     * Make the button overlap the entire visual area of the project
-     * label by inflating (subtracting the margin  equal to the padding
-     * of the containing layer.
-     */
-    margin: var(--inverse-component-layer-padding);
+    padding: 0 var(--component-layer-padding);
 
     & .project-label {
-      flex: 1; /* Fill the container */
-      padding: 0 var(--padding-large);
+      flex: 1;
     }
   }
 
   & .summary {
-    overflow: hidden;
-    /**
-     * Negative margin on `.summary` with an equivalent positive padding on `.scroller`
-     * child leaves the layout of <slot/> contents of .scroller unaffected while pushing
-     * the scrollbar (when visible) into gutter of the layer, maximizing <slot/> area.
-     */
-    margin-right: calc(-1 * var(--padding-normal));
-    & .scroller {
-      overflow-y: auto;
-      height: 100%;
-      padding-right: var(--padding-normal);
-    }
+    overflow-y: auto;
+    padding: var(--component-layer-padding);
+    padding-top: 0;
   }
 }
 
