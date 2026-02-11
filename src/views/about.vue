@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import Button from '@/components/buttons/button.vue'
 import Link from '@/components/link.vue'
-import DateText from '@/components/date_text.vue';
+import DateText from '@/components/date_text.vue'
 import Section from '@/components/section.vue'
 import { useEmailTemplateStore } from '@/stores/email_template'
+import { ThemeColor } from '@/composables/theme'
 const emails = useEmailTemplateStore();
 const current_job_title = "Senior Software Engineer";
 </script>
@@ -13,7 +14,7 @@ const current_job_title = "Senior Software Engineer";
     <p>
       If your team needs an experienced and flexible <b>{{ current_job_title }}</b>, use the template below:
     </p>
-    <Button class="email" :to="emails.hiring" />
+    <Button class="email" :to="emails.hiring" :color="ThemeColor.Accent" />
   </Section>
 
   <Section :heading="current_job_title">
