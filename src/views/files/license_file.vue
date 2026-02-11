@@ -8,7 +8,6 @@ import Term from '@/components/term.vue'
 const props = defineProps<ILicenseInfo>();
 const license_content = ref(null);
 unref(props.file_import)().then(async (content) => {
-  console.log(content.then)
   if (typeof content === 'string') {
     license_content.value = content;
   } else if (content[Symbol.toStringTag] === 'Module') {
