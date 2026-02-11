@@ -8,7 +8,7 @@ defineProps<ILicenseInfo>();
 <template>
   <TermList :heading="subpath">
     <Term term="Name">
-      <span><font-awesome-icon :icon="['fas', 'scale-balanced']" />{{  name }}</span>
+      {{  name }}
     </Term>
     <Term term="Author">{{  author }}</Term>
     <Term term="Year">{{ date.getFullYear() }}</Term>
