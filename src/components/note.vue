@@ -55,5 +55,12 @@ aside {
   & .message {
     font-size: smaller;
   }
+
+  & :any-link {
+    font-weight: bolder;
+    background-color: #efefef;
+    padding: 0 var(--padding-normal);
+    border-radius: var(--size-border-radius);
+  }
 }
 </style>
