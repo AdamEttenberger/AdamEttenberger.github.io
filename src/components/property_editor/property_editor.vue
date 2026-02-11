@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { isRef, onMounted, ref, unref, shallowReadonly } from 'vue'
+import { isRef, onMounted, PropType, ref, shallowReadonly, unref } from 'vue'
 import PropertyRow from '@/components/property_editor/property_row.vue'
-import { AnyPropertyOptions, IPropertyValueOptions } from '@/util/property_editor/property_interfaces';
+import { AnyPropertyOptions, IPropertyValueOptions } from '@/util/property_editor/property_interfaces'
+import useTheme, { ThemeColor } from '@/composables/theme'
 
 const editor_options = ref([]);
 const models = ref({});
 
 const props = defineProps({
+  color: { type: [null, String, ThemeColor] as PropType<null|String|ThemeColor>, default: null },
   properties: { type: Array<AnyPropertyOptions>, required: true },
 });
 
@@ -43,16 +45,18 @@ onMounted(() => {
     return [options.name, value_options.modelValue];
   }));
 });
+
+const { theme } = useTheme(() => ({ color: unref(props.color) }));
 </script>
 
 <template>
-  <div class="framed property-editor">
-    <PropertyRow v-for="options in editor_options"
-                 :options="options"
-                 v-model="models[options.name]"
-                 @property-changing="new_value => $emit('property-changing', options.name, new_value)"
-                 @property-changed="$emit('property-changed', options.name)"
-                 @property-click="$emit('property-click', options.name)" />
+  <div :class="['property-editor', ...theme.classNames]">
+    <PropertyRow v-for="options in editor_options" :key="options.name"
+                :options="options"
+                v-model="models[options.name]"
+                @property-changing="new_value => $emit('property-changing', options.name, new_value)"
+                @property-changed="$emit('property-changed', options.name)"
+                @property-click="$emit('property-click', options.name)" />
   </div>
 </template>
 
@@ -62,11 +66,10 @@ onMounted(() => {
   /**
    * Columns: Label, Undo, Editor
    */
-  grid-template-columns: max-content var(--size-property-grid-button) minmax(0, auto);
-  gap: var(--size-property-grid-gap);
+  grid-template-columns: max-content min-content minmax(0, auto);
   place-self: center;
   width: 100%;
-  max-width: calc(var(--size-column-width) * 0.75);
-  padding: var(--size-padding-hard);
+  padding: var(--padding-small);
+  gap: var(--padding-xsmall);
 }
 </style>

@@ -1,21 +1,11 @@
 <script setup lang="ts" generic="T extends AnyPropertyOptions">
 import { computed, unref, nextTick } from 'vue'
-
+import Button from '@/components/buttons/button.vue'
+import useTheme, { ThemeColor } from '@/composables/theme'
 import {
   AnyPropertyOptions,
   PropertyKind,
-
-  // Interfaces
-  IPropertyButtonOptions,
-  IPropertyColor3Options,
-  IPropertyColor4Options,
-  IPropertyComboBoxOptions,
-  IPropertyDividerOptions,
-  IPropertyGroupOptions,
-  IPropertyNumberRangeOptions,
-  IPropertyToggleOptions,
   IPropertyValueOptions,
-  IPropertyOptions,
 } from '@/util/property_editor/property_interfaces'
 
 import PropertyButton from '@/components/property_editor/property_button.vue'
@@ -24,8 +14,6 @@ import PropertyDivider from '@/components/property_editor/property_divider.vue'
 import PropertyGroup from '@/components/property_editor/property_group.vue'
 import PropertyNumberRange from '@/components/property_editor/property_number_range.vue'
 import PropertyToggle from '@/components/property_editor/property_toggle.vue'
-
-import Button from '@/components/button.vue'
 
 const PropertyPicker = new Map([
   [PropertyKind.Button, PropertyButton],
@@ -70,7 +58,6 @@ const model = defineModel({
 const is_model_changed = computed(() => unref(model) != unref((props.options as IPropertyValueOptions)?.default_value));
 
 // const kind = computed(() => unref(props.options.kind));
-const classes = computed(() => unref(props.options.classes) ?? []);
 const name = computed(() => unref(props.options.name));
 const label = computed(() => unref(props.options.label));
 const disabled = computed(() => unref(props.options.disabled));
@@ -86,19 +73,22 @@ function onPropertyClicked() {
   }
   emit('property-click');
 }
+
+const { theme } = useTheme(() => ({ color: unref(props.options.color) }));
 </script>
 
 <template>
-  <div v-show="visible" :class="['property-row', ...classes]">
+  <div v-show="visible" :class="['property-row', ...theme.classNames]">
     <label v-if="show_label && label" class="label" :for="name">{{ label }}</label>
     <Button v-if="show_undo && model !== undefined"
+            :color="ThemeColor.Error"
             :class="['undo', is_model_changed ? '' : 'hidden']"
             :name="'undo:' + name"
             :disabled="disabled"
-            :icon="['fas', 'rotate-left']"
+            :icon="['fas', 'trash']"
             @click="model = unref((props.options as IPropertyValueOptions)?.default_value)" />
     <!-- Filter by property control type -->
-    <component :is="dynamic_component" :component-props="options"
+    <component :is="dynamic_component"
                class="editor"
                v-bind="options"
                v-model="model"
@@ -119,11 +109,6 @@ function onPropertyClicked() {
   & .property-editor-group {
     grid-column: 1 / 4;
   }
-}
-
-.undo :deep(svg.image-button-fa-icon) {
-  font-size: 1rem;
-  font-weight: bolder;
 }
 
 .hidden {

@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { ref, useTemplateRef } from 'vue'
-import Column from '@/components/column.vue'
+import Link from '@/components/link.vue'
+import Note from '@/components/note.vue'
 import Player from '@/components/player.vue'
 import { PlayerState } from '@/types/player_state'
 import PropertyEditor from '@/components/property_editor/property_editor.vue'
 import Section from '@/components/section.vue'
-import UnderConstruction from '@/components/under_construction.vue'
+import { ThemeColor } from '@/composables/theme'
 import {
   ButtonOptions,
   NumberRangeOptions,
@@ -87,14 +88,18 @@ function onPropertyButtonClick(name) {
             frame="/library/projects/flocking/main.html"
             :state="PlayerState.Playing"
             @load="onPlayerLoaded" />
-    <UnderConstruction />
-    <Column>
-      <Section heading="Controls">
-        <PropertyEditor ref="main_editor_ref"
-                        :properties="editor_properties"
-                        @property-changed="onPropertyChanged"
-                        @property-click="onPropertyButtonClick" />
-      </Section>
-    </Column>
+
+    <Section heading="Controls">
+      <PropertyEditor ref="main_editor_ref"
+                      :properties="editor_properties"
+                      @property-changed="onPropertyChanged"
+                      @property-click="onPropertyButtonClick" />
+    </Section>
+
+    <Note :color="ThemeColor.Todo">
+      Future plans to briefly describe Craig Reynolds' <Link to="https://www.red3d.com/cwr/boids/">Boids Algorithm</Link>.
+      The plan is for a short high-level explanation comparable to the short <RouterLink to="/projects/proto_engine">WebGL Proto-Engine</RouterLink> and <RouterLink to="/projects/metaballs">WebGL Metaballs</RouterLink> articles.
+      The article will include many high-quality demo frames like in the <b>Compositing a Heart</b> section of <RouterLink to="/projects/heart_sdf">Anatomy of a Heart (SDF)</RouterLink> to help illustrate the effects of each step in the process.
+    </Note>
   </article>
 </template>

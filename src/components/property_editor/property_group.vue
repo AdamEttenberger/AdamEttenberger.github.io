@@ -14,6 +14,13 @@ const model = defineModel({
   <Details class="property-editor-group"
            :summary="label"
            :disabled="unref(disabled)"
-           v-model:open="model">
+           :thin="true"
+           v-model="model">
   </Details>
 </template>
+
+<style scoped>
+.property-editor-group {
+  padding: var(--padding-xxsmall) var(--padding-large);
+}
+</style>

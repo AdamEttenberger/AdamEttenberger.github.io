@@ -1,33 +1,55 @@
 <script setup lang="ts">
+import { PropType } from 'vue'
+import Layer from '@/components/layer.vue'
+import { ThemeColor } from '@/composables/theme'
+
 defineProps({
-  summary: { type: String, default: null },
+  color: { type: [null, String, ThemeColor] as PropType<null|String|ThemeColor>, default: null },
+  transparent: { type: Boolean, default: false },
+  summary: { type: String, default: 'Details' },
+  thin: { type: Boolean, default: false },
 });
-const open = defineModel('open', {
+const open = defineModel({
   type: Boolean,
   default: false,
 });
 </script>
 
 <template>
-  <details :open="open" @toggle="open = !open">
-    <summary v-if="$slots.summary"><slot name="summary"></slot></summary>
-    <summary v-else>{{ summary }}</summary>
-    <slot></slot>
-  </details>
+  <Layer class="details-layer" :color :transparent :show_hover="!open">
+    <details :open="open">
+      <summary :class="{ thin }" @click.prevent="open = !open">
+        <slot v-if="!summary" name="summary"></slot>
+        <span v-else>{{ summary }}</span>
+      </summary>
+      <div class="contents" v-if="$slots.default && open">
+        <slot></slot>
+      </div>
+    </details>
+  </Layer>
 </template>
 
 <style scoped>
-details:open > *:not(summary) {
-  padding-left: 1rem;
-}
-summary{
-  user-select: none;
-  cursor: pointer;
-  font-size: medium;
-  background-color: var(--color-background-button);
-  color: var(--color-text-button);
-  border-radius: var(--size-border-radius);
-  padding: 0 var(--size-padding-round);
-  margin: var(--size-property-grid-gap) 0;
+.details-layer {
+  padding: 0;
+
+  & summary {
+    user-select: none;
+    cursor: pointer;
+    border-radius: var(--size-border-radius);
+    &:not(.thin) {
+      padding: var(--padding-large);
+    }
+    &.thin {
+      padding: var(--padding-small);
+    }
+  }
+
+  & .contents {
+    display: flex;
+    flex-direction: column;
+    padding: 0 var(--component-layer-padding);
+    gap: var(--component-layer-gap);
+  }
 }
 </style>

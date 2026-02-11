@@ -4,18 +4,11 @@ import {basicSetup} from "codemirror"
 import {EditorState} from "@codemirror/state"
 import {EditorView} from "@codemirror/view"
 import Figure from '@/components/figure.vue'
-import { cpp } from "@codemirror/lang-cpp"
-import { css } from "@codemirror/lang-css"
-import { go } from "@codemirror/lang-go"
-import { html } from "@codemirror/lang-html"
-import { javascript } from "@codemirror/lang-javascript"
-import { json } from "@codemirror/lang-json"
-import { rust } from "@codemirror/lang-rust"
-import { vue } from "@codemirror/lang-vue"
-import { yaml } from "@codemirror/lang-yaml"
+import Note from '@/components/note.vue'
 import { oneDark } from "@codemirror/theme-one-dark"
 // Pinia Stores
 import { useScrollAffectingContentWaiterStore } from '@/stores/scroll_affecting_content_waiter'
+import { ThemeColor } from '@/composables/theme'
 
 const scrollAffectingContentWaiter = useScrollAffectingContentWaiterStore();
 
@@ -88,24 +81,25 @@ function getTextAsync() {
   });
 }
 
-function getLanguageExtension() {
+async function getLanguageExtension() {
+  var pending = null;
   switch (props.lang) {
-    case "cpp": return cpp();
-    case "css": return css();
-    case "go": return go();
-    case "html": return html();
-    case "javascript": return javascript();
-    case "json": return json();
-    case "rust": return rust();
-    case "vue": return vue();
-    case "yaml": return yaml();
+    default:
+    case "cpp": pending = import("@codemirror/lang-cpp").then(x => x['cpp']()); break;
+    case "css": pending = import("@codemirror/lang-css").then(x => x['css']()); break;
+    case "go": pending = import("@codemirror/lang-go").then(x => x['go']()); break;
+    case "html": pending = import("@codemirror/lang-html").then(x => x['html']()); break;
+    case "javascript": pending = import("@codemirror/lang-javascript").then(x => x['javascript']()); break;
+    case "json": pending = import("@codemirror/lang-json").then(x => x['json']()); break;
+    case "rust": pending = import("@codemirror/lang-rust").then(x => x['rust']()); break;
+    case "vue": pending = import("@codemirror/lang-vue").then(x => x['vue']()); break;
+    case "yaml": pending = import("@codemirror/lang-yaml").then(x => x['yaml']()); break;
   }
-  // Fallback to C++
-  return cpp();
+  return await pending;
 }
 
 onMounted(() => {
-  var task = getTextAsync().then((text) => {
+  var task = getTextAsync().then(async (text) => {
     let extensions = [
         basicSetup,
         EditorState.readOnly.of(true),
@@ -113,7 +107,7 @@ onMounted(() => {
         EditorView.contentAttributes.of({tabindex: "0"}),
         oneDark,
     ];
-    let language_extension = getLanguageExtension();
+    let language_extension = await getLanguageExtension();
     if (language_extension) {
       extensions.push(language_extension);
     }
@@ -131,18 +125,9 @@ onMounted(() => {
 
 <template>
   <Figure :caption="caption">
-    <div v-if="init_failed" class="error">
-      <font-awesome-icon :icon="['fas', 'file-circle-xmark']" />
-      <br />
-      <div>Error loading code view</div>
-    </div>
+    <Note v-if="init_failed" :color="ThemeColor.Error">
+      Error loading code view
+    </Note>
     <div v-else ref="editor" class="editor"></div>
   </Figure>
 </template>
-
-<style scoped>
-.error {
-  text-align: center;
-  font-size: xx-large;
-}
-</style>

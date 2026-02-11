@@ -35,6 +35,10 @@ const routes = [
     ],
   },
   {
+    path: "/palette/",
+    component: () => import('@/views/palette.vue'),
+  },
+  {
     path: "/privacy/",
     component: () => import('@/views/privacy.vue'),
   },

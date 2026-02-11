@@ -14,11 +14,10 @@ defineProps({
 
 <template>
   <figure>
-    <div class="framed">
-      <img v-if="(src_light && src_dark)" :src="preferences.useDarkMode ? src_dark : src_light" :alt="alt" />
-      <img v-else-if="src" :src="src" :alt="alt" />
-      <slot v-else></slot>
-    </div>
+    <img v-if="(src_light && src_dark)" :src="preferences.useDarkMode ? src_dark : src_light" :alt="alt" />
+    <img v-else-if="src" :src="src" :alt="alt" />
+    <slot v-else></slot>
+
     <figcaption v-if="$slots.caption"><slot name="caption"></slot></figcaption>
     <figcaption v-else-if="caption">{{ caption  }}</figcaption>
     <figcaption v-else-if="alt">{{ alt }}</figcaption>
@@ -26,14 +25,18 @@ defineProps({
 </template>
 
 <style scoped>
-figure,
-figure > .framed {
+figure {
   display: flex;
   flex-direction: column;
-}
-figcaption {
-  text-align: center;
-  font-style: italic;
-  font-size: small;
+
+  & > img {
+    border-radius: var(--size-border-radius);
+  }
+
+  & > figcaption {
+    text-align: center;
+    font-style: italic;
+    font-size: small;
+  }
 }
 </style>

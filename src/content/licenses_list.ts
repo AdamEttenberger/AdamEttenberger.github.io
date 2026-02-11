@@ -1,6 +1,11 @@
 import LicenseInfo from '@/types/license_types';
 
 export default [
+  new LicenseInfo('codemirror',
+                  'CodeMirror',
+                  'Marijn Haverbeke, Adrian Heine, and others',
+                  new Date('2023/01/23'),
+                  () => import('@/assets/licenses/codemirror/LICENSE?raw')),
   new LicenseInfo('createjs-1.0.1',
                   'CreateJS',
                   'CreateJS',

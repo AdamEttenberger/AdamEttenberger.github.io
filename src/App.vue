@@ -1,18 +1,17 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import ConsentBanner from '@/components/consent_banner.vue'
 import Footer from '@/components/footer.vue'
+import Header from './components/header.vue'
 import LocalStorageHelper from '@/types/local_storage_helper'
-import LogoHomeButton from '@/components/image_buttons/logo_home_button.vue'
-import SettingsButton from '@/components/settings_button.vue'
-import SocialLink from '@/components/image_buttons/social_link.vue'
-import ThemeToggle from '@/components/image_buttons/theme_toggle.vue'
 // Pinia Stores
 import { useConsentStore } from '@/stores/consent'
 import { useUserPreferencesStore } from '@/stores/user_preferences'
 import { useMatchThreeScorecardStore } from '@/stores/match_three_scorecard'
-import { onMounted } from 'vue'
+import useTheme from '@/composables/theme'
+import { useRootThemeStore } from '@/stores/root_theme'
+const user_preferences = useUserPreferencesStore();
 
 const consent = useConsentStore();
 const {
@@ -29,97 +28,47 @@ onMounted(() => {
   LocalStorageHelper.bind(useUserPreferencesStore(), allow_saving_user_preferences);
   LocalStorageHelper.bind(useMatchThreeScorecardStore(), allow_saving_match_three_scorecard);
 });
+
+const root_theme = useRootThemeStore();
+const { theme } = useTheme(() => root_theme.value);
 </script>
 
 <template>
-  <div class="app">
-    <header>
-      <div class="logo">
-        <LogoHomeButton />
-      </div>
-      <div class="title">
-        <RouterLink to="/"><h1>Adam Ettenberger</h1></RouterLink>
-        <div class="links">
-          <div class="socials">
-            <SocialLink type="about" />
-            <SocialLink type="hire-me" />
-            <SocialLink type="linkedin" />
-            <SocialLink type="github" />
-          </div>
-          <div class="controls">
-            <ThemeToggle />
-            <SettingsButton />
-          </div>
-        </div>
-      </div>
-    </header>
+  <div :class="['app', user_preferences.useDarkMode?'theme-dark-mode':'theme-light-mode', ...theme.classNames]">
+    <div class="app-column">
+      <Header />
 
-    <ConsentBanner v-if="!allow_hiding_consent_banner" />
+      <ConsentBanner v-if="!allow_hiding_consent_banner" />
 
-    <main>
-      <RouterView />
-    </main>
+      <main>
+        <RouterView />
+      </main>
 
-    <Footer />
+      <Footer />
+    </div>
   </div>
 </template>
 
 <style scoped>
+.app {
+  --app-column-max-width: 55rem;
+  display: grid;
+  grid-template-columns: auto minmax(0, var(--app-column-max-width)) auto;
+  height: 100svh;
+  overflow-y: scroll;
 
-header {
-  display: flex;
-  flex-direction: row;
-  place-items: center;
-  align-items: center;
-}
+  color: var(--theme-text);
+  background-color: var(--theme-background);
+  scrollbar-color: var(--theme-primary-300) transparent;
 
-header .socials,
-header .controls {
-  display: flex;
-  flex-direction: row;
-  height: 2em;
-  gap: 0 var(--size-padding-round);
-  & > * {
-    height: 100%;
-  }
-}
-
-header .controls {
-  margin-left: auto;
-}
-
-header {
-  & .logo {
-    display: block;
-    width: 8rem;
-  }
-
-  & > .title {
-    flex: 1;
-  }
-
-  & .links {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-  }
-}
-
-main {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-}
-
-@media only screen and (max-width: 25rem) {
-  header {
+  &.theme-dark-mode { color-scheme: dark; }
+  &.theme-light-mode { color-scheme: light; }
+  & > .app-column {
+    grid-column: 2 / 3;
     display: flex;
     flex-direction: column;
-    place-items: center;
-    text-align: center;
-
-    & > .logo {
-      width: 4rem;
+    & > main {
+      flex: 1;
     }
   }
 }

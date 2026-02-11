@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import Button from '@/components/button.vue'
+import Link from '@/components/link.vue';
 import DateUtil from '@/util/date'
 
 const props = defineProps<{
@@ -20,31 +20,22 @@ const display_url = computed(() => {
 
 <template>
   <cite>
-    <Button :to="url" :alt="`link to video: ${video_title}`" :transparent="true">
-      <div class="web-video">
-        "<span class="video-title">{{ video_title  }}</span>."
-        <i class="website-title">{{  website_title }}</i>,
-        uploaded by
-        <span class="author-account-name">{{ account_name }}</span>,
-        <span v-if="publisher"><span class="publisher">{{ publisher }}</span>,</span>
-        <span class="date-published">{{ DateUtil.formatMLA(date_published) }}</span>,
-        <span class="url">{{ display_url }}</span>.
-      </div>
-    </Button>
+    <Link :to="url" :alt="`link to video: ${video_title}`" transparent>
+      "<span class="video-title">{{ video_title  }}</span>."
+      <i class="website-title">{{  website_title }}</i>,
+      uploaded by
+      <span class="author-account-name">{{ account_name }}</span>,
+      <span v-if="publisher"><span class="publisher">{{ publisher }}</span>,</span>
+      <span class="date-published">{{ DateUtil.formatMLA(date_published) }}</span>,
+      <span class="url">{{ display_url }}</span>.
+    </Link>
   </cite>
 </template>
 
 <style scoped>
-.web-video {
-  color: var(--color-link);
-  padding: var(--size-padding-round);
-  border-radius: var(--size-border-radius);
-  transition: background-color var(--anim-transition);
-  &:hover {
-    background-color: var(--color-link-hover);
-  }
-  &:active {
-    background-color: var(--color-link-active);
-  }
+cite {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
 }
 </style>

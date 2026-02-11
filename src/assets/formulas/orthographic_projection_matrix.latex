@@ -1,0 +1,6 @@
+M=\begin{bmatrix}
+  \tfrac{2}{right-left} & 0 & 0 & -\tfrac{right+left}{right-left} \\
+  0 & \tfrac{2}{top-bottom} & 0 & -\tfrac{top+bottom}{top-bottom} \\
+  0 & 0 & \tfrac{-2}{far-near} & -\tfrac{far+near}{far-near} \\
+  0 & 0 & 0 & 1 \\
+\end{bmatrix}

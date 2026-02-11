@@ -1,102 +1,21 @@
-
 :root, html, body {
   font-size: 14px;
 }
 
-@function --button-hover(--base-color) {
-  result: light-dark(hsl(from var(--base-color) h s calc(l - 10)),
-                     hsl(from var(--base-color) h s calc(l + 10)));
-}
-@function --button-active(--base-color) {
-  result: light-dark(hsl(from var(--base-color) h s calc(l - 5)),
-                     hsl(from var(--base-color) h s calc(l + 5)));
-}
-@function --button-selected(--base-color) {
-  result: light-dark(hsl(from var(--base-color) h s calc(l + 15)),
-                     hsl(from var(--base-color) h s calc(l - 15)));
-}
-@function --button-disabled(--base-color) {
-  result: hsl(from var(--base-color) h 0 l);
-}
-
-/* color themes */
-:root {
-  --theme-white: #F8FAFC;
-  --theme-black: #181818;
-
-  /* Light Theme Background Colors */
-  --theme-background-light-1: #c2e2ea;
-  --theme-background-light-2: #dceef3;
-  --theme-background-button-light-1: #6C87BC;
-  /* Dark Theme Background Colors */
-  --theme-background-dark-1: #0d1b2a;
-  --theme-background-dark-2: #1b263b;
-  --theme-background-button-dark-1: #718CBE;
-
-  --theme-text-light-1: var(--theme-black);
-  --theme-text-light-2: #8E3B46;
-  --theme-text-button-light: var(--theme-black);
-  --theme-text-dark-1: var(--theme-white);
-  --theme-text-dark-2: #f4bc6c;
-  --theme-text-button-dark: var(--theme-black);
-
-  --theme-link-light-1: #1e2be1;
-  --theme-link-light-2: #73BDDD;
-  --theme-link-light-3: #1E8CE1;
-  --theme-link-dark-1: #1E8CE1;
-  --theme-link-dark-2: #20688B;
-  --theme-link-dark-3: #1E2BE1;
-
-  --theme-divider-light: #72bbce;
-  --theme-divider-dark: #415a77;
-}
-
-/* semantic color variables */
-:root {
-  --color-background:                 light-dark(var(--theme-background-light-1),         var(--theme-background-dark-1));
-  --color-background-soft:            light-dark(var(--theme-background-light-2),         var(--theme-background-dark-2));
-  --color-background-button:          light-dark(var(--theme-background-button-light-1),  var(--theme-background-button-dark-1));
-  --color-background-button-hover:    --button-hover(var(--color-background-button));
-  --color-background-button-active:   --button-active(var(--color-background-button));
-  --color-background-button-selected: --button-selected(var(--color-background-button));
-  --color-background-button-disabled: --button-disabled(var(--color-background-button));
-  --color-text:                       light-dark(var(--theme-text-light-1),               var(--theme-text-dark-1));
-  --color-text-button:                light-dark(var(--theme-text-button-light),          var(--theme-text-button-dark));
-  --color-text-heading:               light-dark(var(--theme-text-light-2),               var(--theme-text-dark-2));
-  --color-link:                       light-dark(var(--theme-link-light-1),               var(--theme-link-dark-1));
-  --color-link-hover:                 light-dark(var(--theme-link-light-2),               var(--theme-link-dark-2));
-  --color-link-active:                light-dark(var(--theme-link-light-3),               var(--theme-link-dark-3));
-  --color-divider:                    light-dark(var(--theme-divider-light),              var(--theme-divider-dark));
-  --color-scrollbar:                  light-dark(var(--theme-divider-light),              var(--theme-divider-dark));
-
-  /* Info and Question Cards */
-  --color-background-info:            light-dark(#bec5d4,                               #35373b);
-  --color-text-info:                  light-dark(var(--theme-black),                      var(--theme-white));
-  --color-text-heading-info:          light-dark(var(--them-text-light-2),                var(--them-text-dark-2));
-
-  /* Warning and Error Cards
-   * Try to keep these unified across light/dark.
-   */
-  --color-background-warn:            #d6da6c;
-  --color-background-error:           #DA6C6C;
-  --color-text-warn:                  var(--theme-black);
-  --color-text-error:                 var(--theme-black);
-  --color-text-heading-warn:          #6d5430;
-  --color-text-heading-error:         #8E3B46;
-}
-
 /* sizing variables */
 :root {
-  --size-property-grid-gap: 2px;
-  --size-property-grid-button: 1.5rem;
-  --size-column-width: 50rem;
-  --size-border-size: 4px;
+  --padding-normal: 0.5rem;
+  --padding-small: calc(var(--padding-normal) * 0.5);
+  --padding-xsmall: calc(var(--padding-normal) * 0.25);
+  --padding-xxsmall: calc(var(--padding-normal) * 0.125);
+  --padding-large: calc(var(--padding-normal) * 1.5);
+  --padding-xlarge: calc(var(--padding-normal) * 2.0);
+  --padding-xxlarge: calc(var(--padding-normal) * 3.0);
+
   --size-border-radius: 0.5rem;
-  --size-border: var(--size-border-size) solid var(--color-divider);
-  --size-padding-round: var(--size-border-radius);
-  --size-padding-hard: calc(var(--size-padding-round) / 2);
-  --size-list-indentation: 1.5rem;
-  --size-column-padding: 0.25rem 1.5rem;
+
+  --component-layer-padding: var(--padding-xxlarge);
+  --component-layer-gap: var(--padding-xxlarge);
 }
 
 /* animation variables */
@@ -107,7 +26,7 @@
 }
 
 /* TODO: Audit use of wildcard selector in base styles, clearing padding/margin.
- * Exclude MathML Elements: https://developer.mozilla.org/en-US/docs/Web/MathML/Reference/Element
+ * Exclude MathML Elements: https://developer.mozilla.org/docs/Web/MathML/Reference/Element
  */
 *:not(math, maction, annotation, annotation-xml, menclose, merror, mfenced, mfrac, mi, mmultiscripts, mn, mo, mover, mpadded,
       mphantom, mprescripts, mroot, mrow, ms, semantics, mspace, msqrt, mstyle, msub, msup, msubsup, mtable, mtd, mtext, mtr,
@@ -124,12 +43,9 @@
 }
 
 :root {
-  /* Nearly all pages need a scrollbar, however for the few pages that don't reserving
-   * space for the vertical scrollbar prevents layout from "popping" during navigation.
-   * Also fixes similar popping issues related to components with conditional rendering.
+  /* Let the App handle scrolling to make binding styles easier.
    */
-  overflow-y: scroll;
-  scrollbar-color: var(--color-scrollbar) transparent;
+  overflow-y: hidden;
 }
 
 body {
@@ -138,8 +54,6 @@ body {
   place-items: start;
   align-items: stretch;
   min-height: 100vh;
-  color: var(--color-text);
-  background: var(--color-background);
   transition:
     color var(--anim-transition),
     background-color var(--anim-transition);
@@ -161,55 +75,19 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-b {
-  font-weight: bold;
-}
-
-b, h1, h2, h3, h4, h5, h6, figcaption {
-  color: var(--color-text-heading);
-}
-
 ul, ol {
   text-align: initial;
-  padding-inline-start: var(--size-list-indentation);
+  padding-inline-start: var(--padding-xxlarge);
 
   &.list-none {
     list-style: none;
   }
 }
 
-.info {
-  background-color: var(--color-background-info);
-  color: var(--color-text-info);
-}
-
-.warn {
-  background-color: var(--color-background-warn);
-  color: var(--color-text-warn);
-}
-
 .error,
 merror {
-  background-color: var(--color-background-error);
-  color: var(--color-text-error);
-}
-
-:any-link {
-  display: inline-block;
-  text-decoration: none;
-  color: var(--color-link);
-  padding: 0 var(--size-padding-hard);
-  transition: color var(--anim-transition);
-  &:hover {
-    color: var(--color-link-hover);
-  }
-  &:active {
-    color: var(--color-link-active);
-  }
-}
-
-.framed {
-  border: var(--size-border);
+  background-color: hsl(var(--hue-error), 60%, 65%);
+  color: var(--theme-black);
 }
 
 .centered {
@@ -217,6 +95,32 @@ merror {
   align-self: center;
 }
 
-.no-wrap {
+.round {
+  border-radius: var(--size-border-radius);
+}
+
+.capitalize {
+  text-transform: capitalize;
+}
+
+.nowrap {
   white-space: nowrap;
 }
+
+.rows {
+  display: flex;
+  flex-direction: column;
+}
+.columns {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+}
+
+.gap-xxs  { gap: var(--padding-xxsmall);  }
+.gap-xs   { gap: var(--padding-xsmall);   }
+.gap-s    { gap: var(--padding-small);    }
+.gap      { gap: var(--padding-normal);   }
+.gap-l    { gap: var(--padding-large);    }
+.gap-xl   { gap: var(--padding-xlarge);   }
+.gap-xxl  { gap: var(--padding-xxlarge);  }

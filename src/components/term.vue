@@ -15,13 +15,13 @@ defineProps({
 <style scoped>
 dt,
 dd {
-  padding-inline-start: var(--size-list-indentation);
+  padding-inline-start: var(--padding-xxlarge);
 }
 
 dt {
   grid-column: 1 / 2;
-  font-weight: bold;
-  color: var(--color-text-heading);
+  font-weight: bolder;
+  color: var(--theme-text-bold);
 }
 
 dd {

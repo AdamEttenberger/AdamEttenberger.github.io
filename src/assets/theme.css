@@ -1,0 +1,305 @@
+/**
+ * Theme Inputs.
+ * Prefix all variable names with underscores to mark them "internal".
+ */
+:root {
+  --_text:      hsl(214deg,  20%, 50%);
+  --_primary:   hsl(214deg,  40%, 50%);
+  --_secondary: hsl(214deg, 100%, 50%);
+  --_accent:    hsl(34deg,  100%, 50%);
+  --_info:      hsl(120deg,  50%, 50%);
+  --_warning:   hsl(60deg,   50%, 50%);
+  --_error:     hsl(0deg,    50%, 50%);
+  --_todo:      hsl(300deg,  50%, 50%);
+}
+
+/**
+ * Base "Lightness" Gradient scales.
+ * Prefix all variable names with underscores to mark them "internal",
+ * to differentiate them from the values declared below which transform these
+ * raw color gradient values into `light-dark` and layer-depth aware aliases.
+ */
+:root {
+  --_text-50:   hsl(from var(--_text)  h s 95%);
+  --_text-100:  hsl(from var(--_text)  h s 90%);
+  --_text-200:  hsl(from var(--_text)  h s 80%);
+  --_text-300:  hsl(from var(--_text)  h s 70%);
+  --_text-400:  hsl(from var(--_text)  h s 60%);
+  --_text-500:  hsl(from var(--_text)  h s 50%);
+  --_text-600:  hsl(from var(--_text)  h s 40%);
+  --_text-700:  hsl(from var(--_text)  h s 30%);
+  --_text-800:  hsl(from var(--_text)  h s 20%);
+  --_text-900:  hsl(from var(--_text)  h s 10%);
+  --_text-950:  hsl(from var(--_text)  h s 5%);
+
+  --_primary-50:   hsl(from var(--_primary)  h s 95%);
+  --_primary-100:  hsl(from var(--_primary)  h s 90%);
+  --_primary-200:  hsl(from var(--_primary)  h s 80%);
+  --_primary-300:  hsl(from var(--_primary)  h s 70%);
+  --_primary-400:  hsl(from var(--_primary)  h s 60%);
+  --_primary-500:  hsl(from var(--_primary)  h s 50%);
+  --_primary-600:  hsl(from var(--_primary)  h s 40%);
+  --_primary-700:  hsl(from var(--_primary)  h s 30%);
+  --_primary-800:  hsl(from var(--_primary)  h s 20%);
+  --_primary-900:  hsl(from var(--_primary)  h s 10%);
+  --_primary-950:  hsl(from var(--_primary)  h s 5%);
+
+  --_secondary-50:   hsl(from var(--_secondary)  h s 95%);
+  --_secondary-100:  hsl(from var(--_secondary)  h s 90%);
+  --_secondary-200:  hsl(from var(--_secondary)  h s 80%);
+  --_secondary-300:  hsl(from var(--_secondary)  h s 70%);
+  --_secondary-400:  hsl(from var(--_secondary)  h s 60%);
+  --_secondary-500:  hsl(from var(--_secondary)  h s 50%);
+  --_secondary-600:  hsl(from var(--_secondary)  h s 40%);
+  --_secondary-700:  hsl(from var(--_secondary)  h s 30%);
+  --_secondary-800:  hsl(from var(--_secondary)  h s 20%);
+  --_secondary-900:  hsl(from var(--_secondary)  h s 10%);
+  --_secondary-950:  hsl(from var(--_secondary)  h s 5%);
+
+  --_accent-50:   hsl(from var(--_accent)  h s 95%);
+  --_accent-100:  hsl(from var(--_accent)  h s 90%);
+  --_accent-200:  hsl(from var(--_accent)  h s 80%);
+  --_accent-300:  hsl(from var(--_accent)  h s 70%);
+  --_accent-400:  hsl(from var(--_accent)  h s 60%);
+  --_accent-500:  hsl(from var(--_accent)  h s 50%);
+  --_accent-600:  hsl(from var(--_accent)  h s 40%);
+  --_accent-700:  hsl(from var(--_accent)  h s 30%);
+  --_accent-800:  hsl(from var(--_accent)  h s 20%);
+  --_accent-900:  hsl(from var(--_accent)  h s 10%);
+  --_accent-950:  hsl(from var(--_accent)  h s 5%);
+
+  --_info-50:   hsl(from var(--_info)  h s 95%);
+  --_info-100:  hsl(from var(--_info)  h s 90%);
+  --_info-200:  hsl(from var(--_info)  h s 80%);
+  --_info-300:  hsl(from var(--_info)  h s 70%);
+  --_info-400:  hsl(from var(--_info)  h s 60%);
+  --_info-500:  hsl(from var(--_info)  h s 50%);
+  --_info-600:  hsl(from var(--_info)  h s 40%);
+  --_info-700:  hsl(from var(--_info)  h s 30%);
+  --_info-800:  hsl(from var(--_info)  h s 20%);
+  --_info-900:  hsl(from var(--_info)  h s 10%);
+  --_info-950:  hsl(from var(--_info)  h s 5%);
+
+  --_todo-50:   hsl(from var(--_todo)  h s 95%);
+  --_todo-100:  hsl(from var(--_todo)  h s 90%);
+  --_todo-200:  hsl(from var(--_todo)  h s 80%);
+  --_todo-300:  hsl(from var(--_todo)  h s 70%);
+  --_todo-400:  hsl(from var(--_todo)  h s 60%);
+  --_todo-500:  hsl(from var(--_todo)  h s 50%);
+  --_todo-600:  hsl(from var(--_todo)  h s 40%);
+  --_todo-700:  hsl(from var(--_todo)  h s 30%);
+  --_todo-800:  hsl(from var(--_todo)  h s 20%);
+  --_todo-900:  hsl(from var(--_todo)  h s 10%);
+  --_todo-950:  hsl(from var(--_todo)  h s 5%);
+
+  --_warning-50:   hsl(from var(--_warning)  h s 95%);
+  --_warning-100:  hsl(from var(--_warning)  h s 90%);
+  --_warning-200:  hsl(from var(--_warning)  h s 80%);
+  --_warning-300:  hsl(from var(--_warning)  h s 70%);
+  --_warning-400:  hsl(from var(--_warning)  h s 60%);
+  --_warning-500:  hsl(from var(--_warning)  h s 50%);
+  --_warning-600:  hsl(from var(--_warning)  h s 40%);
+  --_warning-700:  hsl(from var(--_warning)  h s 30%);
+  --_warning-800:  hsl(from var(--_warning)  h s 20%);
+  --_warning-900:  hsl(from var(--_warning)  h s 10%);
+  --_warning-950:  hsl(from var(--_warning)  h s 5%);
+
+  --_error-50:   hsl(from var(--_error)  h s 95%);
+  --_error-100:  hsl(from var(--_error)  h s 90%);
+  --_error-200:  hsl(from var(--_error)  h s 80%);
+  --_error-300:  hsl(from var(--_error)  h s 70%);
+  --_error-400:  hsl(from var(--_error)  h s 60%);
+  --_error-500:  hsl(from var(--_error)  h s 50%);
+  --_error-600:  hsl(from var(--_error)  h s 40%);
+  --_error-700:  hsl(from var(--_error)  h s 30%);
+  --_error-800:  hsl(from var(--_error)  h s 20%);
+  --_error-900:  hsl(from var(--_error)  h s 10%);
+  --_error-950:  hsl(from var(--_error)  h s 5%);
+}
+
+/**
+ * Transform gradients into dark-mode aware variables.
+ */
+:root {
+  --theme-text-500: var(--_text-500);
+  --theme-text-50:  light-dark(var(--_text-50),  var(--_text-950));
+  --theme-text-100: light-dark(var(--_text-100), var(--_text-900));
+  --theme-text-200: light-dark(var(--_text-200), var(--_text-800));
+  --theme-text-300: light-dark(var(--_text-300), var(--_text-700));
+  --theme-text-400: light-dark(var(--_text-400), var(--_text-600));
+  --theme-text-600: light-dark(var(--_text-600), var(--_text-400));
+  --theme-text-700: light-dark(var(--_text-700), var(--_text-300));
+  --theme-text-800: light-dark(var(--_text-800), var(--_text-200));
+  --theme-text-900: light-dark(var(--_text-900), var(--_text-100));
+  --theme-text-950: light-dark(var(--_text-950), var(--_text-50));
+
+  --theme-primary-500: var(--_primary-500);
+  --theme-primary-50: light-dark(var(--_primary-50),   var(--_primary-950));
+  --theme-primary-100: light-dark(var(--_primary-100), var(--_primary-900));
+  --theme-primary-200: light-dark(var(--_primary-200), var(--_primary-800));
+  --theme-primary-300: light-dark(var(--_primary-300), var(--_primary-700));
+  --theme-primary-400: light-dark(var(--_primary-400), var(--_primary-600));
+  --theme-primary-600: light-dark(var(--_primary-600), var(--_primary-400));
+  --theme-primary-700: light-dark(var(--_primary-700), var(--_primary-300));
+  --theme-primary-800: light-dark(var(--_primary-800), var(--_primary-200));
+  --theme-primary-900: light-dark(var(--_primary-900), var(--_primary-100));
+  --theme-primary-950: light-dark(var(--_primary-950), var(--_primary-50));
+
+  --theme-secondary-500: var(--_secondary-500);
+  --theme-secondary-50: light-dark(var(--_secondary-50),   var(--_secondary-950));
+  --theme-secondary-100: light-dark(var(--_secondary-100), var(--_secondary-900));
+  --theme-secondary-200: light-dark(var(--_secondary-200), var(--_secondary-800));
+  --theme-secondary-300: light-dark(var(--_secondary-300), var(--_secondary-700));
+  --theme-secondary-400: light-dark(var(--_secondary-400), var(--_secondary-600));
+  --theme-secondary-600: light-dark(var(--_secondary-600), var(--_secondary-400));
+  --theme-secondary-700: light-dark(var(--_secondary-700), var(--_secondary-300));
+  --theme-secondary-800: light-dark(var(--_secondary-800), var(--_secondary-200));
+  --theme-secondary-900: light-dark(var(--_secondary-900), var(--_secondary-100));
+  --theme-secondary-950: light-dark(var(--_secondary-950), var(--_secondary-50));
+
+  --theme-accent-500: var(--_accent-500);
+  --theme-accent-50: light-dark(var(--_accent-50),   var(--_accent-950));
+  --theme-accent-100: light-dark(var(--_accent-100), var(--_accent-900));
+  --theme-accent-200: light-dark(var(--_accent-200), var(--_accent-800));
+  --theme-accent-300: light-dark(var(--_accent-300), var(--_accent-700));
+  --theme-accent-400: light-dark(var(--_accent-400), var(--_accent-600));
+  --theme-accent-600: light-dark(var(--_accent-600), var(--_accent-400));
+  --theme-accent-700: light-dark(var(--_accent-700), var(--_accent-300));
+  --theme-accent-800: light-dark(var(--_accent-800), var(--_accent-200));
+  --theme-accent-900: light-dark(var(--_accent-900), var(--_accent-100));
+  --theme-accent-950: light-dark(var(--_accent-950), var(--_accent-50));
+
+  --theme-info-500: var(--_info-500);
+  --theme-info-50: light-dark(var(--_info-50),   var(--_info-950));
+  --theme-info-100: light-dark(var(--_info-100), var(--_info-900));
+  --theme-info-200: light-dark(var(--_info-200), var(--_info-800));
+  --theme-info-300: light-dark(var(--_info-300), var(--_info-700));
+  --theme-info-400: light-dark(var(--_info-400), var(--_info-600));
+  --theme-info-600: light-dark(var(--_info-600), var(--_info-400));
+  --theme-info-700: light-dark(var(--_info-700), var(--_info-300));
+  --theme-info-800: light-dark(var(--_info-800), var(--_info-200));
+  --theme-info-900: light-dark(var(--_info-900), var(--_info-100));
+  --theme-info-950: light-dark(var(--_info-950), var(--_info-50));
+
+  --theme-todo-500: var(--_todo-500);
+  --theme-todo-50: light-dark(var(--_todo-50),   var(--_todo-950));
+  --theme-todo-100: light-dark(var(--_todo-100), var(--_todo-900));
+  --theme-todo-200: light-dark(var(--_todo-200), var(--_todo-800));
+  --theme-todo-300: light-dark(var(--_todo-300), var(--_todo-700));
+  --theme-todo-400: light-dark(var(--_todo-400), var(--_todo-600));
+  --theme-todo-600: light-dark(var(--_todo-600), var(--_todo-400));
+  --theme-todo-700: light-dark(var(--_todo-700), var(--_todo-300));
+  --theme-todo-800: light-dark(var(--_todo-800), var(--_todo-200));
+  --theme-todo-900: light-dark(var(--_todo-900), var(--_todo-100));
+  --theme-todo-950: light-dark(var(--_todo-950), var(--_todo-50));
+
+  --theme-warning-500: var(--_warning-500);
+  --theme-warning-50: light-dark(var(--_warning-50),   var(--_warning-950));
+  --theme-warning-100: light-dark(var(--_warning-100), var(--_warning-900));
+  --theme-warning-200: light-dark(var(--_warning-200), var(--_warning-800));
+  --theme-warning-300: light-dark(var(--_warning-300), var(--_warning-700));
+  --theme-warning-400: light-dark(var(--_warning-400), var(--_warning-600));
+  --theme-warning-600: light-dark(var(--_warning-600), var(--_warning-400));
+  --theme-warning-700: light-dark(var(--_warning-700), var(--_warning-300));
+  --theme-warning-800: light-dark(var(--_warning-800), var(--_warning-200));
+  --theme-warning-900: light-dark(var(--_warning-900), var(--_warning-100));
+  --theme-warning-950: light-dark(var(--_warning-950), var(--_warning-50));
+
+  --theme-error-500: var(--_error-500);
+  --theme-error-50: light-dark(var(--_error-50),   var(--_error-950));
+  --theme-error-100: light-dark(var(--_error-100), var(--_error-900));
+  --theme-error-200: light-dark(var(--_error-200), var(--_error-800));
+  --theme-error-300: light-dark(var(--_error-300), var(--_error-700));
+  --theme-error-400: light-dark(var(--_error-400), var(--_error-600));
+  --theme-error-600: light-dark(var(--_error-600), var(--_error-400));
+  --theme-error-700: light-dark(var(--_error-700), var(--_error-300));
+  --theme-error-800: light-dark(var(--_error-800), var(--_error-200));
+  --theme-error-900: light-dark(var(--_error-900), var(--_error-100));
+  --theme-error-950: light-dark(var(--_error-950), var(--_error-50));
+}
+
+.theme-depth-0  { --_theme-depth-background: 95%;  --_theme-depth-foreground: 30%;  --_theme-depth-link: 30% }
+.theme-depth-1  { --_theme-depth-background: 90%;  --_theme-depth-foreground: 35%;  --_theme-depth-link: 30% }
+.theme-depth-2  { --_theme-depth-background: 80%;  --_theme-depth-foreground: 25%;  --_theme-depth-link: 30% }
+.theme-depth-3  { --_theme-depth-background: 70%;  --_theme-depth-foreground: 15%;  --_theme-depth-link: 20% }
+.theme-depth-4  { --_theme-depth-background: 60%;  --_theme-depth-foreground:  5%;  --_theme-depth-link: 20% }
+.theme-depth-5  { --_theme-depth-background: 50%;  --_theme-depth-foreground:  0%;  --_theme-depth-link: 20% }
+.theme-depth-6  { --_theme-depth-background: 40%;  --_theme-depth-foreground: 95%;  --_theme-depth-link: 70% }
+.theme-depth-7  { --_theme-depth-background: 30%;  --_theme-depth-foreground: 85%;  --_theme-depth-link: 70% }
+.theme-depth-8  { --_theme-depth-background: 20%;  --_theme-depth-foreground: 75%;  --_theme-depth-link: 70% }
+.theme-depth-9  { --_theme-depth-background: 10%;  --_theme-depth-foreground: 65%;  --_theme-depth-link: 50% }
+.theme-depth-10 { --_theme-depth-background:  5%;  --_theme-depth-foreground: 55%;  --_theme-depth-link: 50% }
+
+.theme-color-primary    { --_theme-core-background-color: var(--_primary);   --_theme-core-text-color: var(--_text); }
+.theme-color-secondary  { --_theme-core-background-color: var(--_secondary); --_theme-core-text-color: var(--_text); }
+.theme-color-accent     { --_theme-core-background-color: var(--_accent);    --_theme-core-text-color: var(--_text); }
+.theme-color-info       { --_theme-core-background-color: var(--_info);      --_theme-core-text-color: var(--_text); }
+.theme-color-warning    { --_theme-core-background-color: var(--_warning);   --_theme-core-text-color: var(--_text); }
+.theme-color-error      { --_theme-core-background-color: var(--_error);     --_theme-core-text-color: var(--_text); }
+.theme-color-todo       { --_theme-core-background-color: var(--_todo);      --_theme-core-text-color: var(--_text); }
+
+:is(.theme-color-primary, .theme-color-secondary, .theme-color-accent) {
+  --_theme-link-hue: 130deg;
+  --theme-background: light-dark(hsl(from var(--_theme-core-background-color) h s var(--_theme-depth-background)),
+                                 hsl(from var(--_theme-core-background-color) h s calc(100% - var(--_theme-depth-background))));
+  --theme-text:       light-dark(hsl(from var(--_theme-core-background-color) h s var(--_theme-depth-foreground)),
+                                 hsl(from var(--_theme-core-background-color) h s calc(100% - var(--_theme-depth-foreground))));
+  --theme-link-text:  light-dark(hsl(var(--_theme-link-hue) 100% var(--_theme-depth-link)),
+                                 hsl(var(--_theme-link-hue) 100% calc(100% - var(--_theme-depth-link))));
+}
+
+:is(.theme-color-info, .theme-color-warning, .theme-color-error, .theme-color-todo) {
+  --_theme-link-hue: 220deg;
+  --theme-background: hsl(from var(--_theme-core-background-color) h s 55%);
+  --theme-text:       hsl(from var(--_theme-core-background-color) h s 15%);
+  --theme-link-text:  hsl(var(--_theme-link-hue) 100% 50%);
+}
+
+:is(.theme-color-primary, .theme-color-secondary, .theme-color-accent),
+:is(.theme-color-info, .theme-color-warning, .theme-color-error, .theme-color-todo) {
+  --theme-border:     hsl(from var(--theme-background) h calc(s * 0.5) 65%);
+  --theme-text-bold:  light-dark(hsl(from var(--theme-text) h 100% l),
+                                 hsl(from var(--theme-text) h 100% l));
+}
+
+:is(.theme-color-primary, .theme-color-secondary, .theme-color-accent),
+:is(.theme-color-info, .theme-color-warning, .theme-color-error, .theme-color-todo) {
+  --theme-background-tint:      hsl(from var(--theme-background)  h s calc(l + 5));
+  --theme-background-shade:     hsl(from var(--theme-background)  h s calc(l - 5));
+  --theme-text-tint:            hsl(from var(--theme-text)        h s calc(l + 5));
+  --theme-text-shade:           hsl(from var(--theme-text)        h s calc(l - 5));
+  --theme-link-text-tint:       hsl(from var(--theme-link-text)   h s calc(l + 5));
+  --theme-link-text-shade:      hsl(from var(--theme-link-text)   h s calc(l - 5));
+
+  --theme-background-hover:     light-dark(var(--theme-background-shade), var(--theme-background-tint));
+  --theme-background-active:    light-dark(var(--theme-background-tint),  var(--theme-background-shade));
+  --theme-background-disabled:  hsl(from var(--theme-background) h 0% l);
+
+  --theme-text-hover:           light-dark(var(--theme-text-shade), var(--theme-text-tint));
+  --theme-text-active:          light-dark(var(--theme-text-tint),  var(--theme-text-shade));
+  --theme-text-disabled:        hsl(from var(--theme-text) h 0% l);
+
+  --theme-link-text-hover:      light-dark(var(--theme-link-text-shade),  var(--theme-link-text-tint));
+  --theme-link-text-active:     light-dark(var(--theme-link-text-tint),   var(--theme-link-text-shade));
+  --theme-link-text-disabled:   hsl(from var(--theme-link-text) h 0% l);
+}
+
+:is(.theme-color-primary, .theme-color-secondary, .theme-color-accent,
+    .theme-color-info, .theme-color-warning, .theme-color-error, .theme-color-todo)
+:is(b, h1, h2, h3, h4, h5, h6, figcaption, .heading) {
+  font-weight: bolder;
+  color: var(--theme-text-bold);
+}
+
+:any-link {
+  transition-property: text-decoration, color;
+  transition-duration: var(--theme-anim-transition);
+
+  color: var(--theme-link-text);
+  &:active    { color: var(--theme-link-text-active);   }
+  &:focus     { color: var(--theme-link-text-focus);    }
+  &:hover     {
+    text-decoration: none;
+    color: var(--theme-link-text-hover);
+  }
+}

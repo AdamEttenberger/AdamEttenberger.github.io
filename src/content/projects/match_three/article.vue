@@ -1,34 +1,24 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
-import { storeToRefs } from 'pinia'
-import Column from '@/components/column.vue'
+import { onUnmounted } from 'vue'
+import Layer from '@/components/layer.vue'
+import Note from '@/components/note.vue'
+import MatchThreeProperties from '@/content/settings/match_three_properties.vue'
 import Player from '@/components/player.vue'
-import PropertyEditor from '@/components/property_editor/property_editor.vue'
-import UnderConstruction from '@/components/under_construction.vue'
 import Section from '@/components/section.vue'
-import {
-  ButtonOptions,
-  ToggleOptions,
-} from '@/util/property_editor/property_types'
-import { useMatchThreeScorecardStore } from '@/stores/match_three_scorecard'
-import { useConsentStore } from '@/stores/consent'
+import { ThemeColor } from '@/composables/theme'
 import { IProjectInfo } from '@/types/project_types'
+// Pinia Stores
+import { useMatchThreeScorecardStore } from '@/stores/match_three_scorecard'
 
 defineProps<IProjectInfo>();
 
 const gamedata = useMatchThreeScorecardStore();
-const { allow_saving_match_three_scorecard } = storeToRefs(useConsentStore());
 
-const editor_properties = [
-  new ToggleOptions('consent.allow_saving_match_three_scorecard', 'Save Match-3 Personal Scorecard', false).setModel(allow_saving_match_three_scorecard),
-  new ButtonOptions('action.delete_match_three_scorecard', 'Delete Scorecard').setClasses(['delete']).setDisabled(computed(() => !gamedata?.scorecard)),
-];
-
-onMounted(() => {
-  // Uninstall service workers to fix caching issue when re-visiting the page
-  // after the game had been updated on the server.
+onUnmounted(() => {
+  // Uninstall service workers when leaving, this prevents the browser from caching
+  // the last version of the game served when revisiting the page.
   navigator.serviceWorker.getRegistrations().then(registrations => registrations.forEach(item => item.unregister()));
-});
+})
 
 function bindGodotBridge(frame) {
   addEventListener('message', (event) => {
@@ -47,14 +37,6 @@ function bindGodotBridge(frame) {
     }
   });
 }
-
-function onPropertyButtonClick(name) {
-  switch (name) {
-    case 'action.delete_match_three_scorecard':
-      gamedata.scorecard = null;
-      break;
-  }
-}
 </script>
 
 <template>
@@ -64,16 +46,16 @@ function onPropertyButtonClick(name) {
             :lastmod="lastmod"
             frame="/library/projects/tile_match/tile_match.html"
             @load="bindGodotBridge" />
-    <Column>
+    <Layer>
       <Section heading="Controls">
         <p>
           This game supports saving your personal scorecard to device local storage.
         </p>
-        <br />
-        <PropertyEditor :properties="editor_properties"
-                        @property-click="onPropertyButtonClick" />
+        <MatchThreeProperties />
       </Section>
-    </Column>
-    <UnderConstruction />
+    </Layer>
+    <Note :color="ThemeColor.Todo">
+      This article is currently being finalized, expect an update very soon.
+    </Note>
   </article>
 </template>

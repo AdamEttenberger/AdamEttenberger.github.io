@@ -1,12 +1,9 @@
 export interface IProjectInfo {
+  subpath: String;
   title: String;
   icon: String;
   date: Date;
   lastmod?: Date;
-};
-
-export interface IProjectRoute {
-  subpath: String;
 };
 
 export interface IProjectArticleImporter {
@@ -18,7 +15,6 @@ export interface IProjectSummaryImporter {
 };
 
 export default class ProjectInfo implements IProjectInfo,
-                                            IProjectRoute,
                                             IProjectArticleImporter,
                                             IProjectSummaryImporter {
   constructor(public subpath: String,
