@@ -26,9 +26,12 @@ defineProps({
 </template>
 
 <style scoped>
-.license-item {
-  flex: 1;
-  align-items: flex-start;
-  text-align: left;
+.button-item {
+  padding: 0 var(--padding-large);
+  & .license-item {
+    flex: 1;
+    align-items: flex-start;
+    text-align: left;
+  }
 }
 </style>

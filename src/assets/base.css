@@ -14,7 +14,7 @@
 
   --size-border-radius: 0.5rem;
 
-  --component-layer-padding: var(--padding-large);
+  --component-layer-padding: var(--padding-xxlarge);
   --component-layer-gap: var(--padding-xxlarge);
 }
 
