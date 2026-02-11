@@ -218,17 +218,17 @@
   --theme-error-950: light-dark(var(--_error-950), var(--_error-50));
 }
 
-.theme-depth-0  { --_theme-depth-background: 95%;  --_theme-depth-foreground: 30%;  --_theme-depth-link: 50% }
-.theme-depth-1  { --_theme-depth-background: 90%;  --_theme-depth-foreground: 35%;  --_theme-depth-link: 50% }
-.theme-depth-2  { --_theme-depth-background: 80%;  --_theme-depth-foreground: 25%;  --_theme-depth-link: 40% }
-.theme-depth-3  { --_theme-depth-background: 70%;  --_theme-depth-foreground: 15%;  --_theme-depth-link: 30% }
+.theme-depth-0  { --_theme-depth-background: 95%;  --_theme-depth-foreground: 30%;  --_theme-depth-link: 30% }
+.theme-depth-1  { --_theme-depth-background: 90%;  --_theme-depth-foreground: 35%;  --_theme-depth-link: 30% }
+.theme-depth-2  { --_theme-depth-background: 80%;  --_theme-depth-foreground: 25%;  --_theme-depth-link: 30% }
+.theme-depth-3  { --_theme-depth-background: 70%;  --_theme-depth-foreground: 15%;  --_theme-depth-link: 20% }
 .theme-depth-4  { --_theme-depth-background: 60%;  --_theme-depth-foreground:  5%;  --_theme-depth-link: 20% }
-.theme-depth-5  { --_theme-depth-background: 50%;  --_theme-depth-foreground:  0%;  --_theme-depth-link: 10% }
-.theme-depth-6  { --_theme-depth-background: 40%;  --_theme-depth-foreground: 95%;  --_theme-depth-link: 40% }
-.theme-depth-7  { --_theme-depth-background: 30%;  --_theme-depth-foreground: 85%;  --_theme-depth-link: 40% }
-.theme-depth-8  { --_theme-depth-background: 20%;  --_theme-depth-foreground: 75%;  --_theme-depth-link: 30% }
-.theme-depth-9  { --_theme-depth-background: 10%;  --_theme-depth-foreground: 65%;  --_theme-depth-link: 30% }
-.theme-depth-10 { --_theme-depth-background:  5%;  --_theme-depth-foreground: 55%;  --_theme-depth-link: 25% }
+.theme-depth-5  { --_theme-depth-background: 50%;  --_theme-depth-foreground:  0%;  --_theme-depth-link: 20% }
+.theme-depth-6  { --_theme-depth-background: 40%;  --_theme-depth-foreground: 95%;  --_theme-depth-link: 70% }
+.theme-depth-7  { --_theme-depth-background: 30%;  --_theme-depth-foreground: 85%;  --_theme-depth-link: 70% }
+.theme-depth-8  { --_theme-depth-background: 20%;  --_theme-depth-foreground: 75%;  --_theme-depth-link: 70% }
+.theme-depth-9  { --_theme-depth-background: 10%;  --_theme-depth-foreground: 65%;  --_theme-depth-link: 50% }
+.theme-depth-10 { --_theme-depth-background:  5%;  --_theme-depth-foreground: 55%;  --_theme-depth-link: 50% }
 
 .theme-color-primary    { --_theme-core-background-color: var(--_primary);   --_theme-core-text-color: var(--_text); }
 .theme-color-secondary  { --_theme-core-background-color: var(--_secondary); --_theme-core-text-color: var(--_text); }
@@ -244,18 +244,20 @@
                                  hsl(from var(--_theme-core-background-color) h s calc(100% - var(--_theme-depth-background))));
   --theme-text:       light-dark(hsl(from var(--_theme-core-background-color) h s var(--_theme-depth-foreground)),
                                  hsl(from var(--_theme-core-background-color) h s calc(100% - var(--_theme-depth-foreground))));
+  --theme-link-text:  light-dark(hsl(var(--_theme-link-hue) 100% var(--_theme-depth-link)),
+                                 hsl(var(--_theme-link-hue) 100% calc(100% - var(--_theme-depth-link))));
 }
 
 :is(.theme-color-info, .theme-color-warning, .theme-color-error, .theme-color-todo) {
   --_theme-link-hue: 220deg;
   --theme-background: hsl(from var(--_theme-core-background-color) h s 55%);
   --theme-text:       hsl(from var(--_theme-core-background-color) h s 15%);
+  --theme-link-text:  hsl(var(--_theme-link-hue) 100% 50%);
 }
 
 :is(.theme-color-primary, .theme-color-secondary, .theme-color-accent),
 :is(.theme-color-info, .theme-color-warning, .theme-color-error, .theme-color-todo) {
   --theme-border:     hsl(from var(--theme-background) h calc(s * 0.5) 65%);
-  --theme-link-text:  hsl(var(--_theme-link-hue) 100% var(--_theme-depth-link));
   --theme-text-bold:  light-dark(hsl(from var(--theme-text) h 100% l),
                                  hsl(from var(--theme-text) h 100% l));
 }
