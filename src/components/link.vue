@@ -3,10 +3,15 @@ import { computed, PropType, unref } from 'vue'
 import { RouterLink } from 'vue-router'
 import EmailTemplate from '@/types/email_template'
 import LinkUtil, { LinkType } from '@/util/link';
+import useTheme, { ThemeColor } from '@/composables/theme';
 
 defineEmits(['click']);
 
 const props = defineProps({
+  color: { type: [null, String, ThemeColor] as PropType<null|String|ThemeColor>, default: null },
+  depth: { type: [null, Number] as PropType<null|Number>, default: null },
+  absolute: { type: Boolean, default: false },
+
   kind: { type: [String, LinkType] as PropType<String | LinkType>, default: null },
   to: { type: [null, String, EmailTemplate] as PropType<null | String | EmailTemplate>, default: null },
   alt: { type: String, default: null },
@@ -41,11 +46,17 @@ const destination = computed(() => {
 
 const component_type = computed(() => (destination.value || !unref(props.button)) ? 'a' : 'button');
 const tabindex = computed(() => unref(props.disabled) ? -1 : undefined);
+
+const { theme } = useTheme(() => ({
+  color: unref(props.color),
+  depth: unref(props.depth),
+  absolute: unref(props.absolute),
+}));
 </script>
 
 <template>
   <RouterLink v-if="kind === LinkType.Route" :to="to" custom v-slot="{ href, route, navigate, isActive }">
-    <component :class="['link', disabled?'disabled':'']" :is="component_type" :active="isActive" :href="href" :tabindex @click="() => { navigate($event); $emit('click', $event); }">
+    <component :class="['link', disabled?'disabled':'', ...theme.classNames]" :is="component_type" :active="isActive" :href="href" :tabindex @click="() => { navigate($event); $emit('click', $event); }">
       <slot>
         <img v-if="icon_file" :src="icon" :alt />
         <font-awesome-icon v-else-if="icon" class="fa-icon" :icon />
@@ -54,7 +65,7 @@ const tabindex = computed(() => unref(props.disabled) ? -1 : undefined);
     </component>
   </RouterLink>
 
-  <component v-else-if="button || kind != LinkType.Empty" :is="component_type" :class="['link', disabled?'disabled':'']" :href="destination" :tabindex target="_blank" rel="noopener noreferrer" @click="$emit('click', $event)">
+  <component v-else-if="button || kind != LinkType.Empty" :is="component_type" :class="['link', disabled?'disabled':'', ...theme.classNames]" :href="destination" :tabindex target="_blank" rel="noopener noreferrer" @click="$emit('click', $event)">
     <slot>
       <img v-if="icon_file" :src="icon" :alt />
       <font-awesome-icon v-else-if="icon" class="fa-icon" :icon />

@@ -65,6 +65,7 @@ defineExpose({
     & iframe.renderer {
       user-select: none;
       flex: 1;
+      border-radius: var(--size-border-radius);
     }
   }
 }

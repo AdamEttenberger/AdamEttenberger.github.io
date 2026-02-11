@@ -20,8 +20,8 @@ dd {
 
 dt {
   grid-column: 1 / 2;
-  font-weight: bold;
-  color: var(--color-text-heading);
+  font-weight: bolder;
+  color: var(--theme-text-bold);
 }
 
 dd {

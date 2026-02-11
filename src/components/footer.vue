@@ -20,6 +20,13 @@ import Link from './link.vue';
 <style scoped>
 footer {
   container: footer / inline-size;
+
+  & :any-link {
+    text-decoration: none;
+  }
+  & :any-link:hover {
+    text-decoration: underline;
+  }
 }
 
 .responsive-row {

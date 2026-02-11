@@ -9,6 +9,8 @@ defineEmits(['click']);
 
 const props = defineProps({
   color: { type: [null, String, ThemeColor] as PropType<null|String|ThemeColor>, default: null },
+  depth: { type: [null, Number] as PropType<null|Number>, default: null },
+  absolute: { type: Boolean, default: false },
   transparent: { type: Boolean, default: false },
 
   to: { type: [String, EmailTemplate] as PropType<String|EmailTemplate>, default: null },
@@ -21,7 +23,7 @@ const tabindex = computed(() => unref(props.disabled) ? -1 : undefined);
 </script>
 
 <template>
-  <Layer :class="['button-background-layer', disabled?'disabled':'']" :color :transparent show_hover>
+  <Layer :class="['button-background-layer', disabled?'disabled':'']" :color :depth :absolute :transparent :disabled show_hover>
     <Link class="button-link" :to :icon :alt :disabled hide_ext button :tabindex @click="$emit('click', $event)">
       <template v-if="$slots.default || text" #default>
         <slot>{{ text }}</slot>
@@ -51,6 +53,7 @@ const tabindex = computed(() => unref(props.disabled) ? -1 : undefined);
   text-indent: 0px;
   text-shadow: none;
   user-select: none;
+  padding: 0;
 
   &.disabled {
     pointer-events: none;
@@ -72,10 +75,9 @@ const tabindex = computed(() => unref(props.disabled) ? -1 : undefined);
     color: inherit;
     background-color: inherit;
     font-size: inherit;
+    text-decoration: none;
     &:not([disabled]) { cursor: pointer; }
 
-    /* See comment in '@/components/layer.vue' for details. */
-    margin: var(--inverse-component-layer-padding);
     /**
      * Add a 'normal' amount of padding to push the contents in from the
      * edge of the button. This should work for most used cases.

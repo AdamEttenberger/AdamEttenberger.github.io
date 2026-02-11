@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, unref } from 'vue'
 import { IPropertyNumberRangeOptions } from '@/util/property_editor/property_interfaces';
+import useTheme from '@/composables/theme'
 
 const options = defineProps<IPropertyNumberRangeOptions>();
 const model = defineModel({
@@ -39,10 +40,12 @@ const display_model = computed({
     model.value = options.converter?.toModel(options, new_value) ?? new_value;
   },
 });
+
+const { theme } = useTheme(() => ({ depth: 1 }));
 </script>
 
 <template>
-  <div class="property-editor-number-range">
+  <div :class="['property-editor-number-range', 'columns', 'gap-s', ...theme.classNames]">
     <input :name="name" type="number"
            :disabled="unref(disabled)"
            inputmode="decimal"
@@ -60,40 +63,37 @@ const display_model = computed({
 </template>
 
 <style scoped>
-.property-editor-number-range {
-  display: flex;
-  flex-direction: row;
-  gap: var(--size-property-grid-gap);
+input {
+  &[type=number]  { flex-shrink: 0; }
+  &[type=range]   { flex-grow: 1;   }
+
+  color: var(--theme-text);
+  accent-color: var(--theme-background);
+  background-color: var(--theme-background);
+
+  transition-property: color, background-color, accent-color;
+  transition-duration: var(--anim-transition);
+  &:hover { background-color: var(--theme-background-hover); accent-color: var(--theme-background-hover); }
+  &:active { background-color: var(--theme-background-active); accent-color: var(--theme-background-active); }
+  &:disabled, [disabled] { background-color: var(--theme-background-disabled); accent-color: var(--theme-background-disabled); }
 }
+
 input[type=number] {
-  color: var(--color-text-button);
-  background-color: var(--color-background-button);
   font-family: Consolas, Monaco, 'Lucida Console', 'Courier New', Courier, monospace;
   border-radius: var(--size-border-radius);
-  padding-left: var(--size-padding-round);
+  padding-left: var(--padding-normal);
   font-size: 1rem;
 
   display: block;
   width: 4.5rem;
-  transition: background-color var(--anim-transition);
-  &:hover,
-  &:focus {
-    background-color: var(--color-background-button-hover);
-  }
-  &:active {
-    background-color: var(--color-background-button-active);
-  }
-  &:disabled {
-    background-color: var(--color-background-button-disabled);
-  }
   &::-webkit-outer-spin-button,
   &::-webkit-inner-spin-button {
     -webkit-appearance: none;
     mask: url("@/assets/property_editor/number_spinner.svg");
-    background-color: var(--color-text-button);
+    background-color: var(--theme-text);
     width: 1rem;
     height: 1rem;
-    padding-right: var(--size-padding-hard);
+    padding-right: var(--padding-small);
     cursor: pointer;
   }
   /**
@@ -102,22 +102,5 @@ input[type=number] {
    * controls. Hide the spin button instead.
    */
   -moz-appearance: textfield;
-}
-input[type=range] {
-  flex: 1;
-  width: 100%;
-
-  transition: accent-color var(--anim-transition);
-  accent-color: var(--color-background-button);
-  &:hover,
-  &:focus {
-    accent-color: var(--color-background-button-hover);
-  }
-  &:active {
-    accent-color: var(--color-background-button-active);
-  }
-  &:disabled {
-    accent-color: var(--color-background-button-disabled);
-  }
 }
 </style>

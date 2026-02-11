@@ -6,7 +6,8 @@ defineProps<IPropertyDividerOptions>();
 
 <template>
   <Divider class="property-editor-divider"
-           :heading="label" />
+           :heading="label"
+           transparent />
 </template>
 
 <style scoped>
@@ -14,7 +15,6 @@ defineProps<IPropertyDividerOptions>();
   padding: 0;
 
   & :deep(.heading) {
-    border: none;
     font-size: medium;
   }
 }

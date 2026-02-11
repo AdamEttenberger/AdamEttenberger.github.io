@@ -4,6 +4,7 @@ import ConsentProperties from '@/content/settings/consent_properties.vue'
 import UserPreferencesProperties from '@/content/settings/user_preferences_properties.vue'
 import MatchThreeProperties from '@/content/settings/match_three_properties.vue'
 import Section from '@/components/section.vue'
+import { ThemeColor } from '@/composables/theme'
 // Pinia Stores
 import { useConsentStore } from '@/stores/consent'
 import { useUserPreferencesStore } from '@/stores/user_preferences'
@@ -66,14 +67,12 @@ function onDeleteAllLocalStorage() {
         This will restore the site to a clean slate, revoking all consent toggles, erasing user preferences, and erasing game data such as personal scorecards and save files.
       </p>
       <div class="columns">
-        <Button class="delete" text="Delete All Local Storage" @click="onDeleteAllLocalStorage" />
+        <Button class="delete-all" text="Delete All Local Storage" @click="onDeleteAllLocalStorage" :color="ThemeColor.Error" />
       </div>
     </Section>
   </article>
 </template>
 
 <style scoped>
-.delete {
-  width: max-content;
-}
+.delete-all { flex: 1; }
 </style>

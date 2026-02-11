@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { PropType } from 'vue'
 import { IPropertyComboBoxOptions } from '@/util/property_editor/property_interfaces';
+import Layer from '@/components/layer.vue'
 
 const options = defineProps<IPropertyComboBoxOptions>();
 const model = defineModel({
@@ -10,15 +11,33 @@ const model = defineModel({
 </script>
 
 <template>
-  <select class="property-editor-combo-box" :name="name" :disabled="disabled" v-model="model">
-    <option v-for="([property_name, label]) in options.values"
-            :value="property_name">
-      {{ label }}
-    </option>
-  </select>
+  <Layer class="property-editor-combo-box" show_hover>
+    <select :name="name" :disabled="disabled" v-model="model">
+      <option v-for="([property_name, label]) in options.values" :key="property_name"
+              :value="property_name">
+        {{ label }}
+      </option>
+    </select>
+  </Layer>
 </template>
 
 <style scoped>
+.property-editor-combo-box {
+  padding: 0;
+}
+select,
+::picker(select),
+option {
+  accent-color: var(--theme-background);
+  background-color: var(--theme-background);
+
+  transition-property: color, background-color, accent-color;
+  transition-duration: var(--anim-transition);
+  &:is(:hover, :focus) { background-color: var(--theme-background-hover); accent-color: var(--theme-background-hover); }
+  &:is(:active, :checked) { background-color: var(--theme-background-active); accent-color: var(--theme-background-active); }
+  &:disabled, [disabled] { background-color: var(--theme-background-disabled); accent-color: var(--theme-background-disabled); }
+}
+
 select,
 ::picker(select) {
   appearance: base-select;
@@ -29,47 +48,9 @@ option::checkmark {
 }
 
 select {
+  flex: 1;
   font-size: 1rem;
-  border-radius: var(--size-border-radius);
-  padding: 0 var(--size-padding-round);
   align-items: center;
-
-  transition-property: background-color;
-  transition-duration: var(--anim-transition-duration);
-  transition-timing-function: var(--anim-transition-timing-function);
-
-  color: var(--color-text-button);
-  background-color: var(--color-background-button);
-  &:hover,
-  &:focus {
-    background-color: var(--color-background-button-hover);
-  }
-  &:active {
-    background-color: var(--color-background-button-active);
-  }
-  &:disabled {
-    background-color: var(--color-background-button-disabled);
-  }
-}
-
-option {
-  transition-property: background-color;
-  transition-duration: var(--anim-transition-duration);
-  transition-timing-function: var(--anim-transition-timing-function);
-  padding: 0 var(--size-padding-round);
-
-  color: var(--color-text-button);
-  background-color: var(--color-background-button);
-
-  &:hover,
-  &:focus {
-    background-color: var(--color-background-button-hover);
-  }
-  &:checked {
-    background-color: var(--color-background-button-selected);
-  }
-  &:disabled {
-    background-color: var(--color-background-button-disabled);
-  }
+  padding: 0 var(--padding-large);
 }
 </style>

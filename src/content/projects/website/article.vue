@@ -48,7 +48,7 @@ const emails = useEmailTemplateStore();
       <p>
         Please review the <RouterLink to="/privacy">privacy statement</RouterLink>, then use the following email template including as much detail as possible, and I will attempt to mitigate or resolve concerns in a timely manner.
       </p>
-      <Button class="feedback" :to="emails.feedback" />
+      <Button class="feedback" :to="emails.feedback" :color="ThemeColor.Accent" />
     </Section>
 
     <Section heading="Beginnings">

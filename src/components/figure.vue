@@ -29,6 +29,10 @@ figure {
   display: flex;
   flex-direction: column;
 
+  & > img {
+    border-radius: var(--size-border-radius);
+  }
+
   & > figcaption {
     text-align: center;
     font-style: italic;

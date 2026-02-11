@@ -5,18 +5,7 @@ import useTheme, { ThemeColor } from '@/composables/theme'
 import {
   AnyPropertyOptions,
   PropertyKind,
-
-  // Interfaces
-  IPropertyButtonOptions,
-  IPropertyColor3Options,
-  IPropertyColor4Options,
-  IPropertyComboBoxOptions,
-  IPropertyDividerOptions,
-  IPropertyGroupOptions,
-  IPropertyNumberRangeOptions,
-  IPropertyToggleOptions,
   IPropertyValueOptions,
-  IPropertyOptions,
 } from '@/util/property_editor/property_interfaces'
 
 import PropertyButton from '@/components/property_editor/property_button.vue'
@@ -85,11 +74,11 @@ function onPropertyClicked() {
   emit('property-click');
 }
 
-useTheme(() => ({ color: unref(props.options.color) }));
+const { theme } = useTheme(() => ({ color: unref(props.options.color) }));
 </script>
 
 <template>
-  <div v-show="visible" class="property-row">
+  <div v-show="visible" :class="['property-row', ...theme.classNames]">
     <label v-if="show_label && label" class="label" :for="name">{{ label }}</label>
     <Button v-if="show_undo && model !== undefined"
             :color="ThemeColor.Error"
@@ -99,7 +88,7 @@ useTheme(() => ({ color: unref(props.options.color) }));
             :icon="['fas', 'trash']"
             @click="model = unref((props.options as IPropertyValueOptions)?.default_value)" />
     <!-- Filter by property control type -->
-    <component :is="dynamic_component" :component-props="options"
+    <component :is="dynamic_component"
                class="editor"
                v-bind="options"
                v-model="model"

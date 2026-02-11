@@ -7,6 +7,7 @@ defineProps({
   color: { type: [null, String, ThemeColor] as PropType<null|String|ThemeColor>, default: null },
   transparent: { type: Boolean, default: false },
   summary: { type: String, default: 'Details' },
+  thin: { type: Boolean, default: false },
 });
 const open = defineModel({
   type: Boolean,
@@ -15,9 +16,9 @@ const open = defineModel({
 </script>
 
 <template>
-  <Layer :color :transparent :show_hover="!open">
+  <Layer class="details-layer" :color :transparent :show_hover="!open">
     <details :open="open">
-      <summary @click.prevent="open = !open">
+      <summary :class="{ thin }" @click.prevent="open = !open">
         <slot v-if="!summary" name="summary"></slot>
         <span v-else>{{ summary }}</span>
       </summary>
@@ -29,23 +30,26 @@ const open = defineModel({
 </template>
 
 <style scoped>
-summary {
-  user-select: none;
-  cursor: pointer;
-  border-radius: var(--size-border-radius);
+.details-layer {
+  padding: 0;
 
-  /**
-   * Make the entire visual area of the collapsed <summary> clickable.
-   * See comment in '@/components/layer.vue' for details.
-   */
-  margin: var(--inverse-component-layer-padding);
-  padding: var(--padding-small) var(--padding-large);
-}
+  & summary {
+    user-select: none;
+    cursor: pointer;
+    border-radius: var(--size-border-radius);
+    &:not(.thin) {
+      padding: var(--padding-large);
+    }
+    &.thin {
+      padding: var(--padding-small);
+    }
+  }
 
-.contents {
-  display: flex;
-  flex-direction: column;
-  padding: var(--component-layer-padding);
-  gap: var(--component-layer-gap);
+  & .contents {
+    display: flex;
+    flex-direction: column;
+    padding: 0 var(--component-layer-padding);
+    gap: var(--component-layer-gap);
+  }
 }
 </style>

@@ -1,11 +1,17 @@
 <script setup lang="ts">
-defineProps({
+import { unref } from 'vue'
+import useTheme, { ThemeColor } from '@/composables/theme'
+
+const props = defineProps({
+  color: { type: [null, String, ThemeColor] as PropType<null|String|ThemeColor>, default: ThemeColor.Accent },
   heading: { type: String, default: null },
+  transparent: { type: Boolean, default: false },
 });
+const { theme } = useTheme(() => ({ color: unref(props.color), depth: 0 }));
 </script>
 
 <template>
-  <div class="divider">
+  <div :class="['divider', transparent?'transparent':'', ...theme.classNames]">
     <h2 v-if="$slots.default" class="heading"><slot></slot></h2>
     <h2 v-else-if="heading" class="heading">{{ heading }}</h2>
   </div>
@@ -18,9 +24,21 @@ defineProps({
   text-align: center;
   padding: var(--padding-normal) var(--padding-xxlarge);
 
+  &:is(.transparent) {
+    & .heading {
+      color: var(--theme-border);
+    }
+  }
+  &:not(.transparent) {
+    & .heading {
+      color: var(--theme-text);
+      background-color: var(--theme-background);
+      border: 3px solid var(--theme-border);
+      border-radius: var(--size-border-radius);
+    }
+  }
+
   & .heading {
-    border: 3px solid var(--color-divider);
-    border-radius: var(--size-border-radius);
     padding: 0 var(--padding-xxlarge);
   }
 
@@ -28,7 +46,7 @@ defineProps({
   &::after {
     content: '';
     flex: 1;
-    border-bottom: 3px solid var(--color-divider);
+    border-bottom: 3px solid var(--theme-border);
   }
 }
 </style>
