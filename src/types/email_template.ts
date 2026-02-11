@@ -25,4 +25,8 @@ export default class EmailTemplate {
   toString(): string {
     return `mailto:${this.address}${this.computeURIComponentString()}`;
   }
+
+  toDomainAlias(): string {
+    return this.address.substring(0, this.address.indexOf('@') + 1);
+  }
 }

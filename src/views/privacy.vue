@@ -70,8 +70,8 @@ const emails = useEmailTemplateStore();
         Should you choose to send an email to any "@adamettenberger.com" address, information shared will be treated as confidential and will not be shared without consent beyond what's required to send and receive email through relevant third-party email services, or if compelled by applicable laws or a warrant.
       </p>
       <ul>
-        <li>If you're a company hiring manager or recruiter seeking to hire me through the alias <Link :to="emails.hiring" />, I will aim to respond within 1-5 business days.</li>
-        <li>If you raise a concern through the alias <Link :to="emails.feedback" />, I will aim to respond only when necessary and within 1-5 business days depending on the severity of the concern.</li>
+        <li>If you're a company hiring manager or recruiter seeking to hire me through the alias <Link :to="emails.hiring">{{ emails.hiring.toDomainAlias() }}</Link>, I will aim to respond within 1-5 business days.</li>
+        <li>If you raise a concern through the alias <Link :to="emails.feedback">{{ emails.feedback.toDomainAlias() }}</Link>, I will aim to respond only when necessary and within 1-5 business days depending on the severity of the concern.</li>
         <li>Unless given express written consent, your email address will not be used for any other purpose.</li>
       </ul>
     </Section>
