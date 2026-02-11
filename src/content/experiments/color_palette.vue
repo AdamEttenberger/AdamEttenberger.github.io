@@ -32,7 +32,6 @@ import { ThemeColor, ThemeGradientSlots } from '@/composables/theme';
 
 <style scoped>
 .color-palette {
-  color: var(--accent);
   padding: var(--padding-normal);
 }
 .palette-distribution {

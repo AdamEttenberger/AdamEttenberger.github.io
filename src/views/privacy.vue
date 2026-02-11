@@ -153,7 +153,6 @@ const emails = useEmailTemplateStore();
 }
 
 .section-quote {
-  border: 3px solid var(--accent);
   padding: var(--padding-normal) var(--padding-xlarge);
 }
 </style>
