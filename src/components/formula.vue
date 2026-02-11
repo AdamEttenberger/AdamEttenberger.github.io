@@ -75,7 +75,7 @@ onMounted(() => {
 .math {
   text-align: center;
   font-size: x-large;
-  overflow-x: auto;
+  overflow: auto hidden;
   box-sizing: border-box;
   margin: 0;
   padding: 0;
