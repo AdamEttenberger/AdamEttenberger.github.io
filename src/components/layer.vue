@@ -1,26 +1,3 @@
-<style>
-:root {
-  /**
-    * <Layer> adds padding, insetting all contents preventing the outer
-    * area from being clicked when used as a background for a clickable
-    * control. If a child component needs to "fit" the boundary of the
-    * <Layer> for technical reasons then these variables
-    * can be used to undo the padding from within the layer.
-    * e.g., To make the entire area of the layer clickable for a <button>.
-    *
-    * Example:
-    * {
-    *   color: inherit;
-    *   background-color: inherit;
-    *   // See comment in '@/components/layer.vue' for details.
-    *   margin: var(--inverse-component-layer-padding);
-    * }
-    */
-  --component-layer-padding: var(--padding-large);
-  --component-layer-gap: var(--padding-xxlarge);
-}
-</style>
-
 <script setup lang="ts">
 import { computed, PropType, unref } from 'vue'
 import useTheme, { ThemeColor } from '@/composables/theme'

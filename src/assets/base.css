@@ -13,6 +13,9 @@
   --padding-xxlarge: calc(var(--padding-normal) * 3.0);
 
   --size-border-radius: 0.5rem;
+
+  --component-layer-padding: var(--padding-large);
+  --component-layer-gap: var(--padding-xxlarge);
 }
 
 /* animation variables */
