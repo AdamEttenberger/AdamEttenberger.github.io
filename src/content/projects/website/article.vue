@@ -31,14 +31,14 @@ const emails = useEmailTemplateStore();
     </Section>
 
     <Section heading="Website Design">
-      The main goals for this website is to present blog-like content: text, images, videos, and interactive or visually interesting technical demos.
+      The main goal for this website is to present blog-like content: text, images, videos, and interactive or visually interesting technical demos.
       The experience browsing from a mobile device should be comparable to that on a larger device like a tablet, laptop, or desktop.
       However, larger devices will have much more negative space surrounding the main content, so features may be added to utilize the negative space where appropriate.
     </Section>
 
     <Section heading="Feedback">
       <p>
-        If you'd like to provide any feedback that is both <b>specific</b> and <b>actionable</b> such as:
+        If you'd like to provide feedback that is both <b>specific</b> and <b>actionable</b> such as:
       </p>
       <ul>
         <li>Security or privacy concerns.</li>
@@ -91,7 +91,7 @@ const emails = useEmailTemplateStore();
     </Section>
 
     <Section heading="More Coming Soon!">
-      <p>Recently I've been converting my website from Hugo to Vue, and it's been a joy working with templates in Vue!</p>
+      <p>Recently I've been converting my website from Hugo to Vue, and it's been a great experience creating templates in Vue!</p>
       <p>
         This website was originally put together with a few select class projects from my time at college because I wanted to share them mainly with those who would be interviewing me as I left college.
         Since then I've neglected to add new content to the website for a while. Expect more updates as I finish populating the site, polishing styles, and continue adding more projects.
