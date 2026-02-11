@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import Link from '@/components/link.vue'
 import LogoHomeButton from '@/components/buttons/logo_home_button.vue'
+import PaletteButton from '@/components/buttons/palette_button.vue'
 import SettingsButton from '@/components/buttons/settings.vue'
 import SocialLink from '@/components/buttons/social_link.vue'
 import ThemeToggle from '@/components/buttons/theme_toggle.vue'
@@ -24,6 +25,7 @@ const { theme } = useTheme(() => ({ depth: 1, absolute: true }));
           <SocialLink type="github" />
         </div>
         <div class="controls columns gap-s">
+          <PaletteButton />
           <ThemeToggle />
           <SettingsButton />
         </div>
@@ -40,6 +42,7 @@ header {
 
 header .links {
   justify-content: space-between;
+  padding-right: var(--component-layer-padding);
 }
 
 header .socials,
