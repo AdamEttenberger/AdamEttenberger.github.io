@@ -74,11 +74,15 @@ onMounted(() => {
 <style scoped>
 .math {
   text-align: center;
-  font-size: x-large;
   overflow: auto hidden;
   box-sizing: border-box;
   margin: 0;
   padding: 0;
   border: none;
+
+  font-size: x-large;
+  @container (max-width: 40rem) {
+    font-size: unset;
+  }
 }
 </style>
