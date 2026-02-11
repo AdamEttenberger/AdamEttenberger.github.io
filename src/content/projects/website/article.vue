@@ -106,11 +106,11 @@ const emails = useEmailTemplateStore();
       </Figure>
       <p>
         These have two purposes:
-        <ul>
-          <li>A transparent mechanism to inform visitors that the section either isn't complete, or to expect updates in the future.</li>
-          <li>Reminders for myself to revisit sections of the website (i.e., <i>TODO</i> notes).</li>
-        </ul>
       </p>
+      <ul>
+        <li>A transparent mechanism to inform visitors that the section either isn't complete, or to expect updates in the future.</li>
+        <li>Reminders for myself to revisit sections of the website (i.e., <i>TODO</i> notes).</li>
+      </ul>
     </Section>
   </article>
 </template>
