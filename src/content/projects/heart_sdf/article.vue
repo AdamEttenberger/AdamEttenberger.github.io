@@ -158,7 +158,7 @@ function createSdfShader(uniforms: Array<Uniform>, sdf_function) {
 
     // ShaderLoaderComponent Uniforms
     uniform vec3 uResolution; // = {width, height, aspect}
-    uniform float uTime;
+    uniform highp float uTime;
 
     // Shared Uniforms
     ${shared_uniforms.map(uniform => `uniform ${uniform.type} ${uniform.name};`).join('\n    ')}
