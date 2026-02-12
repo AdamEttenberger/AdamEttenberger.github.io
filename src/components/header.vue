@@ -53,6 +53,18 @@ header .controls {
   }
 }
 
+header .controls {
+  /**
+   * Magic number based on the current logo image
+   * for balancing the header symmetrically. This
+   * accounts for the padding baked into the icon.
+   * TODO: Remove this after creating a new logo,
+   * then use normal padding to separate the buttons
+   * from the screen edge.
+   */
+  padding-right: 36px;
+}
+
 header {
   & .logo {
     display: block;
