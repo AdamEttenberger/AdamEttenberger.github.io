@@ -20,7 +20,8 @@ const summary_components = computed(() => unref(props.projects).map(item => defi
                   :image="item.icon"
                   :to="`/projects/${item.subpath}/`"
                   :date="item.date"
-                  :lastmod="item.lastmod">
+                  :lastmod="item.lastmod"
+                  :color="item.color">
         <template #summary>
           <component :is="summary_components[index]" />
         </template>

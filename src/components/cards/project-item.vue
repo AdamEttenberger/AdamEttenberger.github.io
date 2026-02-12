@@ -20,7 +20,7 @@ defineProps({
 <template>
   <Layer class="project-item">
     <Button class="thumbnail-button" :to :icon="image" :alt="title" transparent />
-    <Layer class="text-layer" :color="ThemeColor.Accent">
+    <Layer class="text-layer" :color>
       <b class="title">{{ title }}</b>
       <DateText class="date" :date />
     </Layer>
