@@ -14,13 +14,13 @@
 
   --size-border-radius: 0.5rem;
 
-  --component-layer-padding: var(--padding-xxlarge);
+  --component-layer-padding: var(--padding-normal);
   --component-layer-gap: var(--padding-xxlarge);
 }
 
-@media only screen and (max-width: 45rem) {
+@media only screen and (max-width: 35rem) {
   :root {
-    --component-layer-padding: var(--padding-normal);
+    --component-layer-padding: var(--padding-small);
   }
 }
 

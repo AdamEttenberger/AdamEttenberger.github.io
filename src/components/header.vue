@@ -78,7 +78,7 @@ header {
   }
 }
 
-@media only screen and (max-width: 25rem) {
+@media only screen and (max-width: 35rem) {
   header {
     display: flex;
     flex-direction: column;

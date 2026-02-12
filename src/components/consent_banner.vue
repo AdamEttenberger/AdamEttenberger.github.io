@@ -86,7 +86,7 @@ function onUserConsentGiven() {
   flex: 1;
 }
 
-@media only screen and (max-width: 30rem) {
+@media only screen and (max-width: 35rem) {
   .button-list {
     flex-direction: column-reverse;
   }
