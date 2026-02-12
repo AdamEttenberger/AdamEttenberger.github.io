@@ -16,5 +16,5 @@ article {
   flex-direction: column;
   text-align: justify;
   gap: var(--padding-xxlarge);
-  padding: var(--padding-xxlarge) var(--padding-xlarge);
+  padding: var(--padding-xxlarge) var(--component-layer-padding);
 }
