@@ -62,6 +62,7 @@ const { theme } = useTheme(() => ({ color: unref(props.color) }));
 
 <style scoped>
 .property-editor {
+  container: property-editor / inline-size;
   display: grid;
   /**
    * Columns: Label, Undo, Editor

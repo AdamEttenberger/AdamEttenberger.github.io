@@ -109,6 +109,24 @@ const { theme } = useTheme(() => ({ color: unref(props.options.color) }));
   & .property-editor-group {
     grid-column: 1 / 4;
   }
+
+  @container property-editor (max-width: 35rem) {
+    display: grid;
+    grid-column: 1 / 4;
+    grid-template-rows: auto auto;
+    grid-template-columns: min-content auto;
+
+    & .label  { grid-row: 1 / 2; grid-column: 1 / 3; }
+    & .undo   { grid-row: 2 / 3; grid-column: 1 / 2; }
+    & .editor { grid-row: 2 / 3; grid-column: 2 / 3; }
+
+    & .property-editor-button,
+    & .property-editor-divider,
+    & .property-editor-group {
+      grid-row: 1 / 3;
+      grid-column: 1 / 3;
+    }
+  }
 }
 
 .hidden {
