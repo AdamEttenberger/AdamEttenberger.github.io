@@ -7,12 +7,9 @@ import Link from './link.vue';
   <footer class="rows">
     <Layer class="responsive-row">
       <Link to="/about">About</Link>
-      &middot;
       <Link to="/privacy">Privacy</Link>
-      &middot;
       <Link to="/licenses">Licenses</Link>
-      &middot;
-      <div class="copyright">&nbsp;&copy;&nbsp;{{ new Date().getFullYear() }} Adam Ettenberger</div>
+      <div class="copyright">&copy;&nbsp;{{ new Date().getFullYear() }} Adam Ettenberger</div>
     </Layer>
   </footer>
 </template>
@@ -34,10 +31,19 @@ footer {
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 0 var(--padding-normal);
+  gap: 0;
+
+  & > :not(:first-child)::before {
+    display: inline;
+    content: '\00B7 ';
+    padding: 0 var(--padding-normal);
+  }
 
   @container (max-width: 35rem) {
     flex-direction: column;
+    & > :not(:first-child)::before {
+      content: none;
+    }
   }
 }
 </style>
