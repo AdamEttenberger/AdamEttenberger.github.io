@@ -10,15 +10,9 @@ export interface IProjectArticleImporter {
   article: Function;
 };
 
-export interface IProjectSummaryImporter {
-  summary: Function;
-};
-
 export default class ProjectInfo implements IProjectInfo,
-                                            IProjectArticleImporter,
-                                            IProjectSummaryImporter {
+                                            IProjectArticleImporter {
   constructor(public subpath: String,
-              public summary: Function,
               public article: Function,
               public title: String,
               public icon: String,

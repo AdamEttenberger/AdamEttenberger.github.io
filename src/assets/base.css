@@ -14,6 +14,9 @@
 
   --size-border-radius: 0.5rem;
 
+  --app-column-max-width: 55rem;
+  --component-project-item-size: calc((var(--app-column-max-width) / 3.0) - (2.0 * var(--padding-xxlarge)));
+
   --component-layer-padding: var(--padding-normal);
   --component-layer-gap: var(--padding-xxlarge);
 }

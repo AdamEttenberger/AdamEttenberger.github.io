@@ -76,7 +76,7 @@ const class_names = computed(() => {
   &.disabled {
     color: var(--theme-text-disabled);
     background-color: var(--theme-background-disabled);
-    accent-color: var(--theme-tbackgroundext-disabled);
+    accent-color: var(--theme-background-disabled);
   }
 }
 </style>

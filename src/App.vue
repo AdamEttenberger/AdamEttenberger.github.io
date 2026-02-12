@@ -51,7 +51,6 @@ const { theme } = useTheme(() => root_theme.value);
 
 <style scoped>
 .app {
-  --app-column-max-width: 55rem;
   display: grid;
   grid-template-columns: auto minmax(0, var(--app-column-max-width)) auto;
   height: 100svh;
