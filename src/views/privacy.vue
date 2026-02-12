@@ -142,10 +142,6 @@ const emails = useEmailTemplateStore();
   width: max-content;
 }
 
-.small {
-  font-size: smaller;
-}
-
 .inline-button {
   width: 2rem;
   vertical-align: sub;

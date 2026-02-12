@@ -121,7 +121,6 @@ const lightness_gradient_editor = [
     aspect-ratio: 1;
     text-align: center;
     justify-content: center;
-    font-size: small;
     height: 100%;
   }
 

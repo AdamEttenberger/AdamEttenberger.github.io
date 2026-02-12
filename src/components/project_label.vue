@@ -21,7 +21,7 @@ defineProps({
   align-items: center;
 
   & > .title {
-    font-size: 1.2rem;
+    font-size: larger;
     font-weight: bold;
   }
 }

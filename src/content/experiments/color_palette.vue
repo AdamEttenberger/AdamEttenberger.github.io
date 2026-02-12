@@ -63,6 +63,5 @@ import { ThemeColor, ThemeGradientSlots } from '@/composables/theme';
   aspect-ratio: 1;
   text-align: center;
   justify-content: center;
-  font-size: small;
 }
 </style>
