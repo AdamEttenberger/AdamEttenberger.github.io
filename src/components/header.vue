@@ -100,6 +100,10 @@ header {
     & > .logo {
       width: 4rem;
     }
+
+    & .controls {
+      padding-right: unset;
+    }
   }
 }
 </style>
