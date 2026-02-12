@@ -34,7 +34,7 @@ footer {
   gap: 0;
 
   & > :not(:first-child)::before {
-    display: inline;
+    display: inline-block;
     content: '\00B7 ';
     padding: 0 var(--padding-normal);
   }
