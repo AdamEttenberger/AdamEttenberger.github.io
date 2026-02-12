@@ -11,8 +11,6 @@ import { useUserPreferencesStore } from '@/stores/user_preferences'
 import { useMatchThreeScorecardStore } from '@/stores/match_three_scorecard'
 import useTheme from '@/composables/theme'
 import { useRootThemeStore } from '@/stores/root_theme'
-const user_preferences = useUserPreferencesStore();
-
 const consent = useConsentStore();
 const {
   // allow_first_party_tracking,
@@ -34,7 +32,7 @@ const { theme } = useTheme(() => root_theme.value);
 </script>
 
 <template>
-  <div :class="['app', user_preferences.useDarkMode?'theme-dark-mode':'theme-light-mode', ...theme.classNames]">
+  <div class="app">
     <div class="app-column">
       <Header />
 
@@ -53,15 +51,8 @@ const { theme } = useTheme(() => root_theme.value);
 .app {
   display: grid;
   grid-template-columns: auto minmax(0, var(--app-column-max-width)) auto;
-  height: 100svh;
-  overflow-y: scroll;
+  min-height: 100svh;
 
-  color: var(--theme-text);
-  background-color: var(--theme-background);
-  scrollbar-color: var(--theme-primary-300) transparent;
-
-  &.theme-dark-mode { color-scheme: dark; }
-  &.theme-light-mode { color-scheme: light; }
   & > .app-column {
     grid-column: 2 / 3;
     display: flex;

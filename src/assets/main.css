@@ -6,6 +6,15 @@
     src: url('@/assets/fonts/stixfonts-2.13b171/static_otf_woff2/STIXTwoMath-Regular.woff2') format('opentype');
 }
 
+:root {
+  &.theme-dark-mode { color-scheme: dark; }
+  &.theme-light-mode { color-scheme: light; }
+
+  color: var(--theme-text);
+  background-color: var(--theme-background);
+  scrollbar-color: var(--theme-primary-300) transparent;
+}
+
 math {
   font-family: STIX-Two-Math;
 }

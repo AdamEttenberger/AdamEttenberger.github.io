@@ -51,12 +51,6 @@
   }
 }
 
-:root {
-  /* Let the App handle scrolling to make binding styles easier.
-   */
-  overflow-y: hidden;
-}
-
 body {
   display: flex;
   flex-direction: column;
