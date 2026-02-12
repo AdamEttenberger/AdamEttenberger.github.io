@@ -110,7 +110,7 @@ const { theme } = useTheme(() => ({ color: unref(props.options.color) }));
     grid-column: 1 / 4;
   }
 
-  @container property-editor (max-width: 35rem) {
+  @container property-editor (max-width: 25rem) {
     display: grid;
     grid-column: 1 / 4;
     grid-template-rows: auto auto;
