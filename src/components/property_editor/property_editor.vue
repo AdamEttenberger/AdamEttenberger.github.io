@@ -67,7 +67,7 @@ const { theme } = useTheme(() => ({ color: unref(props.color) }));
   /**
    * Columns: Label, Undo, Editor
    */
-  grid-template-columns: max-content min-content minmax(0, auto);
+  grid-template-columns: max-content min-content auto;
   place-self: center;
   width: 100%;
   padding: var(--padding-small);
