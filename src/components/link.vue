@@ -56,7 +56,7 @@ const { theme } = useTheme(() => ({
 
 <template>
   <RouterLink v-if="kind === LinkType.Route" :to="to" custom v-slot="{ href, route, navigate, isActive }">
-    <component :class="['link', disabled?'disabled':'', ...theme.classNames]" :is="component_type" :active="isActive" :href="href" :tabindex @click="() => { navigate($event); $emit('click', $event); }">
+    <component :class="['link', unref(disabled)?'disabled':'', ...theme.classNames]" :is="component_type" :active="isActive" :href="href" :tabindex @click="() => { $emit('click', $event); navigate($event); }">
       <slot>
         <img v-if="icon_file" :src="icon" :alt />
         <font-awesome-icon v-else-if="icon" class="fa-icon" :icon />
@@ -65,7 +65,7 @@ const { theme } = useTheme(() => ({
     </component>
   </RouterLink>
 
-  <component v-else-if="button || kind != LinkType.Empty" :is="component_type" :class="['link', disabled?'disabled':'', ...theme.classNames]" :href="destination" :tabindex target="_blank" rel="noopener noreferrer" @click="$emit('click', $event)">
+  <component v-else-if="button || kind != LinkType.Empty" :is="component_type" :class="['link', unref(disabled)?'disabled':'', ...theme.classNames]" :href="destination" :tabindex target="_blank" rel="noopener noreferrer" @click="$emit('click', $event)">
     <slot>
       <img v-if="icon_file" :src="icon" :alt />
       <font-awesome-icon v-else-if="icon" class="fa-icon" :icon />

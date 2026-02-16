@@ -19,6 +19,7 @@ import {
   IPropertyComboBoxOptions,
   IPropertyDividerOptions,
   IPropertyGroupOptions,
+  IPropertyLabelOptions,
   IPropertyNumberRangeOptions,
   IPropertyToggleOptions,
 } from '@/util/property_editor/property_interfaces'
@@ -162,6 +163,16 @@ export class DividerOptions extends PropertyOptions implements IPropertyDividerO
 
   constructor(name, label) {
     super(name, label);
+  }
+};
+
+export class LabelOptions extends PropertyValueOptions implements IPropertyLabelOptions {
+  kind = PropertyKind.Label;
+  show_label = true;
+  show_undo = false;
+
+  constructor(name, label) {
+    super(name, label, null);
   }
 };
 

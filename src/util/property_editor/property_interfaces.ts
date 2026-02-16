@@ -7,6 +7,7 @@ export enum PropertyKind {
   ComboBox = 'combobox',
   Divider = 'divider',
   Group = 'group',
+  Label = 'label',
   NumberRange = 'range',
   Toggle = 'toggle',
 };
@@ -78,6 +79,7 @@ export interface IPropertyDividerOptions extends IPropertyOptions {};
 // [[ PropertyValueOptions ]] Editor Options Implementations
 //
 
+export interface IPropertyLabelOptions extends IPropertyValueOptions {};
 export interface IPropertyColor3Options extends IPropertyValueOptions {};
 export interface IPropertyColor4Options extends IPropertyValueOptions {};
 
@@ -110,5 +112,6 @@ export type AnyPropertyOptions =
     IPropertyComboBoxOptions |
     IPropertyDividerOptions |
     IPropertyGroupOptions |
+    IPropertyLabelOptions |
     IPropertyNumberRangeOptions |
     IPropertyToggleOptions;

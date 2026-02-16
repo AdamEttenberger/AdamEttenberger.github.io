@@ -12,6 +12,7 @@ import PropertyButton from '@/components/property_editor/property_button.vue'
 import PropertyComboBox from '@/components/property_editor/property_combo_box.vue'
 import PropertyDivider from '@/components/property_editor/property_divider.vue'
 import PropertyGroup from '@/components/property_editor/property_group.vue'
+import PropertyLabel from '@/components/property_editor/property_label.vue'
 import PropertyNumberRange from '@/components/property_editor/property_number_range.vue'
 import PropertyToggle from '@/components/property_editor/property_toggle.vue'
 
@@ -22,6 +23,7 @@ const PropertyPicker = new Map([
   [PropertyKind.ComboBox, PropertyComboBox],
   [PropertyKind.Divider, PropertyDivider],
   [PropertyKind.Group, PropertyGroup],
+  [PropertyKind.Label, PropertyLabel],
   [PropertyKind.NumberRange, PropertyNumberRange],
   [PropertyKind.Toggle, PropertyToggle],
 ]);
@@ -32,6 +34,7 @@ const PropertyClickable = new Map([
   [PropertyKind.ComboBox, false],
   [PropertyKind.Divider, false],
   [PropertyKind.Group, false],
+  [PropertyKind.Label, false],
   [PropertyKind.NumberRange, false],
   [PropertyKind.Toggle, true],
 ]);

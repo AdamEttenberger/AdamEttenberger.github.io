@@ -7,6 +7,7 @@ defineProps<IPropertyButtonOptions>();
 <template>
   <Button class="property-editor-button"
           :name
+          :color
           :disabled
           :text="label"
           @click="$emit('property-click')" />
