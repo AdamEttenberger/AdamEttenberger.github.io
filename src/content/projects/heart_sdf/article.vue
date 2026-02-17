@@ -1204,7 +1204,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
         So, looking at what's been solved for:
       </p>
       <Player :ref="makePlayerRef(`heart-composition-step-0`)"
-              :title="`(Fig. 0) Mirrored Heart Lobe + Lower Point`"
+              title="(Fig. 0) Mirrored Heart Lobe + Lower Point"
               :date="date"
               :lastmod="lastmod"
               frame="/library/projects/shader_loader/shader_loader.html"
@@ -1323,7 +1323,7 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
         Now that the unit normal <b>N</b> has been solved a plane can be drawn relative to vertex <b>A</b> which is tangent to the heart lobe through vertex <b>T</b>.
       </p>
       <Player :ref="makePlayerRef(`heart-composition-step-1`)"
-              :title="`(Fig. 1) Mirrored Plane`"
+              title="(Fig. 1) Mirrored Plane"
               :date="date"
               :lastmod="lastmod"
               frame="/library/projects/shader_loader/shader_loader.html"
@@ -1385,21 +1385,21 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
         With drawing regions defined the image can be stitched together.
       </p>
       <Player :ref="makePlayerRef(`heart-composition-step-2`)"
-              :title="`(Fig. 2) Draw Region #1, Outer Circles`"
+              title="(Fig. 2) Draw Region #1, Outer Circles"
               :date="date"
               :lastmod="lastmod"
               frame="/library/projects/shader_loader/shader_loader.html"
               :state="player_states['heart-composition-step-2']"
               @load="(frame) => onStepByStepPlayerLoaded(frame, 2)" />
       <Player :ref="makePlayerRef(`heart-composition-step-3`)"
-              :title="`(Fig. 3) Draw Region #2, Plane (Incomplete)`"
+              title="(Fig. 3) Draw Region #2, Plane (Incomplete)"
               :date="date"
               :lastmod="lastmod"
               frame="/library/projects/shader_loader/shader_loader.html"
               :state="player_states['heart-composition-step-3']"
               @load="(frame) => onStepByStepPlayerLoaded(frame, 3)" />
       <Player :ref="makePlayerRef(`heart-composition-step-4`)"
-              :title="`(Fig. 4) Heart Shape (Incomplete)`"
+              title="(Fig. 4) Heart Shape (Incomplete)"
               :date="date"
               :lastmod="lastmod"
               frame="/library/projects/shader_loader/shader_loader.html"
@@ -1410,14 +1410,14 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
         To fix this, an <i>inverted</i> point can be drawn at vertex <b>B</b> within the planes draw region, creating the illusion that the heart lobes have one continuous inner curve.
       </p>
       <Player :ref="makePlayerRef(`heart-composition-step-5`)"
-              :title="`(Fig. 5) Outer Circles + Inverted Point in Draw Region #2`"
+              title="(Fig. 5) Outer Circles + Inverted Point in Draw Region #2"
               :date="date"
               :lastmod="lastmod"
               frame="/library/projects/shader_loader/shader_loader.html"
               :state="player_states['heart-composition-step-5']"
               @load="(frame) => onStepByStepPlayerLoaded(frame, 5)" />
       <Player :ref="makePlayerRef(`heart-composition-step-6`)"
-              :title="`(Fig. 6) Draw Region #2, Plane + Inverted Point`"
+              title="(Fig. 6) Draw Region #2, Plane + Inverted Point"
               :date="date"
               :lastmod="lastmod"
               frame="/library/projects/shader_loader/shader_loader.html"
