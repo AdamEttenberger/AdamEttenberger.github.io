@@ -5,6 +5,7 @@ import ProjectLabel from '@/components/project_label.vue'
 import { PlayerState } from '@/types/player_state'
 import Button from '@/components/buttons/button.vue'
 import { type DateLike } from '@/util/date'
+import { FrameContainerSymbol } from '@/composables/post_message'
 
 const frame_key: string = crypto.randomUUID();
 const inner_frame: Readonly<ShallowRef<HTMLIFrameElement | null>> = useTemplateRef<HTMLIFrameElement>('inner_frame');
@@ -29,7 +30,7 @@ withDefaults(defineProps<{
 const state = defineModel<PlayerState>('state', { default: PlayerState.Empty });
 
 defineExpose({
-  frame_key,
+  [FrameContainerSymbol]: frame_key,
   inner_frame,
 });
 
