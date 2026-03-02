@@ -1,74 +1,77 @@
 <script setup lang="ts">
-import { computed, PropType, unref } from 'vue'
+import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
-import EmailTemplate from '@/types/email_template'
-import LinkUtil, { LinkType } from '@/util/link';
-import useTheme, { ThemeColor } from '@/composables/theme';
+import type EmailTemplate from '@/types/email_template';
+import { LinkType, link_type } from '@/util/link';
+import useTheme, { type IThemeProps, type ThemeOptions } from '@/composables/theme';
 
 defineEmits(['click']);
 
-const props = defineProps({
-  color: { type: [null, String, ThemeColor] as PropType<null|String|ThemeColor>, default: null },
-  depth: { type: [null, Number] as PropType<null|Number>, default: null },
-  absolute: { type: Boolean, default: false },
+const props = defineProps<IThemeProps & {
+  kind?: LinkType;
+  to?: string|EmailTemplate;
+  alt?: string;
+  hide_ext?: boolean;
 
-  kind: { type: [String, LinkType] as PropType<String | LinkType>, default: null },
-  to: { type: [null, String, EmailTemplate] as PropType<null | String | EmailTemplate>, default: null },
-  alt: { type: String, default: null },
-  hide_ext: { type: Boolean, default: false },
+  icon?: string|Array<string>;
+  public?: boolean;
+  button?: boolean;
 
-  icon: { type: [null, String, Array] as PropType<null | String | Array>, default: null },
-  button: { type: Boolean, default: false },
-  public: { type: Boolean, default: false },
-  disabled: { type: [Boolean, Object] as PropType<Boolean|Object>, default: false },
-})
-const kind = computed(() => {
-  if (unref(props.public)) {
+  disabled?: boolean;
+}>();
+
+const kind = computed<LinkType>(() => {
+  if (props.public) {
     return LinkType.External;
   }
-  return unref(props.kind) ?? LinkUtil.type(props.to);
+  return props.kind ?? link_type(props.to);
 });
 
-const icon_file = computed(() => {
-  var icon = unref(props.icon);
-  if (typeof icon === 'string' && icon.length) {
-    return icon.startsWith('/') || icon.startsWith('http:') || icon.startsWith('https:') || icon.startsWith('data:');
+const fontawesome_src = computed<undefined|Array<string>>(() => {
+  if (!Array.isArray(props.icon)) {
+    return;
   }
-  return false;
+  return props.icon;
 });
 
-const destination = computed(() => {
-  if (kind.value === LinkType.Email) {
-    return (unref(props.to) as EmailTemplate).toString();
+const image_src = computed<undefined|string>(() => {
+  if (Array.isArray(props.icon)) {
+    return;
   }
-  return props.to;
+  return props.icon;
 });
 
-const component_type = computed(() => (destination.value || !unref(props.button)) ? 'a' : 'button');
-const tabindex = computed(() => unref(props.disabled) ? -1 : undefined);
+const destination = computed<string>(() => {
+  return (kind.value === LinkType.Email)
+      ? (props.to as EmailTemplate).toString()
+      : props.to as string;
+});
+
+const component_type = computed(() => (destination.value || !props.button) ? 'a' : 'button');
+const tabindex = computed(() => props.disabled ? -1 : undefined);
 
 const { theme } = useTheme(() => ({
-  color: unref(props.color),
-  depth: unref(props.depth),
-  absolute: unref(props.absolute),
-}));
+  color: props.color,
+  depth: props.depth,
+  absolute: props.absolute,
+} as ThemeOptions));
 </script>
 
 <template>
-  <RouterLink v-if="kind === LinkType.Route" :to="to" custom v-slot="{ href, route, navigate, isActive }">
-    <component :class="['link', unref(disabled)?'disabled':'', ...theme.classNames]" :is="component_type" :active="isActive" :href="href" :tabindex @click="() => { $emit('click', $event); navigate($event); }">
+  <RouterLink v-if="kind === LinkType.Route" :to="destination" custom v-slot="{ href, route, navigate, isActive }">
+    <component :class="['link', disabled?'disabled':'', ...theme.classNames]" :is="component_type" :active="isActive" :href="href" :tabindex @click="(event: MouseEvent) => { $emit('click', event); navigate(event); }">
       <slot>
-        <img v-if="icon_file" :src="icon" :alt />
-        <font-awesome-icon v-else-if="icon" class="fa-icon" :icon />
+        <font-awesome-icon v-if="fontawesome_src" class="fa-icon" :icon="fontawesome_src" />
+        <img v-else-if="image_src" :src="image_src" :alt />
         <span v-else>{{ route.fullPath }}</span>
       </slot>
     </component>
   </RouterLink>
 
-  <component v-else-if="button || kind != LinkType.Empty" :is="component_type" :class="['link', unref(disabled)?'disabled':'', ...theme.classNames]" :href="destination" :tabindex target="_blank" rel="noopener noreferrer" @click="$emit('click', $event)">
+  <component v-else-if="button || kind != LinkType.Empty" :is="component_type" :class="['link', disabled?'disabled':'', ...theme.classNames]" :href="destination" :tabindex target="_blank" rel="noopener noreferrer" @click="$emit('click', $event)">
     <slot>
-      <img v-if="icon_file" :src="icon" :alt />
-      <font-awesome-icon v-else-if="icon" class="fa-icon" :icon />
+      <font-awesome-icon v-if="fontawesome_src" class="fa-icon" :icon="fontawesome_src" />
+      <img v-else-if="image_src" :src="image_src" :alt />
       <span v-else-if="kind === LinkType.Email"><font-awesome-icon class="fa-icon ext-icon" :icon="['fas', 'envelope']" />&nbsp;{{ (to as EmailTemplate).address }}</span>
       <span v-else>{{ to }}</span>
     </slot>
