@@ -15,7 +15,7 @@ enum ConsentDialogState {
 
 const dialog_state = ref(ConsentDialogState.Default);
 
-function onConsentDialogComplete(consent_given: Boolean, remember_choice: Boolean) {
+function onConsentDialogComplete(consent_given: boolean, remember_choice: boolean) {
   dialog_state.value = ConsentDialogState.Hidden;
   if (remember_choice) {
     consent.allow_hiding_consent_banner = true;
@@ -27,7 +27,7 @@ function onConsentDialogComplete(consent_given: Boolean, remember_choice: Boolea
   consent.allow_saving_user_preferences = true;
 }
 
-function onUserConsentRejectAllRememberMeOption(remember_choice) {
+function onUserConsentRejectAllRememberMeOption(remember_choice: boolean) {
   onConsentDialogComplete(/*consent_given=*/false, remember_choice);
 }
 
