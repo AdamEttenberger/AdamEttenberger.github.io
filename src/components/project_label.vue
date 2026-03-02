@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import DateLabel from '@/components/date_label.vue'
-
-defineProps({
-  title: { type: String, required: true },
-  date: { type: Date },
-  lastmod: { default: null },
-})
+import { type DateLike } from '@/util/date'
+defineProps<{
+  title: string;
+  date?: DateLike;
+  lastmod?: DateLike;
+}>();
 </script>
 
 <template>
   <div class="label columns">
     <h2 class="title">{{ title }}</h2>
-    <DateLabel v-if="date" :date="date" :lastmod="lastmod" />
+    <DateLabel v-if="date" :date :lastmod />
   </div>
 </template>
 

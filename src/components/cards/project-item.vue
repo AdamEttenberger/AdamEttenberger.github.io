@@ -1,20 +1,16 @@
 <script setup lang="ts">
-import { computed, PropType, unref } from 'vue'
 import Button from '@/components/buttons/button.vue'
-import Layer from '@/components/layer.vue';
+import Layer from '@/components/layer.vue'
 import DateText from '@/components/date_text.vue'
-import useTheme, { ThemeColor } from '@/composables/theme'
+import { type IThemeProps } from '@/composables/theme'
+import { type DateLike } from '@/util/date'
 
-defineProps({
-  color: { type: [null, String, ThemeColor] as PropType<null|String|ThemeColor>, default: null },
-  depth: { type: [null, Number] as PropType<null|Number>, default: null },
-  absolute: { type: Boolean, default: false },
-
-  image: { type: String, required: true },
-  title: { type: String, required: true },
-  date: { type: Date },
-  to: { type: String, required: true },
-});
+defineProps<IThemeProps & {
+  image: string|Array<string>;
+  title: string;
+  date: DateLike;
+  to: string;
+}>();
 </script>
 
 <template>

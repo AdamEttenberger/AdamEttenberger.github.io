@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import DateUtil from '@/util/date'
+import { date_formatJSON, date_formatLongDate, type DateLike } from '@/util/date'
 
-defineProps({
-  date: { required: true },
-})
+defineProps<{
+  date: DateLike;
+}>();
 </script>
 
 <template>
-  <time class="date" :datetime="DateUtil.formatJSON(date)">{{ DateUtil.formatLongDate(date) }}</time>
+  <time class="date" :datetime="date_formatJSON(date)">{{ date_formatLongDate(date) }}</time>
 </template>
