@@ -1,5 +1,5 @@
+import { computed, inject, type InjectionKey, provide, ref, type Ref, type MaybeRefOrGetter, toValue } from 'vue'
 import { createInverseRecord } from '@/util/record'
-import { computed, inject, type InjectionKey, provide, ref, type Ref, type DeepReadonly } from 'vue'
 
 export type ThemeDepth = 0|1|2|3|4|5|6|7|8|9|10;
 export type ThemeGradientSlot = '50'|'100'|'200'|'300'|'400'|'500'|'600'|'700'|'800'|'900'|'950';
@@ -169,25 +169,32 @@ export interface IThemeProps {
  * @param key Allows creating an alternate hierarchy of <ThemeOptions>.
  * @returns An Object containing { parent_theme, theme }
  */
-export default function useTheme(func?: ThemeOptionsFunc, key: InjectionKey<ThemeLayer> = ThemeLayerParent) {
-  const parent_theme = inject<DeepReadonly<Ref<ThemeLayer>>>(key, () => ref(new ThemeLayer(ThemeColor.Primary, 0)), true);
-  let theme = parent_theme;
-  if (func) {
-    theme = computed<ThemeLayer>(() => {
-      const args: ThemeOptions = func();
-      let depth = parent_theme.value.depth;
-      if (typeof args.depth === 'number') {
-        depth = (args.absolute)
-            ? args.depth
-            : (depth + args.depth) as ThemeDepth;
-      }
-      return new ThemeLayer(args.color ?? parent_theme.value.color, depth);
-    });
-    provide<DeepReadonly<Ref<ThemeLayer>>>(key, theme);
+export default function useTheme(initial_options?: MaybeRefOrGetter<ThemeOptions>, key: InjectionKey<ThemeLayer> = ThemeLayerParent) {
+  type Context = Readonly<Ref<ThemeLayer>>;
+  const parent_theme = inject<Context>(key, () => ref(new ThemeLayer(ThemeColor.Primary, 0)), true);
+  let local_theme: Context = parent_theme;
+
+  const theme = computed<ThemeLayer>(() => toValue(local_theme ?? parent_theme));
+
+  function set(new_value: MaybeRefOrGetter<ThemeOptions>) {
+    const options = toValue(new_value);
+    let depth = parent_theme.value.depth;
+    if (typeof options.depth === 'number') {
+      depth = (options.absolute)
+          ? options.depth
+          : (depth + options.depth) as ThemeDepth;
+    }
+    local_theme = ref(new ThemeLayer(options.color ?? parent_theme.value.color, depth));
+    provide<Context>(key, theme);
+  }
+
+  if (initial_options) {
+    set(initial_options);
   }
 
   return {
     parent_theme,
     theme,
+    set,
   };
 };
