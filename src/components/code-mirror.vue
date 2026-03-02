@@ -11,36 +11,42 @@ import { oneDark } from "@codemirror/theme-one-dark"
 import { ThemeColor } from '@/composables/theme'
 import useTextDocument, { type ITextDocumentParam, AsyncDocumentLoaderStatus } from '@/types/text_document'
 
-const props = defineProps<ITextDocumentParam & {
-  lang?:  string;
+type SupportedLanguage = 'cpp'|'css'|'go'|'html'|'javascript'|'json'|'rust'|'vue'|'yaml';
+
+const LanguageExtensionLookup: Record<SupportedLanguage, () => Promise<LanguageSupport>> = {
+  'cpp': () => import("@codemirror/lang-cpp").then(x => x['cpp']()),
+  'css': () => import("@codemirror/lang-css").then(x => x['css']()),
+  'go': () => import("@codemirror/lang-go").then(x => x['go']()),
+  'html': () => import("@codemirror/lang-html").then(x => x['html']()),
+  'javascript': () => import("@codemirror/lang-javascript").then(x => x['javascript']()),
+  'json': () => import("@codemirror/lang-json").then(x => x['json']()),
+  'rust': () => import("@codemirror/lang-rust").then(x => x['rust']()),
+  'vue': () => import("@codemirror/lang-vue").then(x => x['vue']()),
+  'yaml': () => import("@codemirror/lang-yaml").then(x => x['yaml']()),
+};
+
+const props = withDefaults(defineProps<ITextDocumentParam & {
+  lang?:  SupportedLanguage;
   caption?:  string;
-}>();
+}>(), {
+  lang: 'cpp',
+});
 
 const { status, content: document_content } = useTextDocument(() => ({ file: props.file, content: props.content }));
 
 const editor = useTemplateRef<Element|DocumentFragment>('editor');
 let editor_view: undefined|EditorView;
-
-async function getLanguageExtension(): Promise<LanguageSupport> {
-  let pending = null;
-  switch (props.lang) {
-    default:
-    case "cpp": pending = import("@codemirror/lang-cpp").then(x => x['cpp']()); break;
-    case "css": pending = import("@codemirror/lang-css").then(x => x['css']()); break;
-    case "go": pending = import("@codemirror/lang-go").then(x => x['go']()); break;
-    case "html": pending = import("@codemirror/lang-html").then(x => x['html']()); break;
-    case "javascript": pending = import("@codemirror/lang-javascript").then(x => x['javascript']()); break;
-    case "json": pending = import("@codemirror/lang-json").then(x => x['json']()); break;
-    case "rust": pending = import("@codemirror/lang-rust").then(x => x['rust']()); break;
-    case "vue": pending = import("@codemirror/lang-vue").then(x => x['vue']()); break;
-    case "yaml": pending = import("@codemirror/lang-yaml").then(x => x['yaml']()); break;
-  }
-  return await pending;
-}
+let controller: undefined|AbortController;
 
 const watch_handle = watch(() => editor.value ? status.value : AsyncDocumentLoaderStatus.Loading,
-      async (status: AsyncDocumentLoaderStatus) => {
-  if (status !== AsyncDocumentLoaderStatus.Ready) {
+      async (new_status: AsyncDocumentLoaderStatus) => {
+  reset();
+  if (new_status !== AsyncDocumentLoaderStatus.Ready) {
+    return;
+  }
+  controller = new AbortController();
+  const language = await LanguageExtensionLookup[props.lang]();
+  if (controller.signal.aborted) {
     return;
   }
   editor_view = new EditorView({
@@ -52,14 +58,19 @@ const watch_handle = watch(() => editor.value ? status.value : AsyncDocumentLoad
       EditorView.editable.of(false),
       EditorView.contentAttributes.of({tabindex: "0"}),
       oneDark,
-      await getLanguageExtension(),
+      language,
     ],
   });
 });
 
+function reset() {
+  controller?.abort();
+  editor_view?.destroy();
+}
+
 onBeforeUnmount(() => {
   watch_handle.stop();
-  editor_view?.destroy();
+  reset();
 });
 </script>
 
