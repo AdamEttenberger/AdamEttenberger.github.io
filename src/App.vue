@@ -21,7 +21,8 @@ const {
 
 onMounted(() => {
   const consent = useConsentStore();
-  const any_consent_given = computed(() => Object.values(consent.$state).reduce((result, item) => result || item));
+
+  const any_consent_given = computed<boolean>(() => Object.values(consent.$state).reduce<boolean>((result, item: boolean) => result || item, false));
   LocalStorageHelper.bind(consent, any_consent_given);
   LocalStorageHelper.bind(useUserPreferencesStore(), allow_saving_user_preferences);
   LocalStorageHelper.bind(useMatchThreeScorecardStore(), allow_saving_match_three_scorecard);
@@ -32,7 +33,7 @@ const { theme } = useTheme(() => root_theme.value);
 </script>
 
 <template>
-  <div class="app">
+  <div :class="['app', ...theme.classNames]">
     <div class="app-column">
       <Header />
 
