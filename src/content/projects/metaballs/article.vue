@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef } from 'vue'
-import Code from '@/components/code.vue'
+import CodeMirror from '@/components/code-mirror.vue'
 import Link from '@/components/link.vue'
 import Figure from '@/components/figure.vue'
 import Formula from '@/components/formula.vue'
@@ -173,9 +173,9 @@ function onPropertyChanged(name) {
         First the renderer needs to be configured for blending.
         It's important that the background is transparent black, the later shaders will use the alpha channel as a "mass" or "influence" value, deciding whether to discard or paint a pixel.
       </p>
-      <Code lang="javascript"
-            caption="Configure WebGL for alpha blending."
-            text="
+      <CodeMirror lang="javascript"
+                  caption="Configure WebGL for alpha blending."
+                  content="
         gl.clearColor(0.0, 0.0, 0.0, 0.0);
         gl.blendEquation(gl.FUNC_ADD);
         gl.blendFuncSeparate(/*srcRGB=*/ gl.SRC_ALPHA,
@@ -184,7 +184,7 @@ function onPropertyChanged(name) {
                             /*dstAlpha=*/ gl.ONE_MINUS_SRC_ALPHA);
         gl.enable(gl.BLEND);
         gl.disable(gl.DEPTH_TEST);
-      "></Code>
+      " />
 
       <Formula caption="Equation for the blendFuncSeparate above, computing the color `R` given colors source `S` and destination `D`.">
         \begin{aligned}
@@ -197,7 +197,7 @@ function onPropertyChanged(name) {
         The final base texture contains all points on a transparent black background, radial gradients (color and alpha) around each point.
         Each point has a color gradient where the center is the assigned color and perimeter is transparent black.
       </p>
-      <Code file="/library/projects/metaballs/shaders/metaball-points-fs-v2012.c"></Code>
+      <CodeMirror file="/library/projects/metaballs/shaders/metaball-points-fs-v2012.c" />
       <p>
         The approach above works, however a more robust solution might be to use signed-distance fields.
         <Link to="https://iquilezles.org/">Inigo Quilez</Link> has some great articles and resources on this subject:
@@ -206,16 +206,16 @@ function onPropertyChanged(name) {
         <li><Link to="https://iquilezles.org/articles/distfunctions2d/">2D distance functions</Link></li>
         <li><Link to="https://iquilezles.org/articles/distgradfunctions2d/">2D distance and gradient functions</Link></li>
       </ul>
-      <Code file="/library/projects/metaballs/shaders/metaball-points-fs-v2025.c"></Code>
+      <CodeMirror file="/library/projects/metaballs/shaders/metaball-points-fs-v2025.c" />
       <p>
         Finally blending modes are reset before passing the composited texture to one of the following shaders.
       </p>
-      <Code lang="javascript"
-            caption="Disable WebGL blend and re-enables depth test."
-            text="
+      <CodeMirror lang="javascript"
+                  caption="Disable WebGL blend and re-enables depth test."
+                  content="
         gl.disable(gl.BLEND);
         gl.enable(gl.DEPTH_TEST);
-      "></Code>
+      " />
       <Player :ref="makePlayerRef('base-texture')" :state="player_states['base-texture']"
               title="Base Texture"
               :date="date"
@@ -230,7 +230,7 @@ function onPropertyChanged(name) {
         This shader is simply a mask that discards any alpha values below the minimum-influence, uThreshold.
         The "diffuse" shading comes "free" since the color shading has already been baked into the texture, so kind of cheating.
       </p>
-      <Code file="/library/projects/metaballs/shaders/metaball-fs.c"></Code>
+      <CodeMirror file="/library/projects/metaballs/shaders/metaball-fs.c" />
       <Player :ref="makePlayerRef('diffuse-texture')" :state="player_states['diffuse-texture']"
               title="Diffuse Metaball"
               :date="date"
@@ -244,7 +244,7 @@ function onPropertyChanged(name) {
       <p>
         This shader builds upon the previous, adding a black and white outline around masses.
       </p>
-      <Code file="/library/projects/metaballs/shaders/outline-metaball-fs.c"></Code>
+      <CodeMirror file="/library/projects/metaballs/shaders/outline-metaball-fs.c" />
       <Player :ref="makePlayerRef('diffuse-outline-texture')" :state="player_states['diffuse-outline-texture']"
               title="Diffuse Metaball + Outline"
               :date="date"
@@ -258,7 +258,7 @@ function onPropertyChanged(name) {
       <p>
         This shader builds upon the previous two, replacing the innermost fill color with a rotating hue.
       </p>
-      <Code file="/library/projects/metaballs/shaders/hue-metaball-fs.c"></Code>
+      <CodeMirror file="/library/projects/metaballs/shaders/hue-metaball-fs.c" />
       <Player :ref="makePlayerRef('outline-hue-texture')" :state="player_states['outline-hue-texture']"
               title="Outline + Hue"
               :date="date"

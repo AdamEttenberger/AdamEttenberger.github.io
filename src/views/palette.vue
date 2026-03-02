@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import Code from '@/components/code.vue'
+import CodeMirror from '@/components/code-mirror.vue'
 import ColorPalette from '@/content/experiments/color_palette.vue'
 import Layer from '@/components/layer.vue'
 import Details from '@/components/details.vue'
@@ -77,9 +77,9 @@ const lightness_gradient_editor = [
         <VarietyText paragraph />
       </div>
       <Details summary="Mass-energy equivalence">
-        <Code lang="cpp"
-              caption="Mass-energy equivalence."
-              text="
+        <CodeMirror lang="cpp"
+                    caption="Mass-energy equivalence."
+                    loader="
           float energy(float m, float c) {
             return m * c * c;
           }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Button from '@/components/buttons/button.vue'
-import Code from '@/components/code.vue'
+import CodeMirror from '@/components/code-mirror.vue'
 import Link from '@/components/link.vue'
 import Quote from '@/components/quote.vue'
 import Section from '@/components/section.vue'
@@ -106,9 +106,9 @@ import { EmailFeedback, EmailHiring } from '@/content/socials'
       <p>
         Following is an example of what a first-party analytics event should look like:
       </p>
-      <Code lang="text"
-            caption="Example of a first-party analytics API call."
-            text="
+      <CodeMirror lang="text"
+                  caption="Example of a first-party analytics API call."
+                  content="
         # Telemetry event URL
         'https://posthog-data.adamettenberger.com/i/v0/e/?ip=0&_={ANTI_CACHE_TIMESTAMP}&ver={VERSION}&compression=gzip-js'
 
