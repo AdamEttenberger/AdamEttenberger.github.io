@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import { PropType } from 'vue'
 import Layer from '@/components/layer.vue'
-import { ThemeColor } from '@/composables/theme'
+import { type IThemeProps } from '@/composables/theme'
 
-defineProps({
-  color: { type: [null, String, ThemeColor] as PropType<null|String|ThemeColor>, default: null },
-  transparent: { type: Boolean, default: false },
-  summary: { type: String, default: 'Details' },
-  thin: { type: Boolean, default: false },
+withDefaults(defineProps<IThemeProps & {
+  summary?: string;
+  thin?: boolean;
+}>(), {
+  summary: "Details",
 });
 const open = defineModel({
   type: Boolean,

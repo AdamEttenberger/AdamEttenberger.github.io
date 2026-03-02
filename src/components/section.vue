@@ -1,13 +1,10 @@
 <script setup lang="ts">
 import Divider from '@/components/divider.vue'
 import Layer from '@/components/layer.vue'
-import { ThemeColor } from '@/composables/theme'
-
-defineProps({
-  color: { type: [null, String, ThemeColor] as PropType<null|String|ThemeColor>, default: null },
-  heading: { type: String, default: null },
-  transparent: { type: Boolean, default: false },
-});
+import { type IThemeProps } from '@/composables/theme'
+defineProps<IThemeProps & {
+  heading?: string;
+}>();
 </script>
 
 <template>

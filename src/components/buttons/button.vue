@@ -1,24 +1,20 @@
 <script setup lang="ts">
-import { computed, PropType, unref } from 'vue'
+import { computed, unref } from 'vue'
 import Link from '@/components/link.vue'
-import EmailTemplate from '@/types/email_template'
 import Layer from '@/components/layer.vue'
-import { ThemeColor } from '@/composables/theme'
+import type EmailTemplate from '@/types/email_template'
+import { type IThemeProps } from '@/composables/theme'
 
 defineEmits(['click']);
 
-const props = defineProps({
-  color: { type: [null, String, ThemeColor] as PropType<null|String|ThemeColor>, default: null },
-  depth: { type: [null, Number] as PropType<null|Number>, default: null },
-  absolute: { type: Boolean, default: false },
-  transparent: { type: Boolean, default: false },
+const props = defineProps<IThemeProps & {
+  to?: string|EmailTemplate;
+  alt?: string;
+  icon?: string|Array<string>;
 
-  to: { type: [String, EmailTemplate] as PropType<String|EmailTemplate>, default: null },
-  alt: { type: String, default: null },
-  icon: { type: [null, String, Array] as PropType<null|String|Array>, default: null },
-  text: { type: String, default: null },
-  disabled: { type: [Boolean, Object] as PropType<Boolean|Object>, default: false },
-})
+  text?: string;
+  disabled?: boolean;
+}>();
 const tabindex = computed(() => unref(props.disabled) ? -1 : undefined);
 </script>
 

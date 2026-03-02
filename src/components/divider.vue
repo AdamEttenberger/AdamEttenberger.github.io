@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import { unref } from 'vue'
-import useTheme, { ThemeColor } from '@/composables/theme'
+import useTheme, { type IThemeProps, type ThemeOptions } from '@/composables/theme'
 
-const props = defineProps({
-  color: { type: [null, String, ThemeColor] as PropType<null|String|ThemeColor>, default: ThemeColor.Accent },
-  heading: { type: String, default: null },
-  transparent: { type: Boolean, default: false },
-});
+const props = defineProps<IThemeProps & {
+  heading?: string;
+}>();
 const { theme } = useTheme(() => ({ color: unref(props.color), depth: 0 }));
 </script>
 
