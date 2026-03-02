@@ -25,7 +25,7 @@ export default class LocalStorageHelper {
       }
       LocalStorageHelper.pull(store);
     };
-    addEventListener('storage', on_storage_event);
+    window.addEventListener('storage', on_storage_event);
     onScopeDispose(() => removeEventListener('storage', on_storage_event));
     store.$subscribe((_mutation, state) => LocalStorageHelper.push(store, prereq_ref));
     watch(prereq_ref, () => LocalStorageHelper.push(store, prereq_ref));
