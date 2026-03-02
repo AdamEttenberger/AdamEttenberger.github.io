@@ -1,9 +1,18 @@
 import { createWebHashHistory, createRouter } from 'vue-router'
-import { useScrollAffectingContentWaiterStore } from '@/stores/scroll_affecting_content_waiter'
-import { ILicenseInfo } from '@/types/license_types'
-import { IProjectInfo } from '@/types/project_types';
 import LicensesList from '@/content/licenses_list'
 import ProjectsList from '@/content/projects_list'
+import useResizeObserver from '@/composables/resize_observer';
+import { debounce } from '@/util/rate_limit';
+import { ref } from 'vue';
+
+/**
+ * Wait until the root container size has been idle
+ * for at least `WAIT_FOR_LAYOUT_TIMEOUT` before
+ * allowing scroll to be restored. If the overall
+ * duration exceeds `WAIT_FOR_LAYOUT_TIMEOUT` abort.
+ */
+const WAIT_FOR_LAYOUT_DEBOUNCE = 300;
+const WAIT_FOR_LAYOUT_TIMEOUT = 1000;
 
 const routes = [
   {
@@ -30,7 +39,7 @@ const routes = [
       ...LicensesList.map(item => ({
         path: item.subpath,
         component: () => import('@/views/files/license_file.vue'),
-        props: item as ILicenseInfo,
+        props: item,
       }))
     ],
   },
@@ -52,7 +61,7 @@ const routes = [
       ...ProjectsList.map(item => ({
         path: item.subpath,
         component: item.article,
-        props: item as IProjectInfo,
+        props: item,
       }))
     ],
   },
@@ -62,27 +71,37 @@ const routes = [
   },
 ];
 
-var router = createRouter({
+const controller = ref<AbortController>();
+
+const router = createRouter({
   history: createWebHashHistory(),
   routes,
-  scrollBehavior(to, from, savedPosition) {
+  scrollBehavior: async (_to, _from, savedPosition) => {
     if (!savedPosition) {
       return { top: 0 };
     }
-    const store = useScrollAffectingContentWaiterStore();
-    document.querySelectorAll("iframe,img").forEach((ele) => {
-      if (ele instanceof HTMLIFrameElement) {
-        if (ele.src && ele.readyState === 'loading') {
-          store.add(new Promise((resolve) => ele.addEventListener('load', resolve, { once: true})));
+    await new Promise<void>((resolve, rejected) => {
+      const timeout = setTimeout(rejected, WAIT_FOR_LAYOUT_TIMEOUT);
+      const observer = useResizeObserver(debounce(() => {
+        if (controller.value?.signal.aborted) {
+          rejected();
+          return;
         }
-      } else if (ele instanceof HTMLImageElement) {
-        if (ele.src && !ele.complete) {
-          store.add(new Promise((resolve) => ele.addEventListener('load', resolve, { once: true})));
-        }
-      }
+        clearTimeout(timeout);
+        observer.stop();
+        resolve();
+      }, WAIT_FOR_LAYOUT_DEBOUNCE));
+      observer.observe(document.documentElement);
+    }).catch(() => {
+      controller.value?.abort();
     });
-    return store.wait.then(() => savedPosition);
+    return savedPosition;
   },
+});
+
+router.beforeEach((_to, _from) => {
+  controller.value?.abort();
+  controller.value = new AbortController();
 });
 
 export default router;
