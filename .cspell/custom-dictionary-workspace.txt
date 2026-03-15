@@ -7,9 +7,12 @@ Metaball
 Metaballs
 Metatable
 Metatables
+tscn
+tween
+tweens
 unref
-Xmark
 xlarge
+Xmark
 xsmall
 xxlarge
 xxsmall

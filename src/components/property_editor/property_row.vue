@@ -68,6 +68,7 @@ const { theme } = useTheme(() => ({ color: toValue(props.item.color) }));
   display: grid;
   grid-template-columns: subgrid;
   grid-column: 1 / 4;
+  gap: var(--padding-normal);
 
   & .label  { grid-column: 1 / 2; text-wrap: nowrap; }
   & .reset  { grid-column: 2 / 3; }
