@@ -9,23 +9,25 @@ import Formula from '@/components/formula.vue'
 import Note from '@/components/note.vue'
 import PropertyEditor from '@/components/property_editor/property_editor.vue'
 import {
-  NumberRangeOptions,
+  NumberRangeRow,
 } from '@/util/property_editor/property_types'
 import Quote from '@/components/quote.vue'
 import Section from '@/components/section.vue'
-import { CoreThemeColors, NoteThemeColors, NoteKindDisplayStrings, ThemeColorDisplayStrings, ThemeGradientSlots } from '@/composables/theme'
+import { getNoteHeading, getThemeColorName, ThemeDepthGradient, NoteThemeColors, CoreThemeColors } from '@/composables/theme'
 import TermList from '@/components/term_list.vue'
 import Term from '@/components/term.vue'
 import VarietyText from '@/components/placeholders/variety_text.vue'
 import universal_gravitation from '@/assets/formulas/universal_gravitation.latex?raw'
+import usePropertyEditorModel from '@/composables/property_editor_model'
 
-const hue = ref(null);
-const saturation = ref(null);
-
-const lightness_gradient_editor = [
-  new NumberRangeOptions('hue', 'Hue', 214, 0, 360, 1).setModel(hue),
-  new NumberRangeOptions('saturation', 'Saturation', 50, 0, 100, 1).setModel(saturation),
-];
+const hue = ref<null|number>(null);
+const saturation = ref<null|number>(null);
+const editor = usePropertyEditorModel(
+  [
+    new NumberRangeRow('hue', 'Hue', 214, 0, 360, 1).setModel(hue),
+    new NumberRangeRow('saturation', 'Saturation', 50, 0, 100, 1).setModel(saturation),
+  ],
+);
 </script>
 
 <template>
@@ -38,14 +40,14 @@ const lightness_gradient_editor = [
       <TermList heading="CSS 50-950 Gradients" class="lightness-gradients">
         <Term v-for="color_func in ['hsl', 'lch', 'oklch']" :key="color_func" :term="color_func">
           <div class="columns gradient color-frame">
-            <div v-for="slot in ThemeGradientSlots" :key="slot"
+            <div v-for="slot in ThemeDepthGradient" :key="slot"
                  class="color-cell" :style="{ 'background-color': `var(--${color_func}-${slot})` }">
             </div>
           </div>
         </Term>
       </TermList>
 
-      <PropertyEditor :properties="lightness_gradient_editor" />
+      <PropertyEditor v-bind:rows="editor.rows" v-model="editor.models" v-on="editor.onPropertyEmit" />
     </Section>
 
     <Section heading="Sample Content">
@@ -55,18 +57,18 @@ const lightness_gradient_editor = [
           Lorem ipsum dolor sit amet, consectetur adipisicing elit. Modi repellat cupiditate reprehenderit optio, neque porro consectetur aut? Perspiciatis, animi odio!
         </Quote>
       <Divider />
-      <Formula caption="Newton's law of universal gravitation" :text="universal_gravitation" />
+      <Formula caption="Newton's law of universal gravitation" :content="universal_gravitation" />
       <Divider heading="Lorem Ipsum?" />
       <VarietyText paragraph />
       <VarietyText lorem />
       <div class="responsive-column columns gap-xxl">
-        <Note v-for="note_color in NoteThemeColors" :key="note_color" :color="note_color" :text="`${NoteKindDisplayStrings[note_color]}`" />
+        <Note v-for="note_color in NoteThemeColors" :key="note_color" :color="note_color" :text="`${getNoteHeading(note_color)}`" />
       </div>
       <VarietyText paragraph />
       <div class="responsive-column columns gap-xxl">
         <Layer v-for="color in CoreThemeColors" :key="color" :color>
-          <h3><span>{{ ThemeColorDisplayStrings[color] }}</span> Layer</h3>
-          <Formula caption="Mass-energy equivalence" text="E=mc^2" />
+          <h3><span>{{ getThemeColorName(color) }}</span> Layer</h3>
+          <Formula caption="Mass-energy equivalence" content="E=mc^2" />
           <VarietyText lorem />
           <Details summary="Lorem Ipsum!"><VarietyText lorem /></Details>
         </Layer>
@@ -79,13 +81,13 @@ const lightness_gradient_editor = [
       <Details summary="Mass-energy equivalence">
         <CodeMirror lang="cpp"
                     caption="Mass-energy equivalence."
-                    loader="
+                    content="
           float energy(float m, float c) {
             return m * c * c;
           }
         " />
       </Details>
-      <Formula caption="Mass-energy equivalence" text="E=mc^2" />
+      <Formula caption="Mass-energy equivalence" content="E=mc^2" />
       <VarietyText paragraph />
       <div class="responsive-column columns gap-xxl">
         <VarietyText paragraph />

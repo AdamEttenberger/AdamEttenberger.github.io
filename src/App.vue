@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import ConsentBanner from '@/components/consent_banner.vue'
 import Footer from '@/components/footer.vue'
 import Header from './components/header.vue'
-import LocalStorageHelper from '@/types/local_storage_helper'
 // Pinia Stores
 import { useConsentStore } from '@/stores/consent'
 import { useUserPreferencesStore } from '@/stores/user_preferences'
 import { useMatchThreeScorecardStore } from '@/stores/match_three_scorecard'
 import useTheme from '@/composables/theme'
 import { useRootThemeStore } from '@/stores/root_theme'
+import useLocalStorage from '@/composables/local_storage'
 const consent = useConsentStore();
 const {
   // allow_first_party_tracking,
@@ -19,14 +19,12 @@ const {
   allow_saving_match_three_scorecard,
 } = storeToRefs(consent);
 
-onMounted(() => {
-  const consent = useConsentStore();
+const local_storage = useLocalStorage();
 
-  const any_consent_given = computed<boolean>(() => Object.values(consent.$state).reduce<boolean>((result, item: boolean) => result || item, false));
-  LocalStorageHelper.bind(consent, any_consent_given);
-  LocalStorageHelper.bind(useUserPreferencesStore(), allow_saving_user_preferences);
-  LocalStorageHelper.bind(useMatchThreeScorecardStore(), allow_saving_match_three_scorecard);
-});
+const any_consent_given = computed<boolean>(() => Object.values(consent.$state).some((item: boolean) => item));
+local_storage.bind(consent, any_consent_given);
+local_storage.bind(useUserPreferencesStore(), allow_saving_user_preferences);
+local_storage.bind(useMatchThreeScorecardStore(), allow_saving_match_three_scorecard);
 
 const root_theme = useRootThemeStore();
 const { theme } = useTheme(() => root_theme.value);

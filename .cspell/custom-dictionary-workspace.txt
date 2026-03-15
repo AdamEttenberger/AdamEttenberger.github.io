@@ -1,0 +1,16 @@
+# Custom Dictionary Words
+fontawesome
+gamedata
+Gloopy
+mathml
+Metaball
+Metaballs
+Metatable
+Metatables
+unref
+Xmark
+xlarge
+xsmall
+xxlarge
+xxsmall
+Zilla

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeUnmount, useTemplateRef, watch } from 'vue'
+import { computed, onBeforeUnmount, useTemplateRef, watch } from 'vue'
 import { type LanguageSupport } from "@codemirror/language"
 import {basicSetup} from "codemirror"
 import {EditorState} from "@codemirror/state"
@@ -11,16 +11,19 @@ import { oneDark } from "@codemirror/theme-one-dark"
 import { ThemeColor } from '@/composables/theme'
 import useTextDocument, { type ITextDocumentParam, AsyncDocumentLoaderStatus } from '@/types/text_document'
 
-type SupportedLanguage = 'cpp'|'css'|'go'|'html'|'javascript'|'json'|'rust'|'vue'|'yaml';
+type SupportedLanguage = 'cpp'|'css'|'gdscript'|'go'|'html'|'javascript'|'json'|'python'|'rust'|'text'|'vue'|'yaml';
 
-const LanguageExtensionLookup: Record<SupportedLanguage, () => Promise<LanguageSupport>> = {
+const LanguageExtensionLookup: Record<SupportedLanguage, () => undefined|Promise<LanguageSupport>> = {
   'cpp': () => import("@codemirror/lang-cpp").then(x => x['cpp']()),
   'css': () => import("@codemirror/lang-css").then(x => x['css']()),
   'go': () => import("@codemirror/lang-go").then(x => x['go']()),
+  'gdscript': () => import("@codemirror/lang-python").then(x => x['python']()),
   'html': () => import("@codemirror/lang-html").then(x => x['html']()),
   'javascript': () => import("@codemirror/lang-javascript").then(x => x['javascript']()),
   'json': () => import("@codemirror/lang-json").then(x => x['json']()),
+  'python': () => import("@codemirror/lang-python").then(x => x['python']()),
   'rust': () => import("@codemirror/lang-rust").then(x => x['rust']()),
+  'text': () => undefined,
   'vue': () => import("@codemirror/lang-vue").then(x => x['vue']()),
   'yaml': () => import("@codemirror/lang-yaml").then(x => x['yaml']()),
 };
@@ -30,6 +33,15 @@ const props = withDefaults(defineProps<ITextDocumentParam & {
   caption?:  string;
 }>(), {
   lang: 'cpp',
+});
+
+const display_caption = computed<undefined|string>(() => {
+  if (props.caption) {
+    return props.caption;
+  }
+  if (props.file && typeof props.file === 'string') {
+    return props.file.substring(props.file.lastIndexOf('/') + 1);
+  }
 });
 
 const { status, content: document_content } = useTextDocument(() => ({ file: props.file, content: props.content }));
@@ -58,7 +70,7 @@ const watch_handle = watch(() => editor.value ? status.value : AsyncDocumentLoad
       EditorView.editable.of(false),
       EditorView.contentAttributes.of({tabindex: "0"}),
       oneDark,
-      language,
+      language ?? [],
     ],
   });
 });
@@ -66,6 +78,7 @@ const watch_handle = watch(() => editor.value ? status.value : AsyncDocumentLoad
 function reset() {
   controller?.abort();
   editor_view?.destroy();
+  editor_view = undefined;
 }
 
 onBeforeUnmount(() => {
@@ -75,7 +88,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <Figure :caption>
+  <Figure :caption="display_caption">
     <Note v-if="status === AsyncDocumentLoaderStatus.Error" :color="ThemeColor.Error">
       Error loading code view
     </Note>

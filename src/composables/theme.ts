@@ -35,7 +35,7 @@ export interface INoteThemeColorMeta extends IThemeColorMeta {
   readonly icon: Array<string>;
 }
 
-const ThemeGradientSlots = ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950'] as const satisfies readonly ThemeGradientSlot[];
+export const ThemeGradientSlots = ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950'] as const satisfies readonly ThemeGradientSlot[];
 export const ThemeDepthGradient: Record<ThemeDepth, ThemeGradientSlot> = ThemeGradientSlots.reduce(
   (result, item, index) => {
     result[index as ThemeDepth] = item;

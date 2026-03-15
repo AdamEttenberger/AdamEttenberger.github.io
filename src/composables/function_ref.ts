@@ -56,6 +56,9 @@ export interface IUseFunctionRef<TKey extends string|number|symbol, TArgs extend
   ref(key: TKey, ...args: TArgs): VueFunctionRefHandler;
   asElement<T extends typeof Element>(key: TKey, element_type: T): undefined|InstanceType<T>;
   asComponent<T extends abstract new (...args: any) => any>(key: TKey, component: T): undefined|ComponentPublicInstance<T>;
+
+  forEachComponent<T extends abstract new (...args: any) => any>(component: T, callback: (element: T) => void): void;
+  forEachElement<T extends typeof Element>(element_type: T, callback: (element: InstanceType<T>) => void): void;
 };
 
 /**
@@ -162,9 +165,32 @@ export default function useFunctionRef<
     return toElement(records[key].element, element_type);
   }
 
+  function forEachComponent<T extends abstract new (...args: any) => any>(component: T, callback: (element: T) => void): void {
+    (Object.keys(records) as TKey[]).forEach((key) => {
+      const comp = asComponent(key, component);
+      if (!comp) {
+        return;
+      }
+      callback(comp);
+    });
+  }
+
+  function forEachElement<T extends typeof Element>(element_type: T, callback: (element: InstanceType<T>) => void): void {
+    (Object.keys(records) as TKey[]).forEach((key) => {
+      const element = asElement(key, element_type);
+      if (!element) {
+        return;
+      }
+      callback(element);
+    });
+  }
+
   return {
     ref,
     asComponent,
     asElement,
+
+    forEachElement,
+    forEachComponent,
   };
 }

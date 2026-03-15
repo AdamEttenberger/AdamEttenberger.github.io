@@ -1,249 +1,206 @@
-import { Ref } from 'vue'
+import { readonly, type AsyncComponentLoader, type MaybeRef, type MaybeRefOrGetter } from 'vue'
 import {
-  type AnyPropertyOptions,
   type MinMax,
   PropertyKind,
 
   // Utility Interfaces
-  IPropertyConverter,
-  IRangePropertyConverter,
+  type ExtractModelType,
+  type IPropertyConverter,
 
   // Base Property Interfaces
-  IPropertyValueOptions,
-  IPropertyOptions,
+  type IPropertyMeta,
+  type IPropertyRow,
+  type IPropertyDataRow,
 
   // Editor Property Interfaces
-  IPropertyButtonOptions,
-  IPropertyColor3Options,
-  IPropertyColor4Options,
-  IPropertyComboBoxOptions,
-  IPropertyDividerOptions,
-  IPropertyGroupOptions,
-  IPropertyLabelOptions,
-  IPropertyNumberRangeOptions,
-  IPropertyToggleOptions,
+  type IPropertyColor3Row,
+  type IPropertyColor4Row,
+  type IPropertyComboBoxRow,
+  type IPropertyGroupRow,
+  type IPropertyLabelRow,
+  type IPropertyNumberRangeRow,
+  type IPropertyToggleRow,
+  type PropertyRowConverter,
 } from '@/util/property_editor/property_interfaces'
+import { type ThemeColor } from '@/composables/theme'
 
 export {
-  type AnyPropertyOptions,
   type MinMax,
   PropertyKind,
 };
 
-class NumberReciprocalConverter implements IPropertyConverter {
-  #transform(value) { return 1.0 / value; }
-  toView(options: IPropertyValueOptions, model_value) { return this.#transform(model_value); }
-  toModel(options: IPropertyValueOptions, view_value) { return this.#transform(view_value); }
+type PropertyMetaRecord = Record<PropertyKind, Readonly<IPropertyMeta>>;
+function toRecords(items: Array<IPropertyMeta>): PropertyMetaRecord {
+  return Object.fromEntries(items.map(item => [item.kind, readonly<IPropertyMeta>(item)])) as PropertyMetaRecord;
+}
+
+class PropertyMeta implements IPropertyMeta {
+  constructor(public kind: PropertyKind,
+              public with_label: boolean,
+              public with_reset: boolean,
+              public with_click: boolean,
+              public component?: AsyncComponentLoader) {}
+}
+
+const PropertyMetatables: PropertyMetaRecord = toRecords([
+  //             { kind,                      with_label, with_reset, with_click,   component? }
+  new PropertyMeta(PropertyKind.Button,       false,      false,      true,         () => import('@/components/property_editor/rows/property_button.vue')),
+  new PropertyMeta(PropertyKind.Color3,       true,       true,       false,        undefined),
+  new PropertyMeta(PropertyKind.Color4,       true,       true,       false,        undefined),
+  new PropertyMeta(PropertyKind.ComboBox,     true,       true,       false,        () => import('@/components/property_editor/rows/property_combo_box.vue')),
+  new PropertyMeta(PropertyKind.Divider,      false,      false,      false,        () => import('@/components/property_editor/rows/property_divider.vue')),
+  new PropertyMeta(PropertyKind.Group,        false,      false,      false,        () => import('@/components/property_editor/rows/property_group.vue')),
+  new PropertyMeta(PropertyKind.Label,        true,       false,      false,        () => import('@/components/property_editor/rows/property_label.vue')),
+  new PropertyMeta(PropertyKind.NumberRange,  true,       true,       false,        () => import('@/components/property_editor/rows/property_number_range.vue')),
+  new PropertyMeta(PropertyKind.Toggle,       true,       true,       true,         () => import('@/components/property_editor/rows/property_toggle.vue')),
+]);
+
+class NumberReciprocalConverter implements IPropertyConverter<number> {
+  #transform(value: number) { return 1.0 / value; }
+  toView(row: IPropertyDataRow<number>, model_value: number): number { return this.#transform(model_value); }
+  toModel(row: IPropertyDataRow<number>, view_value: number): number { return this.#transform(view_value); }
 };
 
-class NumberRangeConverter implements IPropertyConverter {
-  view_range: any;
-  constructor(min, max) {
+class NumberRangeConverter implements IPropertyConverter<number, IPropertyNumberRangeRow> {
+  view_range: MinMax;
+  constructor(min: number, max: number) {
     this.view_range = { min, max };
   }
-  #transform(value, min1, max1, min2, max2) {
+  #transform(value: number, min1: number, max1: number, min2: number, max2: number) {
     return ((value - min1) / (max1 - min1) * (max2 - min2)) + min2;
   }
 
-  toView(options: IPropertyValueOptions, model_value);
-  toView(options: IPropertyNumberRangeOptions, model_value) {
-    if (!options.range) return model_value;
-    return this.#transform(model_value, options.range.min, options.range.max, this.view_range.min, this.view_range.max);
+  toView(row: IPropertyNumberRangeRow, model_value: number): number;
+  toView(row: IPropertyNumberRangeRow, model_value: number): number {
+    return this.#transform(model_value, row.range.min, row.range.max,
+                                        this.view_range.min, this.view_range.max);
   }
-  toModel(options: IPropertyValueOptions, view_value);
-  toModel(options: IPropertyNumberRangeOptions, view_value) {
-    if (!options.range) return view_value;
-    return this.#transform(view_value, this.view_range.min, this.view_range.max, options.range.min, options.range.max);
+  toModel(row: IPropertyNumberRangeRow, view_value: number): number;
+  toModel(row: IPropertyNumberRangeRow, view_value: number): number {
+    return this.#transform(view_value, this.view_range.min, this.view_range.max,
+                                       row.range.min, row.range.max);
   }
 }
 
 /**
- * Base type for all property options.
+ * Base type for all property rows.
  */
-class PropertyOptions implements IPropertyOptions {
-  // Editor Constants
-  /** Which type of editor PropertyRow should generate and bind these options to. */
-  kind: PropertyKind;
-  /** Whether the PropertyRow label text should be visible. */
-  show_label: boolean;
-  /** Whether the PropertyRow undo button should be visible. */
-  show_undo: boolean;
+abstract class PropertyRow implements IPropertyRow {
+  public abstract readonly meta: IPropertyMeta;
+  public disabled: MaybeRefOrGetter<undefined|boolean>;
+  public collapsed: MaybeRefOrGetter<undefined|boolean>;
+  public color: MaybeRefOrGetter<undefined|ThemeColor>;
 
-  // Editor Options
-  /** A unique name or identifier for the property, used for getting/setting model values and raising property notifications. */
-  name: any;
-  /** Label for the property. This is either presented in the PropertyRow label column, or as the display text for editors that span multiple PropertyRow columns. */
-  label: any;
-  /** Whether the editor should be presented as 'disabled' and should not be interactable. */
-  disabled?: any;
-  /** Whether the editor should be made invisible and collapsed so it does not consume any space. */
-  collapsed?: any;
-  /** Theme color of the control An array of string HTML class names to append to the generated row item. */
-  color?: any;
+  constructor(public readonly name: string,
+              public readonly label: string) {}
 
-  constructor(name, label) {
-    this.name = name;
-    this.label = label;
-  }
-
-  setName(name): this {
-    this.name = name;
-    return this;
-  }
-
-  setLabel(label): this {
-    this.label = label;
-    return this;
-  }
-
-  setDisabled(disabled?: any): this {
+  setDisabled(disabled: MaybeRefOrGetter<undefined|boolean>): this {
     this.disabled = disabled;
     return this;
   }
 
-  setCollapsed(collapsed?: any): this {
+  setCollapsed(collapsed: MaybeRefOrGetter<undefined|boolean>): this {
     this.collapsed = collapsed;
     return this;
   }
 
-  setColor(color?: any): this {
+  setColor(color: MaybeRefOrGetter<undefined|ThemeColor>): this {
     this.color = color;
     return this;
   }
-}
+};
 
 /**
- * Base type for all property options that have a model value.
+ * Base type for all property rows with a model value.
  */
-class PropertyValueOptions extends PropertyOptions implements IPropertyValueOptions {
-  /** The default model value, used to pre-populate an undefined model, and by PropertyRow for making the undo button visible. */
-  default_value: any;
-  /** The value used by property editors when creating two-way bindings. */
-  modelValue?: Ref<any>;
-  /**
-   * Used to create an intermediary computed property for two-way binding in place of `modelValue` which allows for converting between actual and display values.
-   * e.g., To display a number range in normalized form, or to convert between units (fahrenheit, celsius, kelvin).
-   */
-  converter?: IPropertyConverter;
+abstract class PropertyDataRow<T> extends PropertyRow implements IPropertyDataRow<T> {
+  modelValue?: MaybeRef<null|T>;
+  converter?: IPropertyConverter<T, IPropertyDataRow<T>>;
 
-  constructor(name, label, default_value) {
+  constructor(name: string,
+              label: string,
+              public default_value: MaybeRefOrGetter<T>) {
     super(name, label);
-    this.default_value = default_value;
   }
 
-  setDefault(default_value): this {
-    this.default_value = default_value;
+  setModel(modelValue?: MaybeRef<null|T>): this {
+    this.modelValue = modelValue;
     return this;
   }
 
-  setModel(model?: Ref<any>): this {
-    this.modelValue = model;
-    return this;
-  }
-
-  setConverter(converter?: IPropertyConverter): this {
+  setConverter(converter?: IPropertyConverter<T, IPropertyDataRow<T>>): this {
     this.converter = converter;
     return this;
   }
 };
 
-export class ButtonOptions extends PropertyOptions implements IPropertyButtonOptions {
-  kind = PropertyKind.Button;
-  show_label = false;
-  show_undo = false;
-
-  constructor(name, label) {
-    super(name, label);
-  }
+export class ButtonRow extends PropertyRow {
+  readonly meta = PropertyMetatables[PropertyKind.Button];
 };
-export class DividerOptions extends PropertyOptions implements IPropertyDividerOptions {
-  kind = PropertyKind.Divider;
-  show_label = false;
-  show_undo = false;
-
-  constructor(name, label) {
-    super(name, label);
-  }
+export class DividerRow extends PropertyRow{
+  readonly meta = PropertyMetatables[PropertyKind.Divider];
 };
 
-export class LabelOptions extends PropertyValueOptions implements IPropertyLabelOptions {
-  kind = PropertyKind.Label;
-  show_label = true;
-  show_undo = false;
-
-  constructor(name, label) {
-    super(name, label, null);
-  }
+export class LabelRow extends PropertyDataRow<ExtractModelType<IPropertyLabelRow>> implements IPropertyLabelRow {
+  readonly meta = PropertyMetatables[PropertyKind.Label];
 };
 
-export class Color3Options extends PropertyValueOptions implements IPropertyColor3Options {
-  kind = PropertyKind.Color3;
-  show_label = true;
-  show_undo = true;
+export class Color3Row extends PropertyDataRow<ExtractModelType<IPropertyColor3Row>> implements IPropertyColor3Row {
+  readonly meta = PropertyMetatables[PropertyKind.Color3];
+};
 
-  constructor(name, label, default_value) {
+export class Color4Row extends PropertyDataRow<ExtractModelType<IPropertyColor4Row>> implements IPropertyColor4Row {
+  readonly meta = PropertyMetatables[PropertyKind.Color4];
+};
+
+export class ComboBoxRow<TKey = string, TValue = string> extends PropertyDataRow<ExtractModelType<IPropertyComboBoxRow<TKey, TValue>>> implements IPropertyComboBoxRow<TKey, TValue> {
+  readonly meta = PropertyMetatables[PropertyKind.ComboBox];
+  declare converter?: PropertyRowConverter<IPropertyComboBoxRow<TKey, TValue>>;
+  setConverter(converter?: PropertyRowConverter<IPropertyComboBoxRow<TKey, TValue>>): this {
+    return super.setConverter(converter);
+  }
+
+  constructor(name: string,
+              label: string,
+              default_value: MaybeRefOrGetter<ExtractModelType<IPropertyComboBoxRow<TKey, TValue>>>,
+              public values: Array<[TKey, TValue]>) {
     super(name, label, default_value);
   }
-};
 
-export class Color4Options extends PropertyValueOptions implements IPropertyColor4Options {
-  kind = PropertyKind.Color4;
-  show_label = true;
-  show_undo = true;
-
-  constructor(name, label, default_value) {
-    super(name, label, default_value);
-  }
-};
-
-export class ComboBoxOptions extends PropertyValueOptions implements IPropertyComboBoxOptions {
-  kind = PropertyKind.ComboBox;
-  show_label = true;
-  show_undo = true;
-  /** Array of ([key, value]) entries, where key is a unique identifier and value is the display text. */
-  values: any;
-
-  constructor(name, label, default_value, values) {
-    super(name, label, default_value);
-    this.values = values;
-  }
-  setValues(values): this {
+  setValues(values: Array<[TKey, TValue]>): this {
     this.values = values;
     return this;
   }
 };
 
-export class GroupOptions extends PropertyValueOptions implements IPropertyGroupOptions {
-  kind = PropertyKind.Group;
-  show_label = false;
-  show_undo = false;
-
-  constructor(name, label, default_value) {
-    super(name, label, default_value);
-  }
+export class GroupRow extends PropertyDataRow<ExtractModelType<IPropertyGroupRow>> implements IPropertyGroupRow {
+  readonly meta = PropertyMetatables[PropertyKind.Group];
 };
 
-export class NumberRangeOptions extends PropertyValueOptions implements IPropertyNumberRangeOptions {
-  kind = PropertyKind.NumberRange;
-  show_label = true;
-  show_undo = true;
+export class NumberRangeRow extends PropertyDataRow<ExtractModelType<IPropertyNumberRangeRow>> implements IPropertyNumberRangeRow {
+  readonly meta = PropertyMetatables[PropertyKind.NumberRange];
+  declare converter?: PropertyRowConverter<IPropertyNumberRangeRow>;
+  setConverter(converter?: PropertyRowConverter<IPropertyNumberRangeRow>): this {
+    return super.setConverter(converter);
+  }
 
-  /** The min and max amount for the number range spinner and slider controls. */
   range: MinMax;
-  /** The step amount for the number range spinner and slider controls. */
-  step: any;
 
-  constructor(name, label, default_value, min, max, step) {
+  constructor(name: string,
+              label: string,
+              default_value: MaybeRefOrGetter<ExtractModelType<IPropertyNumberRangeRow>>,
+              min: number,
+              max: number,
+              public step: number) {
     super(name, label, default_value);
     this.range = { min, max };
-    this.step = step;
   }
 
   setRange(range: MinMax): this {
     this.range = range;
     return this;
   }
-  setStep(step): this {
+  setStep(step: number): this {
     this.step = step;
     return this;
   }
@@ -252,7 +209,7 @@ export class NumberRangeOptions extends PropertyValueOptions implements IPropert
     return this.setConverter(new NumberReciprocalConverter());
   }
   /** Display the value proportionally within the specified range. */
-  asRange(min, max): this {
+  asRange(min: number, max: number): this {
     return this.setConverter(new NumberRangeConverter(min, max));
   }
   /** Display the value normalized to the range [0.0, 1.0]. */
@@ -261,18 +218,17 @@ export class NumberRangeOptions extends PropertyValueOptions implements IPropert
   }
 };
 
-export class ToggleOptions extends PropertyValueOptions implements IPropertyToggleOptions {
-  kind = PropertyKind.Toggle;
-  show_label = true;
-  show_undo = true;
-  /** Array passed to font-awesome-icon:icon used to indicate the toggle is checked. */
-  icon?: any;
-
-  constructor(name, label, default_value) {
-    super(name, label, default_value);
+export class ToggleRow extends PropertyDataRow<ExtractModelType<IPropertyToggleRow>> implements IPropertyToggleRow {
+  readonly meta = PropertyMetatables[PropertyKind.Toggle];
+  declare converter?: PropertyRowConverter<IPropertyToggleRow>;
+  setConverter(converter?: PropertyRowConverter<IPropertyToggleRow>): this {
+    return super.setConverter(converter);
   }
 
-  setIcon(icon?: any): this {
+  /** Array passed to font-awesome-icon:icon used to indicate the toggle is checked. */
+  icon?: Array<string>;
+
+  setIcon(icon?: Array<string>): this {
     this.icon = icon;
     return this;
   }

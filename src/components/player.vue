@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { useTemplateRef, type ShallowRef } from 'vue';
+import { useTemplateRef, type ShallowRef } from 'vue'
 import Figure from '@/components/figure.vue'
 import ProjectLabel from '@/components/project_label.vue'
 import { PlayerState } from '@/types/player_state'
 import Button from '@/components/buttons/button.vue'
 import { type DateLike } from '@/util/date'
-import { FrameContainerSymbol } from '@/composables/post_message'
+import { FrameContainerSymbol } from '@/types/frame_container'
 
 const frame_key: string = crypto.randomUUID();
 const inner_frame: Readonly<ShallowRef<HTMLIFrameElement | null>> = useTemplateRef<HTMLIFrameElement>('inner_frame');

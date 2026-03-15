@@ -1,19 +1,8 @@
+import { ref } from 'vue'
 import { fps } from '@/util/time'
 import { throttle } from '@/util/rate_limit'
 import { type Variadic, type VariadicFunction } from '@/util/generic'
-import { ref } from 'vue';
-
-export const FrameContainerSymbol: unique symbol = Symbol();
-
-export interface IFrameContainer {
-  readonly [FrameContainerSymbol]: string;
-  inner_frame?: HTMLIFrameElement;
-};
-
-export function isFrameContainer(value: unknown): value is IFrameContainer {
-  return typeof value === 'object' && value !== null &&
-         FrameContainerSymbol in value && typeof value[FrameContainerSymbol] === 'string';
-}
+import { FrameContainerSymbol, type IFrameContainer } from '@/types/frame_container'
 
 export interface IUsePostMessage<TPayload, TArgs extends Variadic> {
   post: (frame: IFrameContainer, payload: TPayload, ...args: TArgs) => void;
@@ -24,7 +13,7 @@ class PostItem<TPayload> {
               public payload: TPayload) {}
 }
 
-export function usePostMessage<
+export default function usePostMessage<
     TPayload,
     TCallbackArgs extends Variadic = []
 >(

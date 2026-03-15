@@ -7,42 +7,64 @@ import Figure from '@/components/figure.vue'
 import Player from '@/components/player.vue'
 import { PlayerState } from '@/types/player_state'
 import Section from '@/components/section.vue'
-import { IProjectInfo } from '@/types/project_types'
+import { type IProjectInfo } from '@/types/project_types'
 import useIntersectionObserver from '@/composables/intersection_observer'
+import usePostMessage from '@/composables/post_message'
+import { FrameContainerSymbol, isFrameContainer } from '@/types/frame_container'
+import useFunctionRef, { toComponent, type WeakElement } from '@/composables/function_ref'
 
 defineProps<IProjectInfo>();
-const player_states = ref({});
 
-const { observe: mapPlayerIntersectionObserver } = useIntersectionObserver((key, entry, _index, _array) => {
+type FrameRefName = 'main'|'triangle'|'json-loader'|'json-deserialize-example';
+
+const player_states = ref(<Record<FrameRefName, PlayerState>>{});
+
+const { observe: mapPlayerIntersectionObserver } = useIntersectionObserver<FrameRefName>((key, entry) => {
   player_states.value[key] = entry.isIntersecting
       ? PlayerState.Playing
       : PlayerState.Empty;
 });
 
-function makePlayerRef(key) {
-  return (e) => mapPlayerIntersectionObserver(key, e?.$el);
-}
+const player = useFunctionRef<FrameRefName>([
+  {
+    ref(e: undefined|WeakElement, key: FrameRefName): void {
+      const comp = toComponent(e, Player);
+      if (!isFrameContainer(comp)) {
+        return;
+      }
+      mapPlayerIntersectionObserver(key, () => comp.$el);
+    }
+  }
+]);
 
-function onPlayerLoaded(target_frame, filepath) {
-  postMessageToFrame(target_frame, filepath);
-}
+type ProjectLoaderPayload = {
+  file: string;
+};
+const { post } = usePostMessage<ProjectLoaderPayload>();
 
-function postMessageToFrame(target_frame, filepath) {
-  target_frame.contentWindow.postMessage({
-    file: filepath,
-  }, window.location.origin);
+function onPlayerLoaded(target_frame: HTMLIFrameElement, frame_key: string, ref_name: FrameRefName, new_filepath: string) {
+  const comp = player.asComponent(ref_name, Player);
+  if (!isFrameContainer(comp) || !comp.inner_frame) {
+    console.error('unable to locate frame');
+    return;
+  }
+  if (comp.inner_frame !== target_frame ||
+      comp[FrameContainerSymbol] !== frame_key) {
+    console.error('unexpected frame mismatch');
+    return;
+  }
+  post(comp, { file: new_filepath });
 }
 </script>
 
 <template>
   <article>
-    <Player :ref="makePlayerRef('main')" :state="player_states['main']"
+    <Player :ref="player.ref('main')" :state="player_states['main']"
             :title="title"
             :date="date"
             :lastmod="lastmod"
             frame="/library/projects/proto_engine/main.html" />
 
-    <!-- <Layer> -->
       <Section heading="What's this?">
         <p>
           This project is a simple proof-of-concept component based game engine, heavily inspired by Unity's component based <Link to="https://docs.unity3d.com/ScriptReference/GameObject.html">GameObject</Link> + <Link to="https://docs.unity3d.com/ScriptReference/MonoBehaviour.html">MonoBehavior</Link> model.
@@ -244,7 +266,7 @@ function postMessageToFrame(target_frame, filepath) {
                     content="
           game.start();
         " />
-        <Player :ref="makePlayerRef('triangle')" :state="player_states['triangle']"
+        <Player :ref="player.ref('triangle')" :state="player_states['triangle']"
                 title="Hello Triangle"
                 :date="new Date('2025/06/26')"
                 :lastmod="new Date('2025/06/26')"
@@ -286,24 +308,24 @@ function postMessageToFrame(target_frame, filepath) {
         <Details summary="project_loader.js">
           <CodeMirror lang="javascript" file="/library/projects/proto_engine/project_loader.js" />
         </Details>
-        <Player :ref="makePlayerRef('json-loader')" :state="player_states['json-loader']"
+        <Player :ref="player.ref('json-loader')" :state="player_states['json-loader']"
                 title="hello_triangle.json"
                 :date="new Date('2025/06/26')"
                 :lastmod="new Date('2025/06/26')"
                 frame="/library/projects/proto_engine/project_loader.html"
-                @load="(e) => onPlayerLoaded(e, '/library/proto_engine/scenes/hello_triangle.json')" />
+                @load="(e, frame_key) => onPlayerLoaded(e, frame_key, 'json-loader', '/library/proto_engine/scenes/hello_triangle.json')" />
         <p>
           The following demo loads <Link public to="/library/proto_engine/scenes/deserialization_example.json">deserialization_example.json</Link> which is a scene composed of parts from the demo at the top of the page and the giant textured cube from the <RouterLink to="/projects/flocking">WebGL Flocking</RouterLink> project page.
           This also includes binary data such as models and textures which are output as a JSON array and base64 encoded string respectively.
           While JSON isn't the most space efficient file format, this does make it possible to deploy a game or demo with a single self-contained JSON file.
           JSON is very flexible for prototyping and very easy to work with in JavaScript.
         </p>
-        <Player :ref="makePlayerRef('json-deserialize-example')" :state="player_states['json-deserialize-example']"
+        <Player :ref="player.ref('json-deserialize-example')" :state="player_states['json-deserialize-example']"
                 title="deserialization_example.json"
                 :date="new Date('2025/06/25')"
                 :lastmod="new Date('2025/06/25')"
                 frame="/library/projects/proto_engine/project_loader.html"
-                @load="(e) => onPlayerLoaded(e, '/library/proto_engine/scenes/deserialization_example.json')" />
+                @load="(e, frame_key) => onPlayerLoaded(e, frame_key, 'json-deserialize-example', '/library/proto_engine/scenes/deserialization_example.json')" />
         <p>
           Serialization and deserialization are handled asynchronously, and JavaScript Promises make it easy to schedule parallel and order dependent tasks together.
           One challenge that came up involved serialization being called before a scene was fully loaded, since models and textures are bundled into the output.
@@ -355,8 +377,7 @@ function postMessageToFrame(target_frame, filepath) {
               return await new TComponent().deserialize(jsonComponent);
           }
         " />
-      </Section>
-    <!-- </Layer> -->
+    </Section>
   </article>
 </template>
 

@@ -403,9 +403,15 @@ function MetaballComponent( run_mode )
   }
 
   this.handleMessage = function( message ) {
-    this.g_radius = message.radius;
-    this.setAlphaThreshold(message.threshold);
-    this.setParticleCount(message.count);
+    if (message.radius !== undefined) {
+      this.g_radius = message.radius;
+    }
+    if (message.threshold !== undefined) {
+      this.setAlphaThreshold(message.threshold);
+    }
+    if (message.count !== undefined) {
+      this.setParticleCount(message.count);
+    }
   }
 
   this.serialize = async function() {

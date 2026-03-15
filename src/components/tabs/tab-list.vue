@@ -1,38 +1,28 @@
 <script setup lang="ts">
-import { computed, PropType } from 'vue'
+import { computed } from 'vue'
 import Button from '@/components/buttons/button.vue'
 import Layer from '@/components/layer.vue'
 
+type TabKey = number|string;
+type TabValue = string;
+
 const emit = defineEmits([
-  'tab-changed' // (key: Number|String): void
+  'tab-changed' // (key: TabKey): void
 ]);
 
-const props = defineProps({
-  entries: { type: Object, required: true },
-});
+const props = defineProps<{
+  entries: Array<[TabKey, TabValue]>
+}>();
 
-const selected_tab = defineModel('selected_tab', {
-  type: [null, Number, String, Object] as PropType<null|Number|String|Object>,
-  default: null,
-});
-
-const first_tab_key = computed(() => props.entries?.at(0)?.at(0));
-const selected_tab_key = computed({
-  get() {
-    return selected_tab.value ?? first_tab_key.value;
-  },
-  set(new_value) {
-    selected_tab.value = new_value;
-  }
-});
-
-function onTabButtonClicked(key) {
-  selected_tab.value = key;
-  emit('tab-changed', key);
+const selected_tab = defineModel<undefined|TabKey>('selected_tab');
+const first_tab_key = computed<undefined|TabKey>(() => props.entries.at(0)?.[0]);
+if (selected_tab.value === undefined) {
+  selected_tab.value = first_tab_key.value;
 }
 
-if (selected_tab.value === null) {
-  selected_tab.value = first_tab_key.value;
+function onTabButtonClicked(key: TabKey) {
+  selected_tab.value = key;
+  emit('tab-changed', key);
 }
 </script>
 
@@ -40,8 +30,8 @@ if (selected_tab.value === null) {
   <div class="tab-list">
     <Layer class="tab-items-layer" transparent>
       <div class="tab-items-wrapper">
-        <Layer v-for="([key, value]) in entries" :key="key" :depth="(selected_tab_key==key) ? 1 : 1"
-               :class="['tab-button', (selected_tab_key==key)?'selected':'']">
+        <Layer v-for="([key, value]) in entries" :key="key" :depth="(selected_tab===key) ? 1 : 1"
+               :class="['tab-button', (selected_tab===key)?'selected':'']">
           <slot name="tab-item" :key="key" :value="value" :handle-click="() => onTabButtonClicked(key)">
             <Button :text="value" transparent @click.prevent="onTabButtonClicked(key)" />
           </slot>

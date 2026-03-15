@@ -1,8 +1,9 @@
 <script setup lang="ts">
+import { toValue } from 'vue'
 import Button from '@/components/buttons/button.vue'
-import { IPropertyToggleOptions } from '@/util/property_editor/property_interfaces';
-
-defineProps<IPropertyToggleOptions>();
+import { type IPropertyToggleRow } from '@/util/property_editor/property_interfaces'
+defineProps<IPropertyToggleRow>();
+defineEmits(['click']);
 const model = defineModel({
   type: Boolean,
   required: true,
@@ -13,8 +14,8 @@ const model = defineModel({
   <div class="property-editor-toggle">
     <Button class="property-editor-toggle-button"
             :icon="model ? (icon ?? ['fas', 'xmark']) : undefined"
-            :disabled="disabled"
-            @click="model = !model" />
+            :disabled="toValue(disabled)"
+            @click="model = !model; $emit('click', $event);" />
   </div>
 </template>
 

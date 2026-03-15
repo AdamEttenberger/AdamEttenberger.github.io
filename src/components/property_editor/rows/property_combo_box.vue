@@ -1,18 +1,16 @@
 <script setup lang="ts">
-import { PropType } from 'vue'
-import { IPropertyComboBoxOptions } from '@/util/property_editor/property_interfaces';
+import { toValue } from 'vue'
 import Layer from '@/components/layer.vue'
-
-const options = defineProps<IPropertyComboBoxOptions>();
-const model = defineModel({
-  type: [String, Number] as PropType<String | Number>,
+import { type IPropertyComboBoxRow } from '@/util/property_editor/property_interfaces'
+const options = defineProps<IPropertyComboBoxRow>();
+const model = defineModel<string|number>({
   required: true,
 });
 </script>
 
 <template>
   <Layer class="property-editor-combo-box" show_hover>
-    <select :name="name" :disabled="disabled" v-model="model">
+    <select :name :disable="toValue(disabled)" v-model="model">
       <option v-for="([property_name, label]) in options.values" :key="property_name"
               :value="property_name">
         {{ label }}

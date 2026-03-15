@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Divider from '@/components/divider.vue'
-import { IPropertyDividerOptions } from '@/util/property_editor/property_interfaces';
-defineProps<IPropertyDividerOptions>();
+import { type IPropertyDividerRow } from '@/util/property_editor/property_interfaces'
+defineProps<IPropertyDividerRow>();
 </script>
 
 <template>
