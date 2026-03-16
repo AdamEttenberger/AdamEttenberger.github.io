@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, isRef, ref } from 'vue'
+import { computed, isRef, ref, type Ref } from 'vue'
 import CodeMirror from '@/components/code-mirror.vue'
 import Term from '@/components/term.vue'
 import TermList from '@/components/term_list.vue'
@@ -27,10 +27,10 @@ import useIntersectionObserver from '@/composables/intersection_observer'
 import default_vertex_shader from '@/assets/shaders/default.vert?raw'
 import { type IProjectInfo } from '@/types/project_types'
 import usePropertyEditorModel, { type IUsePropertyEditorModel } from '@/composables/property_editor_model'
-import { PropertyEmits, PropertyEmitsHandler, type ExtractModelType, type PropertyType } from '@/util/property_editor/property_interfaces'
-import useFunctionRef, { type WeakElement, toComponent, toElement } from '@/composables/function_ref'
-import usePostMessage from '@/composables/post_message'
-import { isFrameContainer } from '@/types/frame_container'
+import { PropertyEmits, PropertyEmitsHandler, type PropertyType } from '@/util/property_editor/property_interfaces'
+import useFunctionRef, { type WeakElement, toComponent } from '@/composables/function_ref'
+import { type IFrameContainer } from '@/types/frame_container'
+import useShaders, { Uniform, UniformType, type IShaderDefinition, type ShaderUniformsForPayload } from '@/composables/shaders'
 
 defineProps<IProjectInfo>();
 
@@ -82,34 +82,13 @@ type PropertyOverlay = {
   };
 };
 
-interface IShaderSources {
-  vert: { source: string },
-  frag: { source: string },
-};
-
-interface IShaderDefinition {
-  label: string;
-  uniforms: Uniform[];
-  sources: IShaderSources
-};
-
-interface IShaderTemplate {
+export interface IShaderTemplate {
   label: string;
   uniforms: Uniform[];
   sdf_function: string;
 };
 
-const player_states = ref(<Record<DemoKey, PlayerState>>{});
-const shader_keys = <Record<DemoKey, ShaderKey>>{};
-const player_compile = <Record<DemoKey, boolean>>{};
-
-type ShaderUniformsForPayload = (string | { type: UniformType; value: ExtractModelType<PropertyType>; })[][];
-interface IShaderPayload {
-  sources?: IShaderSources;
-  uniforms?: ShaderUniformsForPayload;
-  time_scale?: number;
-}
-const { post } = usePostMessage<IShaderPayload, [DemoKey]>(after_postMessage);
+const player_states = ref({}) as Ref<Record<DemoKey, PlayerState>>;
 
 const { observe: mapPlayerIntersectionObserver } = useIntersectionObserver<DemoKey>((key, entry) => {
   player_states.value[key] = entry.isIntersecting
@@ -124,38 +103,6 @@ const player = useFunctionRef<DemoKey>([
     }
   }
 ]);
-
-enum Update {
-  Auto = 0,
-  Schedule = 1,
-  Now = 2,
-};
-
-enum UniformType {
-  bool = 'bool',
-  float = 'float',
-  int = 'int',
-  uint = 'uint',
-  vec2 = 'vec2',
-  vec3 = 'vec3',
-  vec4 = 'vec4',
-  bvec2 = 'bvec2',
-  bvec3 = 'bvec3',
-  bvec4 = 'bvec4',
-  ivec2 = 'ivec2',
-  ivec3 = 'ivec3',
-  ivec4 = 'ivec4',
-  uvec2 = 'uvec2',
-  uvec3 = 'uvec3',
-  uvec4 = 'uvec4',
-  mat4 = 'mat4',
-};
-
-class Uniform {
-  constructor(public type: UniformType,
-              public name: string,
-              public coerce?: CallableFunction) {}
-}
 
 function createSdfShader(uniforms: Array<Uniform>, sdf_function: string) {
   return `#version 300 es
@@ -816,7 +763,8 @@ const shader_templates: Record<ShaderKey, IShaderTemplate> = {
   },
 };
 
-const shader_definitions: Record<ShaderKey, IShaderDefinition> =
+const shaders = useShaders<DemoKey, ShaderKey>(
+  computed(() => player.entries(Player) as Record<DemoKey, IFrameContainer>),
   (Object.entries(shader_templates) as [ShaderKey, IShaderTemplate][])
   .reduce((result, entry) => {
     const shader_key = entry[0];
@@ -831,8 +779,7 @@ const shader_definitions: Record<ShaderKey, IShaderDefinition> =
     };
     return result;
   },
-  <Record<ShaderKey, IShaderDefinition>>{}
-);
+  <Record<ShaderKey, IShaderDefinition>>{}));
 
 /**
  * Generates unique bindings for PropertyEditor.properties.
@@ -1005,10 +952,14 @@ function degToVec2(deg: number): [number, number] {
   return [Math.cos(rad), Math.sin(rad)];
 }
 
-function getShaderUniformsForMessage(demo_key: DemosWithPropertyEditor, shader_key: ShaderKey): ShaderUniformsForPayload {
+function getShaderUniformsForMessage(demo_key: DemosWithPropertyEditor): ShaderUniformsForPayload {
+  const shader_key = shaders.getAssociatedShaderKey(demo_key);
+  if (!shader_key) {
+    return [];
+  }
   const shader_uniforms = [
     ...shared_uniforms,
-    ...shader_definitions[shader_key].uniforms,
+    ...shaders[shader_key].uniforms,
   ];
   return [
     ...shader_uniforms.map(uniform => {
@@ -1026,36 +977,19 @@ function getShaderUniformsForMessage(demo_key: DemosWithPropertyEditor, shader_k
 }
 
 function postMessageWithPropertyEditor(demo_key: DemosWithPropertyEditor) {
-  const comp = player.castItem(demo_key, Player);
-  if (!isFrameContainer(comp) || !comp.inner_frame) {
-    return;
-  }
-  const shader_key = shader_keys[demo_key];
-  var sources: undefined|IShaderSources = (player_compile[demo_key] !== false) ? shader_definitions[shader_key].sources : undefined;
-  var uniforms: ShaderUniformsForPayload = getShaderUniformsForMessage(demo_key, shader_key);
-  var time_scale: undefined|number = property_editors[demo_key].get<number>('game.time_scale');
-  post(comp, { sources, uniforms, time_scale }, demo_key);
-}
-
-function after_postMessage(_payload: IShaderPayload, demo_key: DemoKey) {
-  player_compile[demo_key] = false;
+  shaders.update(demo_key,
+                 getShaderUniformsForMessage(demo_key),
+                 property_editors[demo_key].get<number>('game.time_scale'));
 }
 
 function onPlayerLoaded(demo_key: DemosWithPropertyEditor, shader_key: ShaderKey) {
-  player_compile[demo_key] = true;
-  shader_keys[demo_key] = shader_key;
+  shaders.bind(demo_key, shader_key);
   postMessageWithPropertyEditor(demo_key);
 }
 
 function onStepByStepPlayerLoaded(demo_key: DemosWithoutPropertyEditor) {
-  const comp = player.castItem(demo_key, Player);
-  if (!isFrameContainer(comp) || !comp.inner_frame) {
-    return;
-  }
-
-  post(comp, {
-    sources: shader_definitions[ShaderKey.Heart].sources,
-    uniforms: [
+  shaders.bind(demo_key, ShaderKey.Heart);
+  shaders.update(demo_key, [
       // Common
       ['uDrawMode',       {type: UniformType.int,     value: 2}],
       ['uShowClock',      {type: UniformType.bool,    value: false}],
@@ -1078,8 +1012,7 @@ function onStepByStepPlayerLoaded(demo_key: DemosWithoutPropertyEditor) {
       ['uBlendToCircle',              {type: UniformType.float, value: 0.2}],
       ['uHiddenCompositionAnimation', {type: UniformType.bool, value: true}],
       ['uCompositionStep',            {type: UniformType.int, value: composition_step[demo_key]}],
-    ],
-  }, demo_key);
+    ]);
 }
 
 function onPropertyChanged(demo_key: DemosWithPropertyEditor, _kind: PropertyEmits, _name: string, _new_value?: unknown) {

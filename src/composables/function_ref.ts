@@ -80,13 +80,21 @@ export interface IUseFunctionRef<TKey extends string|number|symbol, TArgs extend
   castItem<T extends ValidRefItem>(key: TKey, type: T): undefined|RefItemGeneric<T>;
 
   /**
+   * Returns all elements that derives from the type `item_type`.
+   * Beware this matches any types that derive from `item_type` as well.
+   *
+   * @param item_type The type the element must derive from to yield a result.
+   */
+  entries<T extends ValidRefItem>(item_type: T): Record<TKey, RefItemGeneric<T>>
+
+  /**
    * `forEach` iterator for a specific subset of Element or Component types.
    * Beware this matches any types that derive from `item_type` as well.
    *
    * @param item_type The type the element must derive from to yield a result.
    * @param callback The callback to execute for each element found to derive from `item_type`.
    */
-  forEach<T extends ValidRefItem>(item_type: T, callback: (item: RefItemGeneric<T>) => void): void;
+  forEach<T extends ValidRefItem>(item_type: T, callback: (item: RefItemGeneric<T>, key: TKey) => void): void;
 
   /**
    * `reduce` accumulator for a specific subset of Element or Component types.
@@ -96,7 +104,7 @@ export interface IUseFunctionRef<TKey extends string|number|symbol, TArgs extend
    * @param callback The callback to execute for each element found to derive from `item_type`.
    * @param initial_value The initial value for the accumulator.
    */
-  reduce<U, T extends ValidRefItem>(item_type: T, callback: (result: U, component: RefItemGeneric<T>) => U, initial_value: U): U;
+  reduce<U, T extends ValidRefItem>(item_type: T, callback: (result: U, component: RefItemGeneric<T>, key: TKey) => U, initial_value: U): U;
 };
 
 /**
@@ -190,33 +198,42 @@ export default function useFunctionRef<
     }
   }
 
-  function forEach<T extends ValidRefItem>(item_type: T, callback: (item: RefItemGeneric<T>) => void): void {
+  function forEach<T extends ValidRefItem>(item_type: T, callback: (item: RefItemGeneric<T>, key: TKey) => void): void {
     return (Object.keys(records.value) as TKey[]).forEach(
       (key: TKey) => {
         const item = castItem(key, item_type);
         if (item) {
-          callback(item);
+          callback(item, key);
         }
       }
     );
   }
 
-  function reduce<U, T extends ValidRefItem>(item_type: T, callback: (result: U, component: RefItemGeneric<T>) => U, initial_value: U): U {
+  function reduce<U, T extends ValidRefItem>(item_type: T, callback: (result: U, component: RefItemGeneric<T>, key: TKey) => U, initial_value: U): U {
     return (Object.keys(records.value) as TKey[]).reduce(
       (result: U, key: TKey): U => {
         const item = castItem(key, item_type);
         return (item !== undefined)
-            ? callback(result, item)
+            ? callback(result, item, key)
             : result;
       },
       initial_value
     );
   }
 
+  function entries<T extends ValidRefItem>(item_type: T): Record<TKey, RefItemGeneric<T>> {
+    return reduce(item_type, (result, comp: InstanceType<typeof item_type>, key: TKey) => {
+      result[key] = comp as RefItemGeneric<T>;
+      return result;
+    }, <Record<TKey, RefItemGeneric<T>>>{})
+  }
+
   return {
     ref: makeRef,
 
     castItem,
+
+    entries,
     forEach,
     reduce,
   };
