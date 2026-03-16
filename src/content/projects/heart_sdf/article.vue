@@ -1026,7 +1026,7 @@ function getShaderUniformsForMessage(demo_key: DemosWithPropertyEditor, shader_k
 }
 
 function postMessageWithPropertyEditor(demo_key: DemosWithPropertyEditor) {
-  const comp = player.asComponent(demo_key, Player);
+  const comp = player.castItem(demo_key, Player);
   if (!isFrameContainer(comp) || !comp.inner_frame) {
     return;
   }
@@ -1048,7 +1048,7 @@ function onPlayerLoaded(demo_key: DemosWithPropertyEditor, shader_key: ShaderKey
 }
 
 function onStepByStepPlayerLoaded(demo_key: DemosWithoutPropertyEditor) {
-  const comp = player.asComponent(demo_key, Player);
+  const comp = player.castItem(demo_key, Player);
   if (!isFrameContainer(comp) || !comp.inner_frame) {
     return;
   }

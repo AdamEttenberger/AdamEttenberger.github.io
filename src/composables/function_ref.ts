@@ -1,29 +1,44 @@
-import { type ComponentPublicInstance } from 'vue'
+import { type ComponentPublicInstance, type Ref, ref } from 'vue'
 import { type Variadic } from '@/util/generic'
+
+export type GenericElement = (abstract new (...args: any) => Element);
+export type GenericComponent = (abstract new (...args: any) => any);
+
+export type ValidRefItem = GenericElement | GenericComponent;
+export type RefItemGeneric<T extends ValidRefItem> = T extends GenericElement ? InstanceType<T>
+  : T extends GenericComponent ? InstanceType<T>
+  : never;
 
 type VueFunctionRefHandler = (element: null|Element|ComponentPublicInstance) => void;
 export type WeakElement = WeakRef<Element|ComponentPublicInstance>;
 
-export function isElement<T extends typeof Element>(
+export function isValidRefItem<T extends ValidRefItem>(
+  value: unknown,
+  type: T
+): value is RefItemGeneric<T> {
+  return isComponent(value, type) || isElement(value, type);
+}
+
+export function isElement<T extends GenericElement>(
   value: unknown,
   element_type: T
-): value is InstanceType<T> {
+): value is RefItemGeneric<T> {
   return value instanceof element_type;
 }
 
-export function isComponent<T extends abstract new (...args: any) => any>(
+export function isComponent<T extends GenericComponent>(
   value: unknown,
   component: T
-): value is InstanceType<T> {
+): value is RefItemGeneric<T> {
   return (typeof value === 'object') && value !== null &&
          '$' in value && typeof value.$ === 'object' && value.$ !== null &&
          'type' in value.$ && value.$.type === component;
 }
 
-export function toComponent<T extends abstract new (...args: any) => any>(
+export function toComponent<T extends GenericComponent>(
   weak: undefined|WeakElement,
   component: T
-): undefined|ComponentPublicInstance<T> {
+): undefined|RefItemGeneric<T> {
   const strong = weak?.deref();
   if (!isComponent(strong, component)) {
     return;
@@ -31,15 +46,15 @@ export function toComponent<T extends abstract new (...args: any) => any>(
   return strong;
 }
 
-export function toElement<T extends typeof Element>(
+export function toElement<T extends GenericElement>(
   weak: undefined|WeakElement,
   element_type: T
-): undefined|InstanceType<T> {
+): undefined|RefItemGeneric<T> {
   const strong = weak?.deref();
   if (!isElement(strong, element_type)) {
     return;
   }
-  return strong as InstanceType<T>;
+  return strong as RefItemGeneric<T>;
 }
 
 interface IFunctionRefRecord<TArgs extends Variadic> {
@@ -54,11 +69,34 @@ interface IFunctionRef<TKey extends string|number|symbol, TArgs extends Variadic
 
 export interface IUseFunctionRef<TKey extends string|number|symbol, TArgs extends Variadic> {
   ref(key: TKey, ...args: TArgs): VueFunctionRefHandler;
-  asElement<T extends typeof Element>(key: TKey, element_type: T): undefined|InstanceType<T>;
-  asComponent<T extends abstract new (...args: any) => any>(key: TKey, component: T): undefined|ComponentPublicInstance<T>;
 
-  forEachComponent<T extends abstract new (...args: any) => any>(component: T, callback: (element: T) => void): void;
-  forEachElement<T extends typeof Element>(element_type: T, callback: (element: InstanceType<T>) => void): void;
+  /**
+   * Returns the specified reference by `key` only when it derives from the type `item_type`.
+   * Beware this matches any types that derive from `item_type` as well.
+   *
+   * @param key The reference key to find.
+   * @param type The type the element must derive from to yield a result.
+   */
+  castItem<T extends ValidRefItem>(key: TKey, type: T): undefined|RefItemGeneric<T>;
+
+  /**
+   * `forEach` iterator for a specific subset of Element or Component types.
+   * Beware this matches any types that derive from `item_type` as well.
+   *
+   * @param item_type The type the element must derive from to yield a result.
+   * @param callback The callback to execute for each element found to derive from `item_type`.
+   */
+  forEach<T extends ValidRefItem>(item_type: T, callback: (item: RefItemGeneric<T>) => void): void;
+
+  /**
+   * `reduce` accumulator for a specific subset of Element or Component types.
+   * Beware this matches types that derive from `item_type` as well.
+   *
+   * @param item_type The type the element must derive from to yield a result.
+   * @param callback The callback to execute for each element found to derive from `item_type`.
+   * @param initial_value The initial value for the accumulator.
+   */
+  reduce<U, T extends ValidRefItem>(item_type: T, callback: (result: U, component: RefItemGeneric<T>) => U, initial_value: U): U;
 };
 
 /**
@@ -81,15 +119,15 @@ export interface IUseFunctionRef<TKey extends string|number|symbol, TArgs extend
  * ]);
  *
  * onMounted(() => {
- *   console.assert(frames.asElement('unique-frame', HTMLIFrameElement));
- *   console.assert(frames.asElement('unique-frame', HTMLElement));
- *   console.assert(!frames.asElement('unique-frame', HTMLParagraphElement));
+ *   console.assert(frames.castItem('unique-frame', HTMLIFrameElement));
+ *   console.assert(frames.castItem('unique-frame', HTMLElement));
+ *   console.assert(!frames.castItem('unique-frame', HTMLParagraphElement));
  *
- *   const component_instance = my_components.asComponent('unique-component', MyComponent);
+ *   const component_instance = my_components.castItem('unique-component', MyComponent);
  *   console.assert(component_instance);
  *   console.assert('an_exposed_var' in component_instance &&
  *                  component_instance.an_exposed_var instanceof ExpectedVarTypeExposedByMyComponent);
- *   console.assert(!my_components.asComponent('unique-component', AnotherComponent));
+ *   console.assert(!my_components.castItem('unique-component', AnotherComponent));
  * })
  *
  * </script>
@@ -106,11 +144,11 @@ export default function useFunctionRef<
     TArgs extends Variadic = []
 >(plugin_modules?: IFunctionRef<TKey, TArgs>[]): IUseFunctionRef<TKey, TArgs> {
   const plugins = new Set<IFunctionRef<TKey, TArgs>>(plugin_modules);
-  const records = <Record<TKey, IFunctionRefRecord<TArgs>>>{};
+  const records = ref({}) as Ref<Record<TKey, IFunctionRefRecord<TArgs>>>;
 
   function _ref(key: TKey, element?: null|Element|ComponentPublicInstance): void {
-    const record: IFunctionRefRecord<TArgs> = records[key];
-    const args: TArgs = records[key].args;
+    const record: IFunctionRefRecord<TArgs> = records.value[key];
+    const args: TArgs = records.value[key].args;
     record.element = (element) ? new WeakRef(element) : undefined;
     plugins.forEach(item => item.ref(record.element, key, ...args));
   }
@@ -136,61 +174,50 @@ export default function useFunctionRef<
    * @param args additional arguments to provide callbacks passed to `useFunctionRef`.
    * @returns The vue function ref handler to pass to an Element or Component  `v-bind:ref`.
    */
-  function ref(key: TKey, ...args: TArgs): VueFunctionRefHandler {
-    if (records[key] === undefined) {
-      records[key] = { handler: _ref.bind(null, key), args };
+  function makeRef(key: TKey, ...args: TArgs): VueFunctionRefHandler {
+    if (records.value[key] === undefined) {
+      records.value[key] = { handler: _ref.bind(null, key), args };
     } else {
-      records[key].args = args;
+      records.value[key].args = args;
     }
-    return records[key].handler;
+    return records.value[key].handler;
   }
 
-  /**
-   *
-   * @param key The key of the function ref.
-   * @param component The Vue component type demanded
-   * @returns The held `component`, or undefined.
-   */
-  function asComponent<T extends abstract new (...args: any) => any>(key: TKey, component: T): undefined|ComponentPublicInstance<T> {
-    return toComponent(records[key].element, component);
+  function castItem<T extends ValidRefItem>(key: TKey, type: T): undefined|RefItemGeneric<T> {
+    const strong = records.value[key]?.element?.deref();
+    if (isComponent(strong, type) || isElement(strong, type)) {
+      return strong as RefItemGeneric<T>;
+    }
   }
 
-  /**
-   *
-   * @param key The key of the function ref.
-   * @param element_type The DOM Element type demanded
-   * @returns The held `element_type`, or undefined.
-   */
-  function asElement<T extends typeof Element>(key: TKey, element_type: T): undefined|InstanceType<T> {
-    return toElement(records[key].element, element_type);
-  }
-
-  function forEachComponent<T extends abstract new (...args: any) => any>(component: T, callback: (element: T) => void): void {
-    (Object.keys(records) as TKey[]).forEach((key) => {
-      const comp = asComponent(key, component);
-      if (!comp) {
-        return;
+  function forEach<T extends ValidRefItem>(item_type: T, callback: (item: RefItemGeneric<T>) => void): void {
+    return (Object.keys(records.value) as TKey[]).forEach(
+      (key: TKey) => {
+        const item = castItem(key, item_type);
+        if (item) {
+          callback(item);
+        }
       }
-      callback(comp);
-    });
+    );
   }
 
-  function forEachElement<T extends typeof Element>(element_type: T, callback: (element: InstanceType<T>) => void): void {
-    (Object.keys(records) as TKey[]).forEach((key) => {
-      const element = asElement(key, element_type);
-      if (!element) {
-        return;
-      }
-      callback(element);
-    });
+  function reduce<U, T extends ValidRefItem>(item_type: T, callback: (result: U, component: RefItemGeneric<T>) => U, initial_value: U): U {
+    return (Object.keys(records.value) as TKey[]).reduce(
+      (result: U, key: TKey): U => {
+        const item = castItem(key, item_type);
+        return (item !== undefined)
+            ? callback(result, item)
+            : result;
+      },
+      initial_value
+    );
   }
 
   return {
-    ref,
-    asComponent,
-    asElement,
+    ref: makeRef,
 
-    forEachElement,
-    forEachComponent,
+    castItem,
+    forEach,
+    reduce,
   };
 }

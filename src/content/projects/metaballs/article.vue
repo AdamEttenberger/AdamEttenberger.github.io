@@ -139,8 +139,8 @@ const editor = usePropertyEditorModel(
 
 function update_frames() {
   const snapshot = payload.value;
-  player.forEachComponent(Player, (frame) => {
-    post(frame as unknown as  IFrameContainer, snapshot);
+  player.forEach(Player, (frame) => {
+    post(frame as IFrameContainer, snapshot);
   });
 }
 
@@ -149,7 +149,7 @@ function onPlayerLoaded(_source: HTMLIFrameElement, frame_key: string) {
   if (!ref_name) {
     return;
   }
-  const comp = player.asComponent(ref_name, Player);
+  const comp = player.castItem(ref_name, Player);
   if (!isFrameContainer(comp)) {
     return;
   }

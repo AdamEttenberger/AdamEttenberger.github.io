@@ -43,7 +43,7 @@ type ProjectLoaderPayload = {
 const { post } = usePostMessage<ProjectLoaderPayload>();
 
 function onPlayerLoaded(target_frame: HTMLIFrameElement, frame_key: string, ref_name: FrameRefName, new_filepath: string) {
-  const comp = player.asComponent(ref_name, Player);
+  const comp = player.castItem(ref_name, Player);
   if (!isFrameContainer(comp) || !comp.inner_frame) {
     console.error('unable to locate frame');
     return;
