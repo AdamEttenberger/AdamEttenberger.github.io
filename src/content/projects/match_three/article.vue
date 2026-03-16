@@ -63,7 +63,7 @@ const player = useFunctionRef<DemoKey>([
 
 const shader_definitions: Record<DemoKey, IShaderDefinition> = {
   [DemoKey.CheckerBoard]: {
-    label: "Checker Board",
+    label: "Checkerboard",
     uniforms: [
       new Uniform(UniformType.vec4, 'uBackgroundColor'),
       new Uniform(UniformType.vec4, 'uEvenColor'),
@@ -76,7 +76,7 @@ const shader_definitions: Record<DemoKey, IShaderDefinition> = {
     }
   },
   [DemoKey.FocusReticle]: {
-    label: "Checker Board",
+    label: "Focus Reticle",
     uniforms: [
       new Uniform(UniformType.float, 'uStrokeWidth'),
       new Uniform(UniformType.float, 'uGap'),
@@ -95,7 +95,7 @@ const shaders = useShaders<DemoKey, DemoKey>(computed(() => player.entries(Playe
 const shader_editors: Record<DemoKey, IUsePropertyEditorModel> = {
   [DemoKey.CheckerBoard]: usePropertyEditorModel(
     [
-      new DividerRow('divider-checker-board', 'Checker Board'),
+      new DividerRow('divider-checker-board', 'Checkerboard'),
       new Color4Row('uBackgroundColor', 'Background Color', [0.392156862745098, 0.5843137254901961, 0.9294117647058824, 1.0]).setCollapsed(true),
       new Color4Row('uEvenColor', 'Even Color', [0.2, 0.2, 0.2, 1.0]).setCollapsed(true),
       new Color4Row('uOddColor', 'Odd Color', [0.3, 0.3, 0.3, 1.0]).setCollapsed(true),
@@ -242,10 +242,10 @@ onUnmounted(() => {
         I've used both <Link to="https://unity.com/">Unity</Link> and <Link to="https://www.unrealengine.com/">Unreal Engine</Link> for similar experiments, however neither run as smoothly as Godot within resource-constrained environments.
       </p>
       <p>
-        While putting this project together there were a few interesting challenges worth mention.
+        While putting this project together there were a few interesting challenges worth mentioning.
         Following will describe the data structures and algorithms used to create this demo, and some insights along the way.
-        The intent is not for an optimal solution, rather a good reference for someone who wants to build a similar game.
-        Some performance considerations and a few alternative approaches will be discussed, however performance isn't the main focus.
+        The intent is not for an optimal solution, but rather a good reference for someone who wants to build a similar game.
+        Some performance considerations and a few alternative approaches will be discussed; however, performance isn't the main focus.
       </p>
     </Section>
 
@@ -256,7 +256,7 @@ onUnmounted(() => {
       </p>
       <p>
         This project represents the game board as 1D array in <Link to="https://en.wikipedia.org/wiki/Row-_and_column-major_order">column-major order</Link> using the GDScript <Link to="https://docs.godotengine.org/en/stable/classes/class_packedint32array.html">PackedInt32Array</Link> class.
-        The origin is the lower-left corner of the grid, incrementing first along the y-axis until wrapping at height and incrementing along th x-axis.
+        The origin is the lower-left corner of the grid, incrementing first along the y-axis until wrapping at height and incrementing along the x-axis.
       </p>
       <Figure src_light="/images/projects/match_three/column_vs_row_major_light.png"
               src_dark="/images/projects/match_three/column_vs_row_major_dark.png"
@@ -344,7 +344,7 @@ onUnmounted(() => {
       <p>
         A <Link to="https://en.wikipedia.org/wiki/Finite-state_machine">finite-state machine</Link> (FSM) would be a great alternative and could be more robust than this coroutine example, however an FSM seemed overly complex and fragile by comparison for this demo.
         With coroutines, all logic can be cleanly organized and scheduled from one function.
-        An FSM introduces all of the complexity of managing states and state transitions; requiring more code to create, modify, or route new states and state transitions.
+        An FSM introduces all the complexity of managing states and state transitions; requiring more code to create, modify, or route new states and state transitions.
       </p>
       <Figure src_light="/images/projects/match_three/core_loop_light.png"
               src_dark="/images/projects/match_three/core_loop_dark.png"
@@ -442,7 +442,7 @@ onUnmounted(() => {
     <Section heading="Invalidation">
       <p>
         After all matches have been collected, the next step is to invalidate the matched tiles.
-        This step makes it easier to handle tile falling and randomization behavior, and helps avoid processing any tiles more than once in later steps.
+        This step makes it easier to handle tile falling and randomization behavior and helps avoid processing any tiles more than once in later steps.
       </p>
       <p>
         This demo uses a tile <Link to="https://en.wikipedia.org/wiki/Sentinel_value">sentinel value</Link>, <b>INVALIDATED_CELL</b>, to avoid allocating another array or bit fiddling to track the invalidation state.
@@ -560,11 +560,12 @@ onUnmounted(() => {
         This process iterates a column from bottom to top, swapping invalidated tiles with any populated tiles above them while preserving the relative ordering of populated tiles.
       </p>
       <p>
-        During the invalidation step the lowest invalidated row was captured, from this two important details are captured for falling logic:
+        During the invalidation step the lowest invalidated row was captured.
+        This value yields two very important details for falling logic:
       </p>
       <ul>
         <li>Since columns are contiguous and processed independently, columns without invalidations can easily be skipped as the default lowest invalidated row is mapped to the column end iterator.</li>
-        <li>Indicates how many tiles in a row are below invalidation and can be skipped, since only invalidated tiles and those above need to be updated during the falling step.</li>
+        <li>Indicates how many tiles in a row are below invalidation and may be ignored, since only invalidated tiles and those above need to be updated during the falling step.</li>
       </ul>
       <Figure src_light="/images/projects/match_three/falling_light.png"
               src_dark="/images/projects/match_three/falling_dark.png"
@@ -594,15 +595,15 @@ onUnmounted(() => {
     <Section heading="Randomization">
       <p>
         For randomizing the grid I drew inspiration from <Link to="https://en.wikipedia.org/wiki/Model_synthesis">wave function collapse (a.k.a. model synthesis)</Link> algorithms which apply constraints on invalidated tiles during generation to describe which subset of values are valid.
-        This allows randomization to guarantee that among all of the newly randomized tiles there will be no matches.
+        This allows randomization to guarantee that among all the newly randomized tiles there will be no matches.
         However, there may be matches among the newly randomized tiles and existing tiles, to allow longer combos.
       </p>
       <p>
-        Adding these constraints improve the initial board setup time and helps balance the game.
+        Adding these constraints improves the initial board setup time and helps balance the game.
       </p>
       <Figure src_light="/images/projects/match_three/randomization_light.png"
               src_dark="/images/projects/match_three/randomization_dark.png"
-              alt="Illustration of a board before (left) and after (right) randomizing is applied, repopulating any invalidated tiles." />
+              alt="Illustration of a board before (left) and after (right) randomization is applied, repopulating any invalidated tiles." />
       <Details summary="PossibleValues">
         <CodeMirror lang="gdscript"
                     caption="PossibleValues"
@@ -744,7 +745,7 @@ onUnmounted(() => {
         The <b>lod</b> parameter of <Link to="https://www.khronos.org/opengles/sdk/docs/manglsl/docbook4/xhtml/textureLod.xml">textureLod</Link> affects the intensity of the blur effect.
       </p>
       <p>
-        Unfortunately as of writing this combination may not work properly in mobile browsers.
+        Unfortunately, at the time of writing this combination may not work properly in mobile browsers.
       </p>
       <Figure src="/images/projects/match_three/blur_example.png"
               alt="Example of the blur shader applied behind a modal dialog." />
@@ -770,14 +771,14 @@ onUnmounted(() => {
       </p>
       <p>
         In this scene each tile is 1x1 world unit and the shader assumes the grid is aligned to a world unit.
-        Tile color is determined by whether its <Link to="https://en.wikipedia.org/wiki/Taxicab_geometry">manhattan distance</Link> is odd or even.
+        Tile color is determined by whether its <Link to="https://en.wikipedia.org/wiki/Taxicab_geometry">Manhattan distance</Link> is odd or even.
       </p>
       <Figure src_light="/images/projects/match_three/manhattan_distance_light.png"
               src_dark="/images/projects/match_three/manhattan_distance_dark.png"
               alt="Composition of the reticle with two step functions." />
 
       <Player :ref="player.ref(DemoKey.CheckerBoard)"
-              title="Checker Board"
+              title="Checkerboard"
               date="2026/03/16"
               frame="/library/projects/shader_loader/shader_loader.html"
               :state="player_states[DemoKey.CheckerBoard]"
