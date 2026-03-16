@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, type Ref } from 'vue'
 import CodeMirror from '@/components/code-mirror.vue'
 import Details from '@/components/details.vue'
 import Link from '@/components/link.vue'
@@ -17,7 +17,7 @@ defineProps<IProjectInfo>();
 
 type FrameRefName = 'main'|'triangle'|'json-loader'|'json-deserialize-example';
 
-const player_states = ref(<Record<FrameRefName, PlayerState>>{});
+const player_states = ref({}) as Ref<Record<FrameRefName, PlayerState>>;
 
 const { observe: mapPlayerIntersectionObserver } = useIntersectionObserver<FrameRefName>((key, entry) => {
   player_states.value[key] = entry.isIntersecting

@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { ref, type Ref } from 'vue'
 import { fps } from '@/util/time'
 import { throttle } from '@/util/rate_limit'
 import { type Variadic, type VariadicFunction } from '@/util/generic'
@@ -20,7 +20,7 @@ export default function usePostMessage<
   callback?: VariadicFunction<[TPayload, ...TCallbackArgs]>,
   frequency_ms: number = fps(30)
 ): IUsePostMessage<TPayload, TCallbackArgs> {
-  const records = ref<Record<string, VariadicFunction<[PostItem<TPayload>, ...TCallbackArgs]>>>({});
+  const records = ref({}) as Ref<Record<string, VariadicFunction<[PostItem<TPayload>, ...TCallbackArgs]>>>;
 
   function on_throttle(item: PostItem<TPayload>, ...args: TCallbackArgs): void {
     const frame = item.frame.deref();

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, type Ref } from 'vue'
 import CodeMirror from '@/components/code-mirror.vue'
 import Link from '@/components/link.vue'
 import Figure from '@/components/figure.vue'
@@ -40,8 +40,8 @@ type MetaballPreset = {
 
 type MetaballsPayloadKey = keyof MetaballsPayload;
 
-const frame_ref_names = ref(<Record<string, FrameRefName>>{});
-const player_states = ref(<Record<FrameRefName, PlayerState>>{});
+const frame_ref_names = ref({}) as Ref<Record<string, FrameRefName>>;
+const player_states = ref({}) as Ref<Record<FrameRefName, PlayerState>>;
 
 const { observe: mapPlayerIntersectionObserver } = useIntersectionObserver<FrameRefName>((key, entry) => {
   player_states.value[key] = entry.isIntersecting
