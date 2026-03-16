@@ -31,6 +31,7 @@ import checker_board_fragment_shader from '@/assets/shaders/checker_board.frag?r
 import focus_reticle_fragment_shader from '@/assets/shaders/focus_reticle.frag?raw'
 import { PropertyEmits, PropertyEmitsHandler, type ExtractModelType } from '@/util/property_editor/property_interfaces'
 import TabList from '@/components/tabs/tab-list.vue'
+import score_particles_gif from '@/assets/projects/match_three/score_particles.gif'
 
 defineProps<IProjectInfo>();
 
@@ -866,6 +867,8 @@ onUnmounted(() => {
         This demo doesn't differentiate between tile type, match score, or combo size when spawning particle effects.
         Those details could be provided to the particle to change its font color and other styles, or to include additional effects or animations.
       </p>
+      <Figure :src="score_particles_gif"
+              alt="Score particles animation for a combo, the matches produce (+4) and (+12) points respectively." />
       <Details summary="Score particle">
         <CodeMirror lang="gdscript"
                     caption="Score particle"
