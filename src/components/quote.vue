@@ -1,9 +1,9 @@
 <script setup lang="ts">
-defineProps({
-  name: { type: String, required: true },
-  cite_url: { type: String, default: null },
-  cite_title: { type: String, default: null },
-})
+defineProps<{
+  name: string;
+  cite_url?: string;
+  cite_title?: string;
+}>();
 </script>
 
 <template>

@@ -1,33 +1,45 @@
 <script setup lang="ts">
-import { PropType, useTemplateRef } from 'vue';
+import { useTemplateRef, type ShallowRef } from 'vue'
 import Figure from '@/components/figure.vue'
 import ProjectLabel from '@/components/project_label.vue'
 import { PlayerState } from '@/types/player_state'
 import Button from '@/components/buttons/button.vue'
+import { type DateLike } from '@/util/date'
+import { FrameContainerSymbol } from '@/types/frame_container'
 
-const inner_frame = useTemplateRef('inner_frame');
+const frame_key: string = crypto.randomUUID();
+const inner_frame: Readonly<ShallowRef<HTMLIFrameElement | null>> = useTemplateRef<HTMLIFrameElement>('inner_frame');
 
 /**
  * Emits `target_frame: HTMLIFrameElement`
  */
-defineEmits(['load']);
+const emit = defineEmits<{
+  load: [source: HTMLIFrameElement, frame_key: string],
+}>();
 
-defineProps({
-  title: { type: String, required: true },
-  date: { type: Date, default: null },
-  lastmod: { type: Date, default: null },
-  frame: { type: String, required: true },
-  aspect: { type: Number, default: Number(4 / 3) },
-})
-
-const state = defineModel('state', {
-  type: [String, PlayerState] as PropType<String | PlayerState>,
-  default: PlayerState.Empty,
+withDefaults(defineProps<{
+  title: string;
+  frame: string;
+  aspect?: number;
+  date?: DateLike;
+  lastmod?: DateLike;
+}>(), {
+  aspect: (4 / 3),
 });
+
+const state = defineModel<PlayerState>('state', { default: PlayerState.Empty });
 
 defineExpose({
+  [FrameContainerSymbol]: frame_key,
   inner_frame,
 });
+
+function onPlayerLoaded() {
+  if (!inner_frame.value) {
+    return;
+  }
+  emit('load', inner_frame.value, frame_key);
+}
 </script>
 
 <template>
@@ -37,7 +49,13 @@ defineExpose({
               class="play-button"
               @click.once="state = PlayerState.Playing"
               :icon="['fas', 'circle-play']" />
-      <iframe v-if="state != PlayerState.Empty" ref="inner_frame" class="renderer" :title="title" :src="frame" @load="$emit('load', inner_frame)"></iframe>
+      <iframe v-if="state !== PlayerState.Empty"
+              ref="inner_frame"
+              class="renderer"
+              :title="title"
+              :src="frame"
+              @load="onPlayerLoaded()">
+      </iframe>
     </div>
     <template v-slot:caption>
       <ProjectLabel :title="title" :date="date" :lastmod="lastmod" />

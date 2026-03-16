@@ -1,4 +1,5 @@
-import { Ref } from "vue";
+import { type ThemeColor } from '@/composables/theme'
+import { type AsyncComponentLoader, type MaybeRef, type MaybeRefOrGetter } from "vue";
 
 export enum PropertyKind {
   Button = 'button',
@@ -12,106 +13,138 @@ export enum PropertyKind {
   Toggle = 'toggle',
 };
 
-export type PropertyConverterFunc = (options: IPropertyValueOptions, value: any) => any;
-export interface IPropertyConverter {
-  toView: PropertyConverterFunc,
-  toModel: PropertyConverterFunc,
-};
+export enum PropertyEmits {
+  Changed = 'property-changed',
+  Changing = 'property-changing',
+  Click = 'property-click',
+  Reset = 'property-reset',
+}
+
+export type PropertyFunction = (name: string, new_value?: unknown) => void;
+export type PropertyFunctionWithEmits = (kind: PropertyEmits, name: string, new_value?: unknown) => void;
+export type PropertyEmitFunctions = Record<PropertyEmits, PropertyFunction>;
+
+export class PropertyEmitsHandler implements PropertyEmitFunctions {
+  constructor(private handler: PropertyFunctionWithEmits) {}
+  [PropertyEmits.Changed](name: string): void { this.handler(PropertyEmits.Changed, name); }
+  [PropertyEmits.Changing](name: string, new_value: unknown): void { this.handler(PropertyEmits.Changing, name, new_value); }
+  [PropertyEmits.Click](name: string): void { this.handler(PropertyEmits.Click, name); }
+  [PropertyEmits.Reset](name: string): void { this.handler(PropertyEmits.Reset, name); }
+}
+
+export interface IPropertyConverter<T, TRow extends IPropertyDataRow<T> = IPropertyDataRow<T>> {
+  toView(row: TRow, value: T): T;
+  toModel(row: TRow, value: T): T;
+}
 
 export type MinMax = {
-  min: any;
-  max: any;
+  min: number;
+  max: number;
 };
 
-/**
- * Base type for all properties.
- */
-export interface IPropertyOptions {
-  //
-  // Editor Constants
-  //
-  /** Which type of editor PropertyRow should generate and bind these options to. */
-  kind: PropertyKind;
+export interface IPropertyMeta {
+  /** Which type of editor PropertyRow should generate and bind this row to. */
+  readonly kind: PropertyKind;
   /** Whether the PropertyRow label text should be visible. */
-  show_label: boolean;
-  /** Whether the PropertyRow undo button should be visible. */
-  show_undo: boolean;
-
-  //
-  // Editor Options
-  //
-  /** A unique name or identifier for the property, used for getting/setting model values and raising property notifications. */
-  name: any;
-  /** Label for the property. This is either presented in the PropertyRow label column, or as the display text for editors that span multiple PropertyRow columns. */
-  label: any;
-  /** Whether the editor should be presented as 'disabled' and should not be interactable. */
-  disabled?: any;
-  /** Whether the editor should be made invisible and collapsed so it does not consume any space. */
-  collapsed?: any;
-  /** Theme color of the control An array of string HTML class names to append to the generated row item. */
-  color?: any;
+  readonly with_label: boolean;
+  /** Whether the PropertyRow reset button should be visible. */
+  readonly with_reset: boolean;
+  /** Whether the property editor should be clickable. */
+  readonly with_click: boolean;
+  /** Loads the <component> type for visualizing the property. */
+  readonly component?: AsyncComponentLoader;
 };
 
-/**
- * Base type for all editable properties.
- */
-export interface IPropertyValueOptions extends IPropertyOptions {
-  /** The default model value, used to pre-populate an undefined model, and by PropertyRow for making the undo button visible. */
-  default_value: any;
-  /** The value used by property editors when creating two-way bindings. */
-  modelValue?: Ref<any>;
+export interface IPropertyRow {
+  readonly meta: IPropertyMeta;
+  /** A unique name or identifier for the property, used for getting/setting model values and raising property notifications. */
+  readonly name: string;
+  /** Label for the property. This is either presented in the PropertyRow label column, or as the display text for editors that span multiple PropertyRow columns. */
+  label: string;
+  /** Whether the editor should be presented as 'disabled' and should not be interactable. */
+  disabled: MaybeRefOrGetter<undefined|boolean>;
+  /** Whether the editor should be made invisible and collapsed so it does not consume any space. */
+  collapsed: MaybeRefOrGetter<undefined|boolean>;
+  /** Theme color of the control An array of string HTML class names to append to the generated row item. */
+  color: MaybeRefOrGetter<undefined|ThemeColor>;
+};
+
+export interface IPropertyDataRow<T> extends IPropertyRow {
+  /** The default model value, used to pre-populate an undefined model, and by PropertyRow for making the reset button visible. */
+  default_value: MaybeRefOrGetter<T>;
+  /** The active model value which can be bound to a ref in the implementing context. Pre-populates with `default_value` when undefined or `ref(null)`. */
+  modelValue?: MaybeRef<null|T>;
   /**
    * Used to create an intermediary computed property for two-way binding in place of `modelValue` which allows for converting between actual and display values.
    * e.g., To display a number range in normalized form, or to convert between units (fahrenheit, celsius, kelvin).
    */
-  converter?: IPropertyConverter;
+  converter?: undefined|IPropertyConverter<T, IPropertyDataRow<T>>;
 };
 
-//
-// [[ PropertyOptions ]] Editor Options Implementations
-//
+export interface IPropertyNumberRangeRow extends IPropertyDataRow<number> {
+  // converter?: undefined|IPropertyConverter<number, IPropertyDataRow<number>>|IPropertyConverter<number, IPropertyNumberRangeRow>;
 
-export interface IPropertyButtonOptions extends IPropertyOptions {};
-
-export interface IPropertyDividerOptions extends IPropertyOptions {};
-
-//
-// [[ PropertyValueOptions ]] Editor Options Implementations
-//
-
-export interface IPropertyLabelOptions extends IPropertyValueOptions {};
-export interface IPropertyColor3Options extends IPropertyValueOptions {};
-export interface IPropertyColor4Options extends IPropertyValueOptions {};
-
-export interface IPropertyComboBoxOptions extends IPropertyValueOptions {
-  /** Array of ([key, value]) entries, where key is a unique identifier and value is the display text. */
-  values: any;
-};
-
-export interface IPropertyGroupOptions extends IPropertyValueOptions {};
-
-export interface IPropertyNumberRangeOptions extends IPropertyValueOptions {
   /** The min and max amount for the number range spinner and slider controls. */
   range: MinMax;
   /** The step amount for the number range spinner and slider controls. */
-  step: any;
+  step: number;
 };
 
-export interface IPropertyToggleOptions extends IPropertyValueOptions {
+export interface IPropertyComboBoxRow<TKey = string, TLabel = string> extends IPropertyDataRow<TKey> {
+  converter?: IPropertyConverter<TKey, IPropertyDataRow<TKey>>|IPropertyConverter<TKey, IPropertyComboBoxRow<TKey, TLabel>>;
+  /** Array of ([key, value]) entries, where key is a unique identifier and value is the display text. */
+  values: Array<[TKey, TLabel]>;
+};
+
+export interface IPropertyToggleRow extends IPropertyDataRow<boolean> {
   /** Array passed to font-awesome-icon:icon used to indicate the toggle is checked. */
-  icon?: any;
+  icon?: Array<string>;
 };
 
-//
-// Union Types
-//
+export type IPropertyButtonRow = IPropertyRow;
+export type IPropertyColor3Row = IPropertyDataRow<[number, number, number, ...number[]]>;
+export type IPropertyColor4Row = IPropertyDataRow<[number, number, number, number, ...number[]]>;
+export type IPropertyDividerRow = IPropertyRow;
+export type IPropertyGroupRow = IPropertyDataRow<boolean>;
+export type IPropertyLabelRow = IPropertyDataRow<number|string>;
 
-export type AnyPropertyOptions =
-    IPropertyButtonOptions |
-    IPropertyColor3Options |
-    IPropertyComboBoxOptions |
-    IPropertyDividerOptions |
-    IPropertyGroupOptions |
-    IPropertyLabelOptions |
-    IPropertyNumberRangeOptions |
-    IPropertyToggleOptions;
+export interface PropertyTypeTable {
+  [PropertyKind.Button]:        IPropertyButtonRow,
+  [PropertyKind.Color3]:        IPropertyColor3Row,
+  [PropertyKind.Color4]:        IPropertyColor4Row,
+  [PropertyKind.ComboBox]:      IPropertyComboBoxRow,
+  [PropertyKind.Divider]:       IPropertyDividerRow,
+  [PropertyKind.Group]:         IPropertyGroupRow,
+  [PropertyKind.Label]:         IPropertyLabelRow,
+  [PropertyKind.NumberRange]:   IPropertyNumberRangeRow,
+  [PropertyKind.Toggle]:        IPropertyToggleRow,
+};
+
+export type ExtractModelType<T> = T extends IPropertyDataRow<infer T> ? T : never;
+
+export type PropertyTypeGeneric<TKind> = TKind extends keyof PropertyTypeTable
+    ? (PropertyTypeTable[TKind] extends IPropertyRow ? PropertyTypeTable[TKind] : never)
+    : never;
+export type PropertyValueTypeGeneric<TKind> = TKind extends keyof PropertyTypeTable
+    ? (PropertyTypeTable[TKind] extends IPropertyDataRow<ExtractModelType<PropertyTypeTable[TKind]>> ? PropertyTypeTable[TKind] : never)
+    : never;
+
+export type PropertyRowConverter<TPropertyType> = TPropertyType extends IPropertyDataRow<infer T>
+    ? IPropertyConverter<T, IPropertyDataRow<T>>|IPropertyConverter<T, TPropertyType>
+    : never;
+
+export type PropertyType = PropertyTypeGeneric<keyof PropertyTypeTable>;
+export function isPropertyType(item: unknown): item is PropertyType {
+  return typeof item === 'object' && item !== null &&
+         'meta' in item &&
+         item.meta !== undefined &&
+         'name' in item && typeof item.name === 'string' &&
+         item.name.length > 0;
+}
+
+export type PropertyValueType = PropertyValueTypeGeneric<keyof PropertyTypeTable>;
+export function isPropertyValueType(item: unknown): item is PropertyValueType {
+  return isPropertyType(item) &&
+         'default_value' in item &&
+         item.default_value !== undefined;
+}

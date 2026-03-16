@@ -6,6 +6,7 @@ import SettingsButton from '@/components/buttons/settings.vue'
 import SocialLink from '@/components/buttons/social_link.vue'
 import ThemeToggle from '@/components/buttons/theme_toggle.vue'
 import useTheme, { ThemeColor } from '@/composables/theme'
+import { SocialButtonList } from '@/content/socials'
 
 const { theme } = useTheme(() => ({ depth: 1, absolute: true }));
 </script>
@@ -19,10 +20,7 @@ const { theme } = useTheme(() => ({ depth: 1, absolute: true }));
       <Link class="title-text" to="/" :color="ThemeColor.Accent" :depth="5" absolute>Adam Ettenberger</Link>
       <div class="links columns">
         <div class="socials columns gap-s">
-          <SocialLink type="about" />
-          <SocialLink type="hire-me" />
-          <SocialLink type="linkedin" />
-          <SocialLink type="github" />
+          <SocialLink v-for="(item, key) in SocialButtonList" :key v-bind="item" />
         </div>
         <div class="controls columns gap-s">
           <PaletteButton />

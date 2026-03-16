@@ -1,21 +1,28 @@
 <script setup lang="ts">
-import { computed } from 'vue';
 import DateText from '@/components/date_text.vue';
+import { date_from, date_same_month, type DateLike } from '@/util/date'
+import { computed } from 'vue';
+const props = defineProps<{
+  date: DateLike,
+  lastmod?: DateLike,
+}>();
 
-var props = defineProps({
-  date: { required: true },
-  lastmod: { default: null },
-})
-const show_lastmod = computed(() => props.lastmod && (props.lastmod.getTime ? props.lastmod : props.lastmod.value)?.getTime() != props.date.getTime());
+const current_date = computed<Date>(() => date_from(props.date));
+const current_lastmod = computed<undefined|Date>(() => {
+  const lastmod_date = props.lastmod ? date_from(props.lastmod) : undefined;
+  return lastmod_date && !date_same_month(current_date.value, lastmod_date)
+      ? lastmod_date
+      : undefined;
+});
 </script>
 
 <template>
   <div class="date-label">
-    <DateText class="date" :date="date" />
-    <br v-if="show_lastmod" />
-    <DateText v-if="show_lastmod"
+    <DateText class="date" :date="current_date" />
+    <br v-if="current_lastmod" />
+    <DateText v-if="current_lastmod"
               class="lastmod"
-              :date="lastmod" />
+              :date="current_lastmod" />
   </div>
 </template>
 

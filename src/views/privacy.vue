@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import Button from '@/components/buttons/button.vue'
-import Code from '@/components/code.vue'
+import CodeMirror from '@/components/code-mirror.vue'
 import Link from '@/components/link.vue'
 import Quote from '@/components/quote.vue'
 import Section from '@/components/section.vue'
 import SettingsButton from '@/components/buttons/settings.vue'
-import { useEmailTemplateStore } from '@/stores/email_template'
-
-const emails = useEmailTemplateStore();
+import { EmailFeedback, EmailHiring } from '@/content/socials'
 </script>
 
 <template>
@@ -49,7 +47,7 @@ const emails = useEmailTemplateStore();
       <p>
         If you believe I do not meet this standard and have feedback that is both specific and actionable, please use the following email template including as much detail as possible and I will attempt to mitigate or resolve concerns in a timely manner.
       </p>
-      <Button class="centered feedback" :to="emails.feedback" />
+      <Button class="centered feedback" :to="EmailFeedback" />
       <p>
         Reasons may include, but are not limited to:
       </p>
@@ -70,8 +68,8 @@ const emails = useEmailTemplateStore();
         Should you choose to send an email to any "@adamettenberger.com" address, information shared will be treated as confidential and will not be shared without consent beyond what's required to send and receive email through relevant third-party email services, or if compelled by applicable laws or a warrant.
       </p>
       <ul>
-        <li>If you're a company hiring manager or recruiter seeking to hire me through the alias <Link :to="emails.hiring">{{ emails.hiring.toDomainAlias() }}</Link>, I will aim to respond within 1-5 business days.</li>
-        <li>If you raise a concern through the alias <Link :to="emails.feedback">{{ emails.feedback.toDomainAlias() }}</Link>, I will aim to respond only when necessary and within 1-5 business days depending on the severity of the concern.</li>
+        <li>If you're a company hiring manager or recruiter seeking to hire me through the alias <Link :to="EmailHiring">{{ EmailHiring.toDomainAlias() }}</Link>, I will aim to respond within 1-5 business days.</li>
+        <li>If you raise a concern through the alias <Link :to="EmailFeedback">{{ EmailFeedback.toDomainAlias() }}</Link>, I will aim to respond only when necessary and within 1-5 business days depending on the severity of the concern.</li>
         <li>Unless given express written consent, your email address will not be used for any other purpose.</li>
       </ul>
     </Section>
@@ -108,9 +106,9 @@ const emails = useEmailTemplateStore();
       <p>
         Following is an example of what a first-party analytics event should look like:
       </p>
-      <Code lang="text"
-            caption="Example of a first-party analytics API call."
-            text="
+      <CodeMirror lang="text"
+                  caption="Example of a first-party analytics API call."
+                  content="
         # Telemetry event URL
         'https://posthog-data.adamettenberger.com/i/v0/e/?ip=0&_={ANTI_CACHE_TIMESTAMP}&ver={VERSION}&compression=gzip-js'
 

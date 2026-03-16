@@ -1,8 +1,8 @@
 <script setup lang="ts">
-defineProps({
-  term: { type: String, required: true },
-  details: { type: String, default: null },
-})
+defineProps<{
+  term: string;
+  details?: string;
+}>();
 </script>
 
 <template>

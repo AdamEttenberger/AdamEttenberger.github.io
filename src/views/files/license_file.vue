@@ -1,22 +1,14 @@
 <script setup lang="ts">
-import { ref, unref } from 'vue'
-import { ILicenseInfo } from '@/types/license_types'
+import { type ILicenseInfo } from '@/types/license_types'
 import Layer from '@/components/layer.vue'
 import TermList from '@/components/term_list.vue'
 import Term from '@/components/term.vue'
+import useTextDocument from '@/types/text_document'
+import { date_formatYear } from '@/util/date'
 
 const props = defineProps<ILicenseInfo>();
-const license_content = ref(null);
-unref(props.file_import)().then(async (content) => {
-  if (typeof content === 'string') {
-    license_content.value = content;
-  } else if (content[Symbol.toStringTag] === 'Module') {
-    license_content.value = content.default;
-  } else if (content[Symbol.toStringTag] === 'Response' &&
-             typeof content.text === 'function') {
-    license_content.value = await content.text();
-  }
-});
+
+const { content: document_content } = useTextDocument(() => ({ file: props.file, content: props.content }));
 </script>
 
 <template>
@@ -25,13 +17,11 @@ unref(props.file_import)().then(async (content) => {
       <TermList heading="Third-Party License Information">
         <Term term="Name">{{  name }}</Term>
         <Term term="Author">{{  author }}</Term>
-        <Term term="Year">{{ date.getFullYear() }}</Term>
+        <Term term="Year">{{ date_formatYear(date) }}</Term>
       </TermList>
     </Layer>
     <Layer>
-      <pre v-if="license_content">
-        {{ license_content }}
-      </pre>
+      <pre>{{ document_content }}</pre>
     </Layer>
   </article>
 </template>

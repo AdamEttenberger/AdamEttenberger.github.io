@@ -6,12 +6,9 @@ import Note from '@/components/note.vue'
 import ProjectLabel from '@/components/project_label.vue'
 import Section from '@/components/section.vue'
 import { ThemeColor } from '@/composables/theme'
-import { useEmailTemplateStore } from '@/stores/email_template'
-import { IProjectInfo } from '@/types/project_types'
-
+import { EmailFeedback } from '@/content/socials'
+import { type IProjectInfo } from '@/types/project_types'
 defineProps<IProjectInfo>();
-
-const emails = useEmailTemplateStore();
 </script>
 
 <template>
@@ -48,7 +45,7 @@ const emails = useEmailTemplateStore();
       <p>
         Please review the <RouterLink to="/privacy">privacy statement</RouterLink>, then use the following email template including as much detail as possible, and I will attempt to mitigate or resolve concerns in a timely manner.
       </p>
-      <Button class="feedback" :to="emails.feedback" :color="ThemeColor.Accent" />
+      <Button class="feedback" :to="EmailFeedback" :color="ThemeColor.Accent" />
     </Section>
 
     <Section heading="Beginnings">

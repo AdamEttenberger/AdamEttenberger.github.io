@@ -1,49 +1,70 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import Code from '@/components/code.vue'
-import Layer from '@/components/layer.vue'
+import { ref, type Ref } from 'vue'
+import CodeMirror from '@/components/code-mirror.vue'
 import Details from '@/components/details.vue'
 import Link from '@/components/link.vue'
 import Figure from '@/components/figure.vue'
 import Player from '@/components/player.vue'
 import { PlayerState } from '@/types/player_state'
 import Section from '@/components/section.vue'
-import { IProjectInfo } from '@/types/project_types'
+import { type IProjectInfo } from '@/types/project_types'
 import useIntersectionObserver from '@/composables/intersection_observer'
+import usePostMessage from '@/composables/post_message'
+import { FrameContainerSymbol, isFrameContainer } from '@/types/frame_container'
+import useFunctionRef, { toComponent, type WeakElement } from '@/composables/function_ref'
 
 defineProps<IProjectInfo>();
-const player_states = ref({});
 
-const { observe: mapPlayerIntersectionObserver } = useIntersectionObserver((key, entry, _index, _array) => {
+type FrameRefName = 'main'|'triangle'|'json-loader'|'json-deserialize-example';
+
+const player_states = ref({}) as Ref<Record<FrameRefName, PlayerState>>;
+
+const { observe: mapPlayerIntersectionObserver } = useIntersectionObserver<FrameRefName>((key, entry) => {
   player_states.value[key] = entry.isIntersecting
       ? PlayerState.Playing
       : PlayerState.Empty;
 });
 
-function makePlayerRef(key) {
-  return (e) => mapPlayerIntersectionObserver(key, e?.$el);
-}
+const player = useFunctionRef<FrameRefName>([
+  {
+    ref(e: undefined|WeakElement, key: FrameRefName): void {
+      const comp = toComponent(e, Player);
+      if (!isFrameContainer(comp)) {
+        return;
+      }
+      mapPlayerIntersectionObserver(key, () => comp.$el);
+    }
+  }
+]);
 
-function onPlayerLoaded(target_frame, filepath) {
-  postMessageToFrame(target_frame, filepath);
-}
+type ProjectLoaderPayload = {
+  file: string;
+};
+const { post } = usePostMessage<ProjectLoaderPayload>();
 
-function postMessageToFrame(target_frame, filepath) {
-  target_frame.contentWindow.postMessage({
-    file: filepath,
-  }, window.location.origin);
+function onPlayerLoaded(target_frame: HTMLIFrameElement, frame_key: string, ref_name: FrameRefName, new_filepath: string) {
+  const comp = player.castItem(ref_name, Player);
+  if (!isFrameContainer(comp) || !comp.inner_frame) {
+    console.error('unable to locate frame');
+    return;
+  }
+  if (comp.inner_frame !== target_frame ||
+      comp[FrameContainerSymbol] !== frame_key) {
+    console.error('unexpected frame mismatch');
+    return;
+  }
+  post(comp, { file: new_filepath });
 }
 </script>
 
 <template>
   <article>
-    <Player :ref="makePlayerRef('main')" :state="player_states['main']"
+    <Player :ref="player.ref('main')" :state="player_states['main']"
             :title="title"
             :date="date"
             :lastmod="lastmod"
             frame="/library/projects/proto_engine/main.html" />
 
-    <!-- <Layer> -->
       <Section heading="What's this?">
         <p>
           This project is a simple proof-of-concept component based game engine, heavily inspired by Unity's component based <Link to="https://docs.unity3d.com/ScriptReference/GameObject.html">GameObject</Link> + <Link to="https://docs.unity3d.com/ScriptReference/MonoBehaviour.html">MonoBehavior</Link> model.
@@ -175,9 +196,9 @@ function postMessageToFrame(target_frame, filepath) {
         <p>
           First the Game object is initialized:
         </p>
-        <Code lang="javascript"
-              caption="Creates a new `Game` object."
-              text="
+        <CodeMirror lang="javascript"
+                    caption="Creates a new `Game` object."
+                    content="
           var canvas = document.querySelector('canvas');
           game = new Game(canvas);
           game.clear_color = vec4.fromValues( 0.0, 0.0, 0.0, 1.0 );
@@ -185,9 +206,9 @@ function postMessageToFrame(target_frame, filepath) {
         <p>
           Then Model data is loaded:
         </p>
-        <Code lang="javascript"
-              caption="Load vertex position, color, and index buffers for a unit equilateral triangle into WebGL."
-              text="
+        <CodeMirror lang="javascript"
+                    caption="Load vertex position, color, and index buffers for a unit equilateral triangle into WebGL."
+                    content="
             var v1 = vec3.fromValues(0, 1, 0);
             var v2 = vec3.rotateZ(/*dest=*/vec3.create(),
                                   /*src=*/v1,
@@ -223,16 +244,16 @@ function postMessageToFrame(target_frame, filepath) {
         <p>
           Then the scene is populated and the camera is setup:
         </p>
-        <Code lang="javascript"
-              caption="Creates a new parent and child GameObject then adds the parent to the scene root."
-              text="
+        <CodeMirror lang="javascript"
+                    caption="Creates a new parent and child GameObject then adds the parent to the scene root."
+                    content="
           var triangle = new GameObject();
           triangle.addComponent(new ModelComponent().setBuffers(buffers));
           triangle.addComponent(new RotateComponent().pushEuler(0, 0, -120));
           game.m_root.addChildGameObject(triangle);" />
-        <Code lang="javascript"
-              caption="Setup the camera."
-              text="
+        <CodeMirror lang="javascript"
+                    caption="Setup the camera."
+                    content="
           // Setup the camera (move the world forward 5 units).
           mat4.perspective(game.pMatrix, 45, game.aspect, 1.0, 1000.0);
           mat4.fromTranslation(game.vMatrix, vec3.fromValues(0.0, 0.0, -5.0));
@@ -240,12 +261,12 @@ function postMessageToFrame(target_frame, filepath) {
         <p>
           Finally, the game loop is started and any further updates should be driven by GameObjectComponent logic.
         </p>
-        <Code lang="javascript"
-              caption="Start the core game loop."
-              text="
+        <CodeMirror lang="javascript"
+                    caption="Start the core game loop."
+                    content="
           game.start();
         " />
-        <Player :ref="makePlayerRef('triangle')" :state="player_states['triangle']"
+        <Player :ref="player.ref('triangle')" :state="player_states['triangle']"
                 title="Hello Triangle"
                 :date="new Date('2025/06/26')"
                 :lastmod="new Date('2025/06/26')"
@@ -256,18 +277,18 @@ function postMessageToFrame(target_frame, filepath) {
         <p>
           All components implement the same interface, GameObjectComponent, which contains an update and draw method which are called by the Game instance.
         </p>
-        <Code lang="javascript" file="/library/proto_engine/GameObjectComponent.js" />
+        <CodeMirror lang="javascript" file="/library/proto_engine/GameObjectComponent.js" />
         <p>
           A simple component example is the RotateComponent, which applies an angular velocity to the object's transform each frame:
         </p>
         <Details summary="RotateComponent.js">
-          <Code lang="javascript" file="/library/proto_engine/RotateComponent.js" />
+          <CodeMirror lang="javascript" file="/library/proto_engine/RotateComponent.js" />
         </Details>
         <p>
           A more complex example is the ColorTextureModelComponent which creates a ShaderProgram used to render itself:
         </p>
         <Details summary="ColorTextureModelComponent.js">
-          <Code lang="javascript" file="/library/proto_engine/ColorTextureModelComponent.js" />
+          <CodeMirror lang="javascript" file="/library/proto_engine/ColorTextureModelComponent.js" />
         </Details>
       </Section>
 
@@ -279,32 +300,32 @@ function postMessageToFrame(target_frame, filepath) {
           For example, the "Hello Triangle" scene has been exported as the following JSON file:
         </p>
         <Details summary="hello_triangle.json">
-          <Code file="/library/proto_engine/scenes/hello_triangle.json" />
+          <CodeMirror file="/library/proto_engine/scenes/hello_triangle.json" />
         </Details>
         <p>
           The JSON may be loaded into the Proto-Engine, for example with this minimal project loader:
         </p>
         <Details summary="project_loader.js">
-          <Code lang="javascript" file="/library/projects/proto_engine/project_loader.js" />
+          <CodeMirror lang="javascript" file="/library/projects/proto_engine/project_loader.js" />
         </Details>
-        <Player :ref="makePlayerRef('json-loader')" :state="player_states['json-loader']"
+        <Player :ref="player.ref('json-loader')" :state="player_states['json-loader']"
                 title="hello_triangle.json"
                 :date="new Date('2025/06/26')"
                 :lastmod="new Date('2025/06/26')"
                 frame="/library/projects/proto_engine/project_loader.html"
-                @load="(e) => onPlayerLoaded(e, '/library/proto_engine/scenes/hello_triangle.json')" />
+                @load="(e, frame_key) => onPlayerLoaded(e, frame_key, 'json-loader', '/library/proto_engine/scenes/hello_triangle.json')" />
         <p>
           The following demo loads <Link public to="/library/proto_engine/scenes/deserialization_example.json">deserialization_example.json</Link> which is a scene composed of parts from the demo at the top of the page and the giant textured cube from the <RouterLink to="/projects/flocking">WebGL Flocking</RouterLink> project page.
           This also includes binary data such as models and textures which are output as a JSON array and base64 encoded string respectively.
           While JSON isn't the most space efficient file format, this does make it possible to deploy a game or demo with a single self-contained JSON file.
           JSON is very flexible for prototyping and very easy to work with in JavaScript.
         </p>
-        <Player :ref="makePlayerRef('json-deserialize-example')" :state="player_states['json-deserialize-example']"
+        <Player :ref="player.ref('json-deserialize-example')" :state="player_states['json-deserialize-example']"
                 title="deserialization_example.json"
                 :date="new Date('2025/06/25')"
                 :lastmod="new Date('2025/06/25')"
                 frame="/library/projects/proto_engine/project_loader.html"
-                @load="(e) => onPlayerLoaded(e, '/library/proto_engine/scenes/deserialization_example.json')" />
+                @load="(e, frame_key) => onPlayerLoaded(e, frame_key, 'json-deserialize-example', '/library/proto_engine/scenes/deserialization_example.json')" />
         <p>
           Serialization and deserialization are handled asynchronously, and JavaScript Promises make it easy to schedule parallel and order dependent tasks together.
           One challenge that came up involved serialization being called before a scene was fully loaded, since models and textures are bundled into the output.
@@ -312,9 +333,9 @@ function postMessageToFrame(target_frame, filepath) {
           However the fix was simple, the only change needed was to `await` the resource loader during serialization.
           This allows other serialization tasks to continue asynchronously while resource dependent tasks are blocked until they're ready.
         </p>
-        <Code lang="javascript"
-              caption="Texture serialization seamlessly waits until the texture is ready without blocking other tasks."
-              text="
+        <CodeMirror lang="javascript"
+                    caption="Texture serialization seamlessly waits until the texture is ready without blocking other tasks."
+                    content="
           // Game.js
           static async serializeTexture(texture) {
             await texture.loader;
@@ -335,9 +356,9 @@ function postMessageToFrame(target_frame, filepath) {
             };
           }
         " />
-        <Code lang="javascript"
-              caption="High-level deserialization logic."
-              text="
+        <CodeMirror lang="javascript"
+                    caption="High-level deserialization logic."
+                    content="
           // Game.js
           async deserializeGameObject(jsonGameObject) {
             var obj = new GameObject();
@@ -356,8 +377,7 @@ function postMessageToFrame(target_frame, filepath) {
               return await new TComponent().deserialize(jsonComponent);
           }
         " />
-      </Section>
-    <!-- </Layer> -->
+    </Section>
   </article>
 </template>
 

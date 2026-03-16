@@ -3,7 +3,7 @@ import Link from '@/components/link.vue'
 import Figure from '@/components/figure.vue'
 import Player from '@/components/player.vue'
 import Section from '@/components/section.vue'
-import { IProjectInfo } from '@/types/project_types'
+import { type IProjectInfo } from '@/types/project_types'
 defineProps<IProjectInfo>();
 </script>
 

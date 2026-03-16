@@ -17,13 +17,13 @@
   --app-column-max-width: 55rem;
   --component-project-item-size: calc((var(--app-column-max-width) / 3.0) - (2.0 * var(--padding-xxlarge)));
 
-  --component-layer-padding: var(--padding-normal);
+  --component-layer-padding: var(--padding-normal) var(--padding-xxlarge);
   --component-layer-gap: var(--padding-xxlarge);
 }
 
 @media only screen and (max-width: 35rem) {
   :root {
-    --component-layer-padding: var(--padding-small);
+    --component-layer-padding: var(--padding-normal);
   }
 }
 

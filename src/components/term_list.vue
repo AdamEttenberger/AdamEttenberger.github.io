@@ -1,7 +1,9 @@
 <script setup lang="ts">
-defineProps({
-  heading: { type: String, default: "Terms" },
-})
+withDefaults(defineProps<{
+  heading: string;
+}>(), {
+  heading: "Terms"
+});
 </script>
 
 <template>

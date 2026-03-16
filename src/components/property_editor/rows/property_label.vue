@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { IPropertyLabelOptions } from '@/util/property_editor/property_interfaces';
-defineProps<IPropertyLabelOptions>();
+import { type IPropertyLabelRow } from '@/util/property_editor/property_interfaces'
+defineProps<IPropertyLabelRow>();
+const model = defineModel({ required: true });
 </script>
 
 <template>
   <div class="property-editor-label">
-    <div>{{ modelValue }}</div>
+    <div>{{ model }}</div>
   </div>
 </template>
 

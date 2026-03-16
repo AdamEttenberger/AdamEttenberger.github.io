@@ -1,74 +1,79 @@
-export default class DateUtil {
-  static toDate(value: any): Date {
-    if (value instanceof Date) {
-      return value;
-    }
-    switch (typeof value) {
-      case 'string':
-      case 'number':
-        var date = new Date(value);
-        if (!isNaN(date)) {
-          return date;
-        }
-        break;
-    }
-    // Automatically unwrap Vue references
-    if (value.value) {
-      return DateUtil.toDate(value.value);
-    }
-  }
+import { toValue, type MaybeRefOrGetter } from 'vue'
 
-  static formatJSON(value: any): String {
-    return DateUtil.toDate(value)?.toJSON() ?? "";
-  }
+export type DateLike = number|string|Date;
 
-  static formatShortDate(value: any): String {
-    return DateUtil.toDate(value)?.toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'short',
-    }) ?? "";
-  }
+export function date_from(from_utc: MaybeRefOrGetter<DateLike>): Date {
+  const value = toValue(from_utc);
+  return (value instanceof Date) ? value : new Date(value);
+}
 
-  static formatLongDate(value: any): String {
-    return DateUtil.toDate(value)?.toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'long',
-    }) ?? "";
-  }
+export function date_same_year(a: MaybeRefOrGetter<DateLike>, b: MaybeRefOrGetter<DateLike>): boolean {
+  const first: Date = date_from(a);
+  const second: Date = date_from(b);
+  return first.getUTCFullYear() == second.getUTCFullYear();
+}
 
-  static formatYearMonthDay(value: any): String {
-    var date = DateUtil.toDate(value);
-    if (!date) {
-      return "";
-    }
-    return `${date.getFullYear()}/${date.getMonth()+1}/${date.getDate()}`;
-  }
+export function date_same_month(a: MaybeRefOrGetter<DateLike>, b: MaybeRefOrGetter<DateLike>): boolean {
+  const first: Date = date_from(a);
+  const second: Date = date_from(b);
+  return first.getUTCFullYear() == second.getUTCFullYear() &&
+         first.getUTCMonth() == second.getUTCMonth();
+}
 
-  static formatYearMonthDayTime(value: any): String {
-    var date = DateUtil.toDate(value);
-    if (!date) {
-      return "";
-    }
-    return `${date.getFullYear()}/${date.getMonth()+1}/${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
-  }
+export function date_same_day(a: MaybeRefOrGetter<DateLike>, b: MaybeRefOrGetter<DateLike>): boolean {
+  const first: Date = date_from(a);
+  const second: Date = date_from(b);
+  return first.getUTCFullYear() == second.getUTCFullYear() &&
+         first.getUTCMonth() == second.getUTCMonth() &&
+         first.getUTCDate() == second.getUTCDate();
+}
 
-  static formatUTCString(value: any): String {
-    var date = DateUtil.toDate(value);
-    if (!date) {
-      return "";
-    }
-    return date.toUTCString();
-  }
+export function date_formatJSON(value: MaybeRefOrGetter<DateLike>): string {
+  return date_from(value).toJSON();
+}
 
-  static formatMLA(value: any): String {
-    var date = DateUtil.toDate(value);
-    if (!date) {
-      return "";
-    }
-    return [
-      date.toLocaleDateString(undefined, { day: 'numeric' }),
-      date.toLocaleDateString(undefined, { month: 'short' }),
-      date.toLocaleDateString(undefined, { year: 'numeric' }),
-    ].join(' ');
-  }
+export function date_formatShortDate(value: MaybeRefOrGetter<DateLike>): string {
+  return date_from(value).toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+  });
+}
+
+export function date_formatLongDate(value: MaybeRefOrGetter<DateLike>): string {
+  return date_from(value).toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'long',
+  });
+}
+
+export function date_formatYear(value: MaybeRefOrGetter<DateLike>): string {
+  return date_from(value).getFullYear().toFixed();
+}
+
+export function date_formatYearMonthDay(value: MaybeRefOrGetter<DateLike>): string {
+  const date = date_from(value);
+  return `${date.getFullYear()}/${date.getMonth()+1}/${date.getDate()}`;
+}
+
+export function date_formatTime(value: MaybeRefOrGetter<DateLike>): string {
+  const date = date_from(value);
+  return `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+}
+
+export function date_formatYearMonthDayTime(value: MaybeRefOrGetter<DateLike>): string {
+  const date = date_from(value);
+  return `${date_formatYearMonthDay(date)} ${date_formatTime(date)}`;
+}
+
+export function date_formatUTCString(value: MaybeRefOrGetter<DateLike>): string {
+  return date_from(value).toUTCString();
+}
+
+export function date_formatMLA(value: MaybeRefOrGetter<DateLike>): string {
+  const date = date_from(value);
+  return [
+    date.toLocaleDateString(undefined, { day: 'numeric' }),
+    date.toLocaleDateString(undefined, { month: 'short' }),
+    date.toLocaleDateString(undefined, { year: 'numeric' }),
+  ].join(' ');
 }

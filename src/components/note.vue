@@ -1,35 +1,34 @@
 <script setup lang="ts">
-import { PropType, unref } from 'vue'
-import useTheme, { ThemeColor, NoteKindDisplayStrings } from '@/composables/theme'
+import useTheme, { ThemeColor, type ThemeOptions, type IThemeProps, type NoteThemeColor, getNoteHeading, getNoteIcon } from '@/composables/theme'
 
-const props = defineProps({
-  color: { type: [null, String, ThemeColor] as PropType<null|String|ThemeColor>, default: ThemeColor.Info },
-  heading: { type: String, default: null },
-  text: { type: String, default: null },
-})
+const props = withDefaults(defineProps<IThemeProps & {
+  color?: NoteThemeColor;
+  heading?: string;
+  text?: string;
+}>(), {
+  color: ThemeColor.Info
+});
+
 const { theme } = useTheme(() => ({
-  color: unref(props.color),
+  color: props.color,
   depth: 6,
   absolute: true,
-}));
+} as ThemeOptions));
 </script>
 
 <template>
   <aside :class="[...theme.classNames]">
     <div class="note round">
       <div class="heading">
-        <font-awesome-icon class="icon" v-if="color === ThemeColor.Error" :icon="['fas', 'circle-exclamation']" />
-        <font-awesome-icon class="icon" v-else-if="color === ThemeColor.Warning" :icon="['fas', 'triangle-exclamation']" />
-        <font-awesome-icon class="icon" v-else-if="color === ThemeColor.Todo" :icon="['fas', 'road-barrier']" />
-        <font-awesome-icon class="icon" v-else :icon="['fas', 'circle-info']" />
-
-        <span v-if="$slots.heading"><slot></slot></span>
-        <span v-else-if="heading">{{ heading }}</span>
-        <span v-else>{{ NoteKindDisplayStrings[color] }}</span>
+        <font-awesome-icon class="icon" :icon="getNoteIcon(color)" />
+        <span>
+          <slot name="heading">{{ heading ?? getNoteHeading(color) }}</slot>
+        </span>
       </div>
       <div class="message">
-        <p v-if="$slots.default"><slot></slot></p>
-        <p v-else-if="text">{{ text }}</p>
+        <p>
+          <slot>{{ text }}</slot>
+        </p>
       </div>
     </div>
   </aside>

@@ -1,58 +1,96 @@
 <script setup lang="ts">
-import { computed, ref, useTemplateRef } from 'vue'
-import Code from '@/components/code.vue'
+import { computed, ref, type Ref } from 'vue'
+import CodeMirror from '@/components/code-mirror.vue'
 import Link from '@/components/link.vue'
 import Figure from '@/components/figure.vue'
 import Formula from '@/components/formula.vue'
 import Player from '@/components/player.vue'
 import PropertyEditor from '@/components/property_editor/property_editor.vue'
+import { PropertyEmits, PropertyEmitsHandler } from '@/util/property_editor/property_interfaces'
 import Quote from '@/components/quote.vue'
 import Section from '@/components/section.vue'
 import {
-  ComboBoxOptions,
-  NumberRangeOptions,
+  ComboBoxRow,
+  NumberRangeRow,
 } from '@/util/property_editor/property_types'
 //
-import { IProjectInfo } from '@/types/project_types'
+import { type IProjectInfo } from '@/types/project_types'
 import { PlayerState } from '@/types/player_state'
 import useIntersectionObserver from '@/composables/intersection_observer'
+import usePropertyEditorModel from '@/composables/property_editor_model'
+import usePostMessage from '@/composables/post_message'
+import { FrameContainerSymbol, isFrameContainer, type IFrameContainer } from '@/types/frame_container'
+import useFunctionRef, { toComponent, type WeakElement } from '@/composables/function_ref'
 
 defineProps<IProjectInfo>();
 
-const player_states = ref({});
+type FrameRefName = 'main'|'base-texture'|'diffuse-texture'|'diffuse-outline-texture'|'outline-hue-texture';
 
-const { observe: mapPlayerIntersectionObserver } = useIntersectionObserver((key, entry, _index, _array) => {
+type MetaballsPayload = {
+  count?: number;
+  radius?: number;
+  threshold?: number;
+};
+
+type MetaballPreset = {
+  label: string;
+} & {
+  [K in keyof MetaballsPayload]-?: MetaballsPayload[K];
+};
+
+type MetaballsPayloadKey = keyof MetaballsPayload;
+
+const frame_ref_names = ref({}) as Ref<Record<string, FrameRefName>>;
+const player_states = ref({}) as Ref<Record<FrameRefName, PlayerState>>;
+
+const { observe: mapPlayerIntersectionObserver } = useIntersectionObserver<FrameRefName>((key, entry) => {
   player_states.value[key] = entry.isIntersecting
       ? PlayerState.Playing
       : PlayerState.Empty;
 });
 
-function makePlayerRef(key) {
-  return (e) => mapPlayerIntersectionObserver(key, e?.$el);
-}
+const player = useFunctionRef<FrameRefName>([
+  {
+    ref(e: undefined|WeakElement, key: FrameRefName): void {
+      const comp = toComponent(e, Player);
+      if (!isFrameContainer(comp)) {
+        return;
+      }
+      frame_ref_names.value[comp[FrameContainerSymbol]] = key;
+      mapPlayerIntersectionObserver(key, () => comp.$el);
+    }
+  }
+]);
 
-const main_editor = useTemplateRef('main_editor_ref');
+const { post } = usePostMessage<MetaballsPayload>();
 
-const presets = {
-  "default": {
+enum PresetKey {
+  Default = 'default',
+  ExtraGloopy = 'extra-gloopy',
+  ExplosiveGrowth = 'explosive-growth',
+  ManyMini = 'many-mini',
+};
+
+const presets: Record<PresetKey, MetaballPreset> = {
+  [PresetKey.Default]: {
     label: "Default",
     count: 40,
     radius: 0.1,
     threshold: 0.5,
   },
-  "extra-gloopy": {
+  [PresetKey.ExtraGloopy]: {
     label: "Extra Gloopy",
     count: 40,
     radius: 0.1,
     threshold: 0.75,
   },
-  "explosive-growth": {
+  [PresetKey.ExplosiveGrowth]: {
     label: "Explosive Growth",
     count: 20,
     radius: 0.2,
     threshold: 0.9,
   },
-  "many-mini": {
+  [PresetKey.ManyMini]: {
     label: "Many Mini",
     count: 100,
     radius: 0.05,
@@ -60,61 +98,75 @@ const presets = {
   },
 };
 
-const selected_preset = ref('default');
+const PresetOptions = Object.values(PresetKey).reduce<Array<[PresetKey, string]>>(
+  (result, key) => {
+    result.push([key, presets[key].label]);
+    return result;
+  }, new Array<[PresetKey, string]>());
+
+const selected_preset = ref<PresetKey>(PresetKey.Default);
+const payload = computed<MetaballsPayload>(() => ({
+  count: editor.get<number>('count'),
+  radius: editor.get<number>('radius'),
+  threshold: editor.get<number>('threshold'),
+}));
+
 // Intentionally setup so each editor is synchronized.
-const editor_properties = [
-  new NumberRangeOptions('count', 'Count', computed(() => presets[selected_preset.value]?.count), 0, 100, 1).setModel(ref(presets[selected_preset.value].count)),
-  new NumberRangeOptions('radius', 'Radius', computed(() => presets[selected_preset.value]?.radius), 0.01, 0.2, 0.01).setModel(ref(presets[selected_preset.value].radius)),
-  new NumberRangeOptions('threshold', 'Min-Mass', computed(() => presets[selected_preset.value]?.threshold), 0.01, 0.99, 0.01).setModel(ref(presets[selected_preset.value].threshold)),
-  new ComboBoxOptions('preset', 'Preset', 'default', Object.entries(presets).map(([key, value]) => [key, value.label])).setModel(selected_preset),
-];
+const editor = usePropertyEditorModel(
+  [
+    new NumberRangeRow('count', 'Count', (() => presets[selected_preset.value].count), 0, 100, 1),
+    new NumberRangeRow('radius', 'Radius', (() => presets[selected_preset.value].radius), 0.01, 0.2, 0.01),
+    new NumberRangeRow('threshold', 'Min-Mass', (() => presets[selected_preset.value].threshold), 0.01, 0.99, 0.01),
+    new ComboBoxRow<PresetKey>('preset', 'Preset', selected_preset.value, PresetOptions).setModel(selected_preset),
+  ],
+  new PropertyEmitsHandler((kind: PropertyEmits, name: string): void => {
+    switch (kind) {
+      case PropertyEmits.Changed: {
+        if (name === 'preset') {
+          onPresetChanged();
+        }
+        update_frames();
+        break;
+      }
+      case PropertyEmits.Changing:
+      case PropertyEmits.Click:
+      case PropertyEmits.Reset: {
+        break;
+      }
+    }
+  })
+);
 
-function onPlayerLoaded(target_frame) {
-  postMessageToFrame(target_frame);
+function update_frames() {
+  const snapshot = payload.value;
+  player.forEach(Player, (frame) => {
+    post(frame as IFrameContainer, snapshot);
+  });
 }
 
-function postMessageToFrame(target_frame) {
-  if (!target_frame || !main_editor.value) {
+function onPlayerLoaded(_source: HTMLIFrameElement, frame_key: string) {
+  const ref_name = frame_ref_names.value[frame_key];
+  if (!ref_name) {
     return;
   }
-  target_frame.contentWindow.postMessage({
-    count: main_editor.value.get('count'),
-    radius: main_editor.value.get('radius'),
-    threshold: main_editor.value.get('threshold'),
-  }, window.location.origin);
-}
-
-var pending_update = null;
-function scheduleUpdate() {
-  if (pending_update) {
+  const comp = player.castItem(ref_name, Player);
+  if (!isFrameContainer(comp)) {
     return;
   }
-  clearTimeout(pending_update);
-  pending_update = setTimeout(() => {
-    document.querySelectorAll('iframe').forEach(postMessageToFrame);
-    pending_update = null;
-  }, 300);
+  post(comp, payload.value);
 }
 
-function onPresetSelected() {
-  const new_selection = main_editor.value.get('preset');
-  const new_presets = presets[new_selection];
-  for (var key of ['count', 'radius', 'threshold']) {
-    main_editor.value.set(key, new_presets[key]);
+function onPresetChanged() {
+  const new_presets = presets[selected_preset.value];
+  for (const key of (Object.keys(payload.value) as MetaballsPayloadKey[])) {
+    editor.set(key, new_presets[key]);
   }
-}
-
-function onPropertyChanged(name) {
-  if (name === 'preset') {
-    onPresetSelected();
-  }
-  scheduleUpdate();
 }
 </script>
 
 <template>
   <article>
-    <Player :ref="makePlayerRef('main')" :state="player_states['main']"
+    <Player :ref="player.ref('main')" :state="player_states['main']"
             :title="title"
             :date="date"
             :lastmod="lastmod"
@@ -122,9 +174,7 @@ function onPropertyChanged(name) {
             @load="onPlayerLoaded" />
 
     <Section heading="Controls">
-      <PropertyEditor ref="main_editor_ref"
-                      :properties="editor_properties"
-                      @property-changed="onPropertyChanged" />
+      <PropertyEditor v-bind:rows="editor.rows" v-model="editor.models" v-on="editor.onPropertyEmit" />
     </Section>
 
     <Section>
@@ -173,9 +223,9 @@ function onPropertyChanged(name) {
         First the renderer needs to be configured for blending.
         It's important that the background is transparent black, the later shaders will use the alpha channel as a "mass" or "influence" value, deciding whether to discard or paint a pixel.
       </p>
-      <Code lang="javascript"
-            caption="Configure WebGL for alpha blending."
-            text="
+      <CodeMirror lang="javascript"
+                  caption="Configure WebGL for alpha blending."
+                  content="
         gl.clearColor(0.0, 0.0, 0.0, 0.0);
         gl.blendEquation(gl.FUNC_ADD);
         gl.blendFuncSeparate(/*srcRGB=*/ gl.SRC_ALPHA,
@@ -184,20 +234,21 @@ function onPropertyChanged(name) {
                             /*dstAlpha=*/ gl.ONE_MINUS_SRC_ALPHA);
         gl.enable(gl.BLEND);
         gl.disable(gl.DEPTH_TEST);
-      "></Code>
+      " />
 
-      <Formula caption="Equation for the blendFuncSeparate above, computing the color `R` given colors source `S` and destination `D`.">
-        \begin{aligned}
-        R_{rgb} &=& &(S_{rgb} \cdot S_a) &+& (D_{rgb} \cdot (1 - S_a))& \\
-        R_a     &=& &(S_a \cdot 1) &+& (D_a \cdot (1 - S_a))& \\
-        \end{aligned}
-      </Formula>
+      <Formula caption="Equation for the blendFuncSeparate above, computing the color `R` given colors source `S` and destination `D`."
+               content="
+                  \begin{aligned}
+                  R_{rgb} &=& &(S_{rgb} \cdot S_a) &+& (D_{rgb} \cdot (1 - S_a))& \\
+                  R_a     &=& &(S_a \cdot 1) &+& (D_a \cdot (1 - S_a))& \\
+                  \end{aligned}
+               " />
       <p>
         Each particle is shaded into the base texture after updating its per-particle uniform values.
         The final base texture contains all points on a transparent black background, radial gradients (color and alpha) around each point.
         Each point has a color gradient where the center is the assigned color and perimeter is transparent black.
       </p>
-      <Code file="/library/projects/metaballs/shaders/metaball-points-fs-v2012.c"></Code>
+      <CodeMirror file="/library/projects/metaballs/shaders/metaball-points-fs-v2012.c" />
       <p>
         The approach above works, however a more robust solution might be to use signed-distance fields.
         <Link to="https://iquilezles.org/">Inigo Quilez</Link> has some great articles and resources on this subject:
@@ -206,23 +257,23 @@ function onPropertyChanged(name) {
         <li><Link to="https://iquilezles.org/articles/distfunctions2d/">2D distance functions</Link></li>
         <li><Link to="https://iquilezles.org/articles/distgradfunctions2d/">2D distance and gradient functions</Link></li>
       </ul>
-      <Code file="/library/projects/metaballs/shaders/metaball-points-fs-v2025.c"></Code>
+      <CodeMirror file="/library/projects/metaballs/shaders/metaball-points-fs-v2025.c" />
       <p>
         Finally blending modes are reset before passing the composited texture to one of the following shaders.
       </p>
-      <Code lang="javascript"
-            caption="Disable WebGL blend and re-enables depth test."
-            text="
+      <CodeMirror lang="javascript"
+                  caption="Disable WebGL blend and re-enables depth test."
+                  content="
         gl.disable(gl.BLEND);
         gl.enable(gl.DEPTH_TEST);
-      "></Code>
-      <Player :ref="makePlayerRef('base-texture')" :state="player_states['base-texture']"
+      " />
+      <Player :ref="player.ref('base-texture')" :state="player_states['base-texture']"
               title="Base Texture"
               :date="date"
               :lastmod="lastmod"
               frame="/library/projects/metaballs/main.html?mode=WebFigureBaseTexture"
               @load="onPlayerLoaded" />
-      <PropertyEditor :properties="editor_properties" @property-changed="onPropertyChanged" />
+      <PropertyEditor v-bind:rows="editor.rows" v-model="editor.models" v-on="editor.onPropertyEmit" />
     </Section>
 
     <Section heading="Apply: Diffuse Metaball">
@@ -230,42 +281,42 @@ function onPropertyChanged(name) {
         This shader is simply a mask that discards any alpha values below the minimum-influence, uThreshold.
         The "diffuse" shading comes "free" since the color shading has already been baked into the texture, so kind of cheating.
       </p>
-      <Code file="/library/projects/metaballs/shaders/metaball-fs.c"></Code>
-      <Player :ref="makePlayerRef('diffuse-texture')" :state="player_states['diffuse-texture']"
+      <CodeMirror file="/library/projects/metaballs/shaders/metaball-fs.c" />
+      <Player :ref="player.ref('diffuse-texture')" :state="player_states['diffuse-texture']"
               title="Diffuse Metaball"
               :date="date"
               :lastmod="lastmod"
               frame="/library/projects/metaballs/main.html?mode=WebFigureDiffuse"
               @load="onPlayerLoaded" />
-      <PropertyEditor :properties="editor_properties" @property-changed="onPropertyChanged" />
+      <PropertyEditor v-bind:rows="editor.rows" v-model="editor.models" v-on="editor.onPropertyEmit" />
     </Section>
 
     <Section heading="Apply: Diffuse Metaball + Outline">
       <p>
         This shader builds upon the previous, adding a black and white outline around masses.
       </p>
-      <Code file="/library/projects/metaballs/shaders/outline-metaball-fs.c"></Code>
-      <Player :ref="makePlayerRef('diffuse-outline-texture')" :state="player_states['diffuse-outline-texture']"
+      <CodeMirror file="/library/projects/metaballs/shaders/outline-metaball-fs.c" />
+      <Player :ref="player.ref('diffuse-outline-texture')" :state="player_states['diffuse-outline-texture']"
               title="Diffuse Metaball + Outline"
               :date="date"
               :lastmod="lastmod"
               frame="/library/projects/metaballs/main.html?mode=WebFigureDiffuseOutline"
               @load="onPlayerLoaded" />
-      <PropertyEditor :properties="editor_properties" @property-changed="onPropertyChanged" />
+      <PropertyEditor v-bind:rows="editor.rows" v-model="editor.models" v-on="editor.onPropertyEmit" />
     </Section>
 
     <Section heading="Apply: Outline + Hue">
       <p>
         This shader builds upon the previous two, replacing the innermost fill color with a rotating hue.
       </p>
-      <Code file="/library/projects/metaballs/shaders/hue-metaball-fs.c"></Code>
-      <Player :ref="makePlayerRef('outline-hue-texture')" :state="player_states['outline-hue-texture']"
+      <CodeMirror file="/library/projects/metaballs/shaders/hue-metaball-fs.c" />
+      <Player :ref="player.ref('outline-hue-texture')" :state="player_states['outline-hue-texture']"
               title="Outline + Hue"
               :date="date"
               :lastmod="lastmod"
               frame="/library/projects/metaballs/main.html?mode=WebFigureHueOutline"
               @load="onPlayerLoaded" />
-      <PropertyEditor :properties="editor_properties" @property-changed="onPropertyChanged" />
+      <PropertyEditor v-bind:rows="editor.rows" v-model="editor.models" v-on="editor.onPropertyEmit" />
     </Section>
 
     <Section heading="Limitations">

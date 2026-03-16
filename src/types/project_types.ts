@@ -1,25 +1,22 @@
-import { ThemeColor } from '@/composables/theme';
+import { type RouteComponent } from 'vue-router'
+import { type ThemeColor } from '@/composables/theme'
+import { type DateLike } from '@/util/date'
 
 export interface IProjectInfo {
-  subpath: String;
-  title: String;
-  icon: String;
-  date: Date;
-  lastmod?: Date;
+  subpath: string;
+  title: string;
+  icon: string;
+  date: DateLike;
+  lastmod?: DateLike;
   color?: ThemeColor;
 };
 
-export interface IProjectArticleImporter {
-  article: Function;
-};
-
-export default class ProjectInfo implements IProjectInfo,
-                                            IProjectArticleImporter {
-  constructor(public subpath: String,
-              public article: Function,
-              public title: String,
-              public icon: String,
-              public date: Date,
-              public lastmod?: Date,
+export default class ProjectInfo implements IProjectInfo {
+  constructor(public subpath: string,
+              public article: RouteComponent,
+              public title: string,
+              public icon: string,
+              public date: DateLike,
+              public lastmod?: DateLike,
               public color?: ThemeColor) {}
 };

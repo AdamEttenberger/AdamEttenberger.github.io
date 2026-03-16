@@ -1,28 +1,17 @@
 <script setup lang="ts">
-import { computed, PropType, unref } from 'vue'
-import useTheme, { ThemeColor } from '@/composables/theme'
+import { computed, type MaybeRef, unref } from 'vue'
+import useTheme, { type IThemeProps, type ThemeOptions } from '@/composables/theme'
 
-const props = defineProps({
-  color: { type: [null, String, ThemeColor] as PropType<null|String|ThemeColor>, default: null },
-  depth: { type: [null, Number] as PropType<null|Number>, default: null },
-  absolute: { type: Boolean, default: false },
-
-  /**
-   * Prevents the layer from drawing a background or adding to the layer depth.
-   * This is useful for situations where you want a <Section> or <Details> without
-   * adding a background or affecting descendant colors, or to temporarily disable
-   * stop drawing the background of a layer.
-   */
-  transparent: { type: Boolean, default: false },
-  show_hover: { type: Boolean, default: false },
-  disabled: { type: [Boolean, Object] as PropType<Boolean|Object>, default: false },
-})
+const props = defineProps<IThemeProps & {
+  show_hover?: MaybeRef<boolean>;
+  disabled?: MaybeRef<boolean>;
+}>();
 
 const { theme } = useTheme(() => ({
   color: props.color,
   depth: props.depth ?? (props.transparent ? 0 : 1),
   absolute: props.absolute && (props.depth != null),
-}));
+} as ThemeOptions));
 
 const class_names = computed(() => {
   var result = ['round', 'layer', ...theme.value.classNames];

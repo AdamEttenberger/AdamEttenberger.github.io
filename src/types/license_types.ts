@@ -1,15 +1,20 @@
-export interface ILicenseInfo {
-  subpath: String;
-  name: String;
-  author: String;
-  date: Date;
-  file_import: Function;
+import { type MaybeRefOrGetter } from 'vue'
+import { type AsyncDocumentLoader, type ITextDocumentParam, type TextDocumentSourceFunc } from '@/types/text_document'
+import { type DateLike } from '@/util/date'
+
+export interface ILicenseInfo extends ITextDocumentParam {
+  subpath: string;
+  name: string;
+  author: string;
+  date: DateLike;
 };
 
 export default class LicenseInfo implements ILicenseInfo {
-  constructor(public subpath: String,
-              public name: String,
-              public author: String,
-              public date: Date,
-              public file_import: Function) {}
+  content?: MaybeRefOrGetter<string> | undefined;
+
+  constructor(public subpath: string,
+              public name: string,
+              public author: string,
+              public date: DateLike,
+              public file: string|TextDocumentSourceFunc|AsyncDocumentLoader) {}
 };

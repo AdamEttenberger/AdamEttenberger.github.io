@@ -1,25 +1,35 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 // Pinia Stores
 import { useUserPreferencesStore } from '@/stores/user_preferences'
 const preferences = useUserPreferencesStore();
 
-defineProps({
-  src: { type: String, default: null },
-  src_light: { type: String, default: null },
-  src_dark: { type: String, default: null },
-  alt: { type: String, default: null },
-  caption: { type: String, default: null },
+const props = defineProps<{
+  src?: string;
+  src_light?: string;
+  src_dark?: string;
+  alt?: string;
+  caption?: string;
+}>();
+
+const image_source = computed<undefined|string>(() => {
+  if (props.src_light && props.src_dark) {
+    return preferences.useDarkMode ? props.src_dark : props.src_light;
+  } else if (props.src) {
+    return props.src;
+  }
+  return undefined;
 });
 </script>
 
 <template>
   <figure>
-    <img v-if="(src_light && src_dark)" :src="preferences.useDarkMode ? src_dark : src_light" :alt="alt" />
-    <img v-else-if="src" :src="src" :alt="alt" />
-    <slot v-else></slot>
+    <slot>
+      <img v-if="image_source" :src="image_source" :alt />
+    </slot>
 
     <figcaption v-if="$slots.caption"><slot name="caption"></slot></figcaption>
-    <figcaption v-else-if="caption">{{ caption  }}</figcaption>
+    <figcaption v-else-if="caption">{{ caption }}</figcaption>
     <figcaption v-else-if="alt">{{ alt }}</figcaption>
   </figure>
 </template>

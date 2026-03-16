@@ -1,110 +1,77 @@
-<script setup lang="ts" generic="T extends AnyPropertyOptions">
-import { computed, unref, nextTick } from 'vue'
+<script setup lang="ts">
+import { computed, defineAsyncComponent, nextTick, toValue } from 'vue'
 import Button from '@/components/buttons/button.vue'
 import useTheme, { ThemeColor } from '@/composables/theme'
 import {
-  AnyPropertyOptions,
-  PropertyKind,
-  IPropertyValueOptions,
+  type PropertyType,
+  PropertyEmits,
+  type PropertyValueType,
 } from '@/util/property_editor/property_interfaces'
 
-import PropertyButton from '@/components/property_editor/property_button.vue'
-import PropertyComboBox from '@/components/property_editor/property_combo_box.vue'
-import PropertyDivider from '@/components/property_editor/property_divider.vue'
-import PropertyGroup from '@/components/property_editor/property_group.vue'
-import PropertyLabel from '@/components/property_editor/property_label.vue'
-import PropertyNumberRange from '@/components/property_editor/property_number_range.vue'
-import PropertyToggle from '@/components/property_editor/property_toggle.vue'
-
-const PropertyPicker = new Map([
-  [PropertyKind.Button, PropertyButton],
-  [PropertyKind.Color3, null],
-  [PropertyKind.Color4, null],
-  [PropertyKind.ComboBox, PropertyComboBox],
-  [PropertyKind.Divider, PropertyDivider],
-  [PropertyKind.Group, PropertyGroup],
-  [PropertyKind.Label, PropertyLabel],
-  [PropertyKind.NumberRange, PropertyNumberRange],
-  [PropertyKind.Toggle, PropertyToggle],
-]);
-const PropertyClickable = new Map([
-  [PropertyKind.Button, true],
-  [PropertyKind.Color3, false],
-  [PropertyKind.Color4, false],
-  [PropertyKind.ComboBox, false],
-  [PropertyKind.Divider, false],
-  [PropertyKind.Group, false],
-  [PropertyKind.Label, false],
-  [PropertyKind.NumberRange, false],
-  [PropertyKind.Toggle, true],
-]);
-
-const emit = defineEmits([
-  'property-changing', // (new_value: any)
-  'property-changed', // ()
-  'property-click',   // ()
-]);
+const emit = defineEmits(Object.values(PropertyEmits));
 
 const props = defineProps<{
-  options: T,
+  item: PropertyType,
 }>();
 
 const model = defineModel({
   set(new_value) {
-    emit('property-changing', new_value);
-    nextTick(() => {
-      emit('property-changed');
+    emit(PropertyEmits.Changing, PropertyEmits.Changing, props.item.name, new_value);
+    void nextTick().then(() => {
+      emit(PropertyEmits.Changed, PropertyEmits.Changed, props.item.name);
     });
     return new_value;
   }
 });
-const is_model_changed = computed(() => unref(model) != unref((props.options as IPropertyValueOptions)?.default_value));
 
-// const kind = computed(() => unref(props.options.kind));
-const name = computed(() => unref(props.options.name));
-const label = computed(() => unref(props.options.label));
-const disabled = computed(() => unref(props.options.disabled));
-const visible = computed(() => !unref(props.options.collapsed));
-const has_value = computed(() => unref(model) !== undefined);
-const show_label = computed(() => unref(props.options.show_label));
-const show_undo = computed(() => has_value.value && unref(props.options.show_undo));
-const dynamic_component = computed(() => PropertyPicker.get(unref(props.options.kind)));
+const label_text = computed<undefined|string>(() => props.item.meta.with_label ? props.item.label : undefined);
+const show_reset = computed<boolean>(() => (model.value !== undefined) && props.item.meta.with_reset);
+const dynamic_component = computed(() => props.item.meta.component ? defineAsyncComponent(props.item.meta.component) : undefined);
 
-function onPropertyClicked() {
-  if (!PropertyClickable.get(unref(props.options.kind))) {
+const is_model_changed = computed(() => model.value != toValue((props.item as PropertyValueType).default_value));
+
+function onPropertyClick() {
+  if (!props.item.meta.with_click) {
     return;
   }
-  emit('property-click');
+  emit(PropertyEmits.Click, PropertyEmits.Click, props.item.name);
 }
 
-const { theme } = useTheme(() => ({ color: unref(props.options.color) }));
+function onPropertyReset() {
+  emit(PropertyEmits.Reset, PropertyEmits.Reset, props.item.name);
+}
+
+const { theme } = useTheme(() => ({ color: toValue(props.item.color) }));
 </script>
 
 <template>
-  <div v-show="visible" :class="['property-row', ...theme.classNames]">
-    <label v-if="show_label && label" class="label" :for="name">{{ label }}</label>
-    <Button v-if="show_undo && model !== undefined"
+  <div v-show="!toValue(item.collapsed)" :class="['property-row', ...theme.classNames]">
+    <label v-if="label_text" class="label">{{ label_text }}</label>
+    <Button v-if="show_reset"
             :color="ThemeColor.Error"
-            :class="['undo', is_model_changed ? '' : 'hidden']"
-            :name="'undo:' + name"
-            :disabled="disabled"
+            :class="['reset', is_model_changed ? '' : 'hidden']"
+            :name="`reset:${props.item.name}`"
+            :disabled="toValue(item.disabled)"
             :icon="['fas', 'trash']"
-            @click="model = unref((props.options as IPropertyValueOptions)?.default_value)" />
+            @click="onPropertyReset()" />
     <!-- Filter by property control type -->
     <component :is="dynamic_component"
-               class="editor"
-               v-bind="options"
-               v-model="model"
-               @click="onPropertyClicked()" />
+              class="editor"
+              v-bind="item"
+              v-model="model"
+              @click="onPropertyClick()" />
   </div>
 </template>
 
 <style scoped>
 .property-row {
-  display: contents;
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: 1 / 4;
+  gap: var(--padding-normal);
 
-  & .label  { grid-column: 1 / 2; }
-  & .undo   { grid-column: 2 / 3; }
+  & .label  { grid-column: 1 / 2; text-wrap: nowrap; }
+  & .reset  { grid-column: 2 / 3; }
   & .editor { grid-column: 3 / 4; }
 
   & .property-editor-button,
@@ -115,19 +82,19 @@ const { theme } = useTheme(() => ({ color: unref(props.options.color) }));
 
   @container property-editor (max-width: 25rem) {
     display: grid;
-    grid-column: 1 / 4;
     grid-template-rows: auto auto;
-    grid-template-columns: min-content auto;
+    grid-template-columns: subgrid;
+    grid-column: 1 / 4;
 
-    & .label  { grid-row: 1 / 2; grid-column: 1 / 3; }
-    & .undo   { grid-row: 2 / 3; grid-column: 1 / 2; }
-    & .editor { grid-row: 2 / 3; grid-column: 2 / 3; }
+    & .label  { grid-row: 1 / 2; grid-column: 1 / 4; text-overflow: ellipsis; }
+    & .reset  { grid-row: 2 / 3; grid-column: 1 / 2; }
+    & .editor { grid-row: 2 / 3; grid-column: 2 / 4; }
 
     & .property-editor-button,
     & .property-editor-divider,
     & .property-editor-group {
       grid-row: 1 / 3;
-      grid-column: 1 / 3;
+      grid-column: 1 / 4;
     }
   }
 }

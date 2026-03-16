@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { computed, unref } from 'vue'
-import { IPropertyNumberRangeOptions } from '@/util/property_editor/property_interfaces';
-import useTheme from '@/composables/theme'
+import { computed, toValue } from 'vue'
+import Layer from '@/components/layer.vue'
+import { type IPropertyNumberRangeRow } from '@/util/property_editor/property_interfaces'
 
-const options = defineProps<IPropertyNumberRangeOptions>();
+const options = defineProps<IPropertyNumberRangeRow>();
 const model = defineModel({
   type: Number,
   required: true,
@@ -13,9 +13,10 @@ const model = defineModel({
 });
 
 const display_range = computed(() => {
-  if (options.converter) {
-    var a = options.converter.toView(options, options.range.min);
-    var b = options.converter.toView(options, options.range.max);
+  const converter = options.converter;
+  if (converter) {
+    var a = converter.toView(options, options.range.min);
+    var b = converter.toView(options, options.range.max);
     return {
       min: Math.min(a, b),
       max: Math.max(a, b),
@@ -40,29 +41,35 @@ const display_model = computed({
     model.value = options.converter?.toModel(options, new_value) ?? new_value;
   },
 });
-
-const { theme } = useTheme(() => ({ depth: 1 }));
 </script>
 
 <template>
-  <div :class="['property-editor-number-range', 'columns', 'gap-s', ...theme.classNames]">
-    <input :name="name" type="number"
-           :disabled="unref(disabled)"
+  <Layer class="property-editor-number-range">
+    <input :name type="number"
+           :disabled="toValue(disabled)"
            inputmode="decimal"
            :min="display_range.min"
            :max="display_range.max"
            :step="display_step"
            v-model.number.lazy="display_model" />
-    <input :name="name" type="range"
-           :disabled="unref(disabled)"
+    <input :name type="range"
+           :disabled="toValue(disabled)"
            :min="display_range.min"
            :max="display_range.max"
            :step="display_step"
            v-model.number="display_model" />
-  </div>
+  </Layer>
 </template>
 
 <style scoped>
+.property-editor-number-range {
+  display: flex;
+  flex-direction: row;
+  padding: 0;
+  gap: var(--padding-small);
+  background-color: transparent;
+}
+
 input {
   &[type=number]  { flex-shrink: 0; }
   &[type=range]   { flex-grow: 1;   }

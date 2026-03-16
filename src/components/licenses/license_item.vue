@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import Term from '@/components/term.vue'
 import TermList from '@/components/term_list.vue'
-import { ILicenseInfo } from '@/types/license_types'
+import { type ILicenseInfo } from '@/types/license_types'
+import { date_formatYear } from '@/util/date'
 defineProps<ILicenseInfo>();
 </script>
 
@@ -11,7 +12,7 @@ defineProps<ILicenseInfo>();
       {{  name }}
     </Term>
     <Term term="Author">{{  author }}</Term>
-    <Term term="Year">{{ date.getFullYear() }}</Term>
+    <Term term="Year">{{ date_formatYear(date) }}</Term>
   </TermList>
 </template>
 

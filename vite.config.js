@@ -1,8 +1,7 @@
 import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vite'
 import { fileURLToPath, URL } from 'node:url'
-
-import DateUtil from './src/util/date'
+import { date_formatUTCString } from './src/util/date'
 
 // https://vite.dev/config/
 export default defineConfig(({ command, mode, isSsrBuild, isPreview }) => {
@@ -14,7 +13,7 @@ export default defineConfig(({ command, mode, isSsrBuild, isPreview }) => {
       },
     },
     define: {
-      __BUILD_TIMESTAMP__: JSON.stringify(DateUtil.formatUTCString(Date.now())),
+      __BUILD_TIMESTAMP__: JSON.stringify(date_formatUTCString(Date.now())),
     }
   };
   switch (command) {

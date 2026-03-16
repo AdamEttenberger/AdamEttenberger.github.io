@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, ref, toRaw, unref } from 'vue'
-import Code from '@/components/code.vue'
+import { computed, isRef, ref, type Ref } from 'vue'
+import CodeMirror from '@/components/code-mirror.vue'
 import Term from '@/components/term.vue'
 import TermList from '@/components/term_list.vue'
 import Details from '@/components/details.vue'
@@ -15,132 +15,96 @@ import Section from '@/components/section.vue'
 import { ThemeColor } from '@/composables/theme'
 import WebPageCitation from '@/components/citation/web_page_citation.vue'
 import {
-  Color4Options,
-  ComboBoxOptions,
-  DividerOptions,
-  GroupOptions,
-  NumberRangeOptions,
-  ToggleOptions,
+  Color4Row,
+  ComboBoxRow,
+  DividerRow,
+  GroupRow,
+  NumberRangeRow,
+  ToggleRow,
 } from '@/util/property_editor/property_types'
 //
 import useIntersectionObserver from '@/composables/intersection_observer'
 import default_vertex_shader from '@/assets/shaders/default.vert?raw'
-import { IProjectInfo } from '@/types/project_types'
+import { type IProjectInfo } from '@/types/project_types'
+import usePropertyEditorModel, { type IUsePropertyEditorModel } from '@/composables/property_editor_model'
+import { PropertyEmits, PropertyEmitsHandler, type PropertyType } from '@/util/property_editor/property_interfaces'
+import useFunctionRef, { type WeakElement, toComponent } from '@/composables/function_ref'
+import { type IFrameContainer } from '@/types/frame_container'
+import useShaders, { Uniform, UniformType, type IShaderDefinition, type ShaderUniformsForPayload } from '@/composables/shaders'
 
 defineProps<IProjectInfo>();
 
-const players = {};
-const editors = {};
-const player_states = ref({});
+enum DemoKey {
+  Main = 'main',
+  Heart = 'heart',
+  HeartCompositionStep0 = 'heart-composition-step-0',
+  HeartCompositionStep1 = 'heart-composition-step-1',
+  HeartCompositionStep2 = 'heart-composition-step-2',
+  HeartCompositionStep3 = 'heart-composition-step-3',
+  HeartCompositionStep4 = 'heart-composition-step-4',
+  HeartCompositionStep5 = 'heart-composition-step-5',
+  HeartCompositionStep6 = 'heart-composition-step-6',
+  Circle = 'circle',
+  Plane = 'plane',
+  Mirror = 'mirror',
+  VennDiagram = 'venn-diagram',
+  Capsule = 'capsule',
+  SmoothUnion = 'smooth-union',
+  Pattern = 'pattern',
+};
+type DemosWithoutPropertyEditor = DemoKey.HeartCompositionStep0|DemoKey.HeartCompositionStep1|DemoKey.HeartCompositionStep2|DemoKey.HeartCompositionStep3|DemoKey.HeartCompositionStep4|DemoKey.HeartCompositionStep5|DemoKey.HeartCompositionStep6;
+type DemosWithPropertyEditor = Exclude<DemoKey, DemosWithoutPropertyEditor>;
 
-const { observe: mapPlayerIntersectionObserver } = useIntersectionObserver((key, entry, _index, _array) => {
+enum ShaderKey {
+  Heart = 'heart',
+  Circle = 'circle',
+  Plane = 'plane',
+  Mirror = 'mirror',
+  VennDiagram = 'venn-diagram',
+  Capsule = 'capsule',
+  SmoothUnion = 'smooth-union',
+  Pattern = 'pattern',
+}
+
+const composition_step: Record<DemosWithoutPropertyEditor, number> = {
+  [DemoKey.HeartCompositionStep0]: 0,
+  [DemoKey.HeartCompositionStep1]: 1,
+  [DemoKey.HeartCompositionStep2]: 2,
+  [DemoKey.HeartCompositionStep3]: 3,
+  [DemoKey.HeartCompositionStep4]: 4,
+  [DemoKey.HeartCompositionStep5]: 5,
+  [DemoKey.HeartCompositionStep6]: 6,
+};
+
+type PropertyOverlay = {
+  [property_name: string]: {
+    [property_member: string]: unknown;
+  };
+};
+
+export interface IShaderTemplate {
+  label: string;
+  uniforms: Uniform[];
+  sdf_function: string;
+};
+
+const player_states = ref({}) as Ref<Record<DemoKey, PlayerState>>;
+
+const { observe: mapPlayerIntersectionObserver } = useIntersectionObserver<DemoKey>((key, entry) => {
   player_states.value[key] = entry.isIntersecting
       ? PlayerState.Playing
       : PlayerState.Empty;
 });
 
-function makePlayerRef(key) {
-  return (e) => {
-    players[key] = e;
-    mapPlayerIntersectionObserver(key, e?.$el);
-  };
-}
-
-function makeEditorRef(key) {
-  return (e) => {
-    editors[key] = e;
-  };
-}
-
-const UPDATE = {
-  Auto: 0,
-  Schedule: 1,
-  Now: 2,
-};
-
-enum UniformType {
-  bool = 'bool',
-  float = 'float',
-  int = 'int',
-  uint = 'uint',
-  vec2 = 'vec2',
-  vec3 = 'vec3',
-  vec4 = 'vec4',
-  bvec2 = 'bvec2',
-  bvec3 = 'bvec3',
-  bvec4 = 'bvec4',
-  ivec2 = 'ivec2',
-  ivec3 = 'ivec3',
-  ivec4 = 'ivec4',
-  uvec2 = 'uvec2',
-  uvec3 = 'uvec3',
-  uvec4 = 'uvec4',
-  mat4 = 'mat4',
-};
-
-class Uniform {
-  constructor(type: UniformType, name: string, coerce?: CallableFunction) {
-    this.type = type;
-    this.name = name;
-    this.coerce = coerce;
-  }
-}
-
-class FrameState {
-  static #frame_cache = new Map();
-
-  constructor(frame: HTMLIFrameElement, editor) {
-    this.frame = frame;
-    this.editor = editor;
-    this.last_update = 0;
-    this.debounce_ms = 33;
-    this.timeout = null;
-    this.shader_key = null;
-    this.needs_compile = true;
-  }
-  static register(frame: HTMLIFrameElement, editor: Proxy) {
-    var state = FrameState.#frame_cache.get(frame);
-    if (!state) {
-      state = new FrameState(frame, editor);
-      FrameState.#frame_cache.set(frame, state);
+const player = useFunctionRef<DemoKey>([
+  {
+    ref(e: undefined|WeakElement, demo_key: DemoKey): void {
+      mapPlayerIntersectionObserver(demo_key, toComponent(e, Player)?.$el);
     }
-    return state;
   }
-  static get(frame: HTMLIFrameElement): FrameState {
-    return FrameState.#frame_cache.get(frame);
-  }
-  update(update_type = UPDATE.Auto) {
-    var new_time = performance.now();
-    if (update_type === UPDATE.Schedule ||
-        (update_type !== UPDATE.Now && new_time - this.last_update < this.debounce_ms)) {
-      if (!this.timeout) {
-        this.timeout = setTimeout(() => this.update(UPDATE.Auto), this.debounce_ms);
-      }
-      return;
-    }
-    if (this.timeout) {
-      clearTimeout(this.timeout);
-      delete this.timeout;
-    }
-    var sources = this.needs_compile ? shader_definitions[this.shader_key].sources : undefined;
-    var uniforms = getShaderUniformsForMessage(this.shader_key, this.editor);
-    var time_scale = unref(this.editor)?.get('game.time_scale') ?? 1.0;
+]);
 
-    this.frame.contentWindow?.postMessage({ sources, uniforms, time_scale }, window.location.origin);
-    this.last_update = new_time;
-    this.needs_compile = this.needs_compile && !sources;
-  }
-  setKey(key, update_type = UPDATE.Auto) {
-    if (this.shader_key == key) {
-      return;
-    }
-    this.shader_key = key;
-    this.needs_compile = true;
-    this.update((update_type == UPDATE.Auto) ? UPDATE.Schedule : update_type);
-  }
-}
-
-function createSdfShader(uniforms: Array<Uniform>, sdf_function) {
+function createSdfShader(uniforms: Array<Uniform>, sdf_function: string) {
   return `#version 300 es
     precision mediump float;
 
@@ -425,409 +389,397 @@ const shared_uniforms = [
   new Uniform(UniformType.float, 'uInsetWidth'),
 ];
 
-const shader_templates = new Map([
-  [
-    'heart', {
-      label: "Heart",
-      uniforms: [
-        new Uniform(UniformType.int, 'uMode'),
-        new Uniform(UniformType.float, 'uAnimationAmplitude'),
-        new Uniform(UniformType.float, 'uBlendToCircle'),
-        new Uniform(UniformType.bool, 'uHiddenCompositionAnimation'),
-        new Uniform(UniformType.int, 'uCompositionStep'),
-      ],
-      sdf_function: `
-        /*
-         * Renders a heart shape that fits within 1 unit using 3 SDF functions.
-         * 1. A circle around vector <C> with radius <R> in the upper-right corner,
-         *    mirrored horizontally to form the heart lobes.
-         * 2. A circle around vector <B> with no radius, collinear with the mirror
-         *    axis to form the upward curve below vector <B>.
-         * 3. A plane that connects vector <A> and vector <T> with the normal <N>
-         *    pointing towards the 4th quadrant, mirrored horizontally.
-         *
-         * <A> = <vec2> @ point at the bottom of the shape, the image center-bottom.
-         * <C> = <vec2> @ center of circle with radius <R>, mirrored horizontally.
-         * <B> = <vec2> @ highest point where the mirrored heart lobes meet.
-         * <T> = <vec2> @ tangent between point <A> and circle <C>.
-         * <N> = unit <vec2> perpendicular to the edge connecting <A> and <T>.
-         *
-         * R = radius of circle <C>.
-         * H = vertical distance between <C> and <B>; half the distance between
-         *     the intersection points between the two mirrored circles.
-         * K = horizontal offset of circle <C> from the center of the image;
-         *     half distance between mirrored circles <C>.
-         * S = distance between point <A> and the center of circle <C>.
-         * Q = distance between point <A> and the tangent <T> of circle <C>;
-         *     length of the tangent edge.
-         *
-         * All lines on the diagram below should be interpreted as straight
-         * lines despite being jagged.
-         *
-         *  |===========================================|
-         *  |            <B>                            |
-         *  |           / | \\                           |
-         *  |         /   |   \\                         |
-         *  |       R     H     R                       |
-         *  |     /       |       \\                     |
-         *  |    /        |        \\                    |
-         *  |   *----K----*----K---<C>                  |
-         *  |    \\        |        /| \\                 |
-         *  |     \\       |       / |  \\                |
-         *  |       R     H     R   |   R               |
-         *  |         \\   |   /     |    \\              |
-         *  |           \\ | /      /      \\             |
-         *  |             *       /       <T>           |
-         *  |             |      S        /  \\          |
-         *  |             |     /       /     \\         |
-         *  |             |    /      /        <N>      |
-         *  |             |   /     Q            \\      |
-         *  |             |  /    /              _\\/    |
-         *  |             | /   /                       |
-         *  |             | | /                         |
-         *  |             |//                           |
-         *  |            <A>                            |
-         *  |===========================================|
-         */
-        const float kMinRadius = 0.25;
-        const float kMaxRadius = 0.5;
-        p.x = abs(p.x);
+const shader_templates: Record<ShaderKey, IShaderTemplate> = {
+  [ShaderKey.Heart]: {
+    label: "Heart",
+    uniforms: [
+      new Uniform(UniformType.int, 'uMode'),
+      new Uniform(UniformType.float, 'uAnimationAmplitude'),
+      new Uniform(UniformType.float, 'uBlendToCircle'),
+      new Uniform(UniformType.bool, 'uHiddenCompositionAnimation'),
+      new Uniform(UniformType.int, 'uCompositionStep'),
+    ],
+    sdf_function: `
+      /*
+        * Renders a heart shape that fits within 1 unit using 3 SDF functions.
+        * 1. A circle around vector <C> with radius <R> in the upper-right corner,
+        *    mirrored horizontally to form the heart lobes.
+        * 2. A circle around vector <B> with no radius, collinear with the mirror
+        *    axis to form the upward curve below vector <B>.
+        * 3. A plane that connects vector <A> and vector <T> with the normal <N>
+        *    pointing towards the 4th quadrant, mirrored horizontally.
+        *
+        * <A> = <vec2> @ point at the bottom of the shape, the image center-bottom.
+        * <C> = <vec2> @ center of circle with radius <R>, mirrored horizontally.
+        * <B> = <vec2> @ highest point where the mirrored heart lobes meet.
+        * <T> = <vec2> @ tangent between point <A> and circle <C>.
+        * <N> = unit <vec2> perpendicular to the edge connecting <A> and <T>.
+        *
+        * R = radius of circle <C>.
+        * H = vertical distance between <C> and <B>; half the distance between
+        *     the intersection points between the two mirrored circles.
+        * K = horizontal offset of circle <C> from the center of the image;
+        *     half distance between mirrored circles <C>.
+        * S = distance between point <A> and the center of circle <C>.
+        * Q = distance between point <A> and the tangent <T> of circle <C>;
+        *     length of the tangent edge.
+        *
+        * All lines on the diagram below should be interpreted as straight
+        * lines despite being jagged.
+        *
+        *  |===========================================|
+        *  |            <B>                            |
+        *  |           / | \\                           |
+        *  |         /   |   \\                         |
+        *  |       R     H     R                       |
+        *  |     /       |       \\                     |
+        *  |    /        |        \\                    |
+        *  |   *----K----*----K---<C>                  |
+        *  |    \\        |        /| \\                 |
+        *  |     \\       |       / |  \\                |
+        *  |       R     H     R   |   R               |
+        *  |         \\   |   /     |    \\              |
+        *  |           \\ | /      /      \\             |
+        *  |             *       /       <T>           |
+        *  |             |      S        /  \\          |
+        *  |             |     /       /     \\         |
+        *  |             |    /      /        <N>      |
+        *  |             |   /     Q            \\      |
+        *  |             |  /    /              _\\/    |
+        *  |             | /   /                       |
+        *  |             | | /                         |
+        *  |             |//                           |
+        *  |            <A>                            |
+        *  |===========================================|
+        */
+      const float kMinRadius = 0.25;
+      const float kMaxRadius = 0.5;
+      p.x = abs(p.x);
 
-        // Switch between user control and custom animation.
-        float r;
-        switch (uMode) {
-          case 0: // Heartbeat Animation
-            const float kMinAnimationRadius = 0.28;
-            float animation_time = (uTime * TAU) * kAnimationFrequency;
-            float wave1 = 0.5 + 0.5 * cos(animation_time);
-            float wave2 = 0.5 + 0.5 * cos(animation_time * 2.0);
-            float t = min(wave1, wave2);
-            float amp = mix(kMinAnimationRadius, kMaxRadius, uAnimationAmplitude);
-            r = mix(kMinAnimationRadius, amp, t);
-            break;
-          case 1: // Step By Step Composition
-            if (uHiddenCompositionAnimation) {
-              const float kFrequency = 0.1;
-              float animation_time = (uTime * TAU) * kFrequency;
-              float t = 0.5 + 0.5 * cos(animation_time);
-              float amp = mix(kMinRadius, kMaxRadius, uAnimationAmplitude);
-              r = mix(kMinRadius, amp, t);
-            } else {
-              r = mix(kMinRadius, kMaxRadius, uBlendToCircle);
-            }
-            break;
-          case 2:
-          default: // Blend To Circle
+      // Switch between user control and custom animation.
+      float r;
+      switch (uMode) {
+        case 0: // Heartbeat Animation
+          const float kMinAnimationRadius = 0.28;
+          float animation_time = (uTime * TAU) * kAnimationFrequency;
+          float wave1 = 0.5 + 0.5 * cos(animation_time);
+          float wave2 = 0.5 + 0.5 * cos(animation_time * 2.0);
+          float t = min(wave1, wave2);
+          float amp = mix(kMinAnimationRadius, kMaxRadius, uAnimationAmplitude);
+          r = mix(kMinAnimationRadius, amp, t);
+          break;
+        case 1: // Step By Step Composition
+          if (uHiddenCompositionAnimation) {
+            const float kFrequency = 0.1;
+            float animation_time = (uTime * TAU) * kFrequency;
+            float t = 0.5 + 0.5 * cos(animation_time);
+            float amp = mix(kMinRadius, kMaxRadius, uAnimationAmplitude);
+            r = mix(kMinRadius, amp, t);
+          } else {
             r = mix(kMinRadius, kMaxRadius, uBlendToCircle);
-            break;
-        }
-
-        const vec2 a = vec2(0.0, -0.5);
-        vec2 c = vec2(0.5 - r);
-
-        // Compute the lengths between vector <A> and vectors <C> and <T>.
-        vec2 c_to_a = a - c;
-        float s_squared = dot(c_to_a, c_to_a);
-        float s = sqrt(s_squared);
-        float q = sqrt(s_squared - r*r);
-
-        // Compute the unit vector <N> by rotating a unit vector pointing
-        // from <C> towards <A> counter-clockwise by theta, to avoid
-        // calling trig functions. In this context, theta is the angle
-        // between points <ACT>. The angle between <CTA> is a right-angle.
-        float cos_theta = r/s;
-        float sin_theta = q/s;
-        vec2 unit_c_to_a = c_to_a / s;
-
-        // // 2-D Rotation Matrix
-        // mat2 rotation_theta = mat2(
-        //   cos_theta, sin_theta, // column #1
-        //   -sin_theta, cos_theta // column #2
-        // );
-        // vec2 n = rotation_theta * unit_c_to_a;
-        // // Another form of the 2-D Rotation Matrix multiplication above.
-        // vec2 n = (cos_theta * unit_c_to_a) +
-        //          (sin_theta * rot90_ccw(unit_c_to_a));
-        // Inline form of the 2-D Rotation Matrix multiplication above.
-        vec2 n = vec2(cos_theta*unit_c_to_a.x - sin_theta*unit_c_to_a.y,
-                      sin_theta*unit_c_to_a.x + cos_theta*unit_c_to_a.y);
-
-        float h = sqrt(r - 0.25);
-        vec2 b = vec2(0.0, c.y + h);
-        vec2 a_to_p = p - a;
-        vec2 c_to_p = p - c;
-        vec2 d_to_p = p - b;
-
-        // Typically these SDF calculations would be computed
-        // only within the branch needed. Placing here for demo
-        // purposes, to simplify uCompositionStep.
-
-        // An SDF circle which forms the right half of the mirrored heart lobes.
-        float mirrored_lobes_sdf = sdf_circle(c_to_p, r);
-        // An SDF circle which forms the right half of the mirrored heart lobes.
-        float lower_point_sdf = sdf_circle(a_to_p, 0.0);
-        // An inverted SDF point which forms the upward curve between the lobes
-        // of the heart, only values <= 0.
-        float upper_point_inverted_sdf = -sdf_circle(d_to_p, 0.0);
-        // An SDF plane, collinear with points <A> and <T>, with the positive side
-        // towards the 4th quadrant away from the shape.
-        float mirrored_plane_sdf = sdf_plane(a_to_p, n);
-
-
-        // Compute masks to split the render into different drawing regions.
-        // This is important to prevent shapes from overlapping each other.
-        // 1. The 3 outer circle shapes: left and right heart lobes, and
-        //    the lowest point where the mirrored planes meet.
-        // 2. The plane and inner circle shapes.
-
-        // Removes the regions to the left of or below the heart lobe edge, <B-C>.
-        bool outer_mask_cd = (p.y > c.y) && dot(c_to_p, rot90_cw(b - c)) > 0.0;
-        // Removes the regions to the left of or below the heart lobe edge, <T-C>.
-        bool outer_mask_ct = (p.y <= c.y) && dot(c_to_p, rot90_ccw(n)) > 0.0;
-        // Removes regions in the direction of the vector <A-T> and below <A>,
-        // i.e., to the left of or below the perpendicular of the normal.
-        bool outer_mask_an = (p.y <= a.y) && dot(a_to_p, rot90_cw(n)) > 0.0;
-        bool outer_circles_mask = outer_mask_cd || outer_mask_ct || outer_mask_an;
-
-        if (uMode == 1) {
-          switch (uCompositionStep) {
-            case 0: // Mirrored heart lobes and lower point
-              return sdf_union(mirrored_lobes_sdf, lower_point_sdf);
-            case 1: // Mirrored Plane
-              return mirrored_plane_sdf;
-            case 2: // Outer circle draw region
-              if (!outer_circles_mask) {
-                discard;
-              }
-              break;
-            case 3: // Opposite draw region, incomplete (without inverted point)
-              if (outer_circles_mask) {
-                discard;
-              }
-              return mirrored_plane_sdf;
-            case 4: // Incomplete Composition (Without inverted point)
-              return outer_circles_mask
-                  ? sdf_union(mirrored_lobes_sdf, lower_point_sdf)
-                  : mirrored_plane_sdf;
-            case 5: // Heart lobes with inverted point
-              return outer_circles_mask
-                  ? sdf_union(mirrored_lobes_sdf, lower_point_sdf)
-                  : upper_point_inverted_sdf;
-            case 6: // Plane with inverted point
-              if (outer_circles_mask) {
-                discard;
-              }
-              return sdf_intersection(upper_point_inverted_sdf, mirrored_plane_sdf);
-            default: // Complete Composition
-              break;
           }
-        }
+          break;
+        case 2:
+        default: // Blend To Circle
+          r = mix(kMinRadius, kMaxRadius, uBlendToCircle);
+          break;
+      }
 
-        return outer_circles_mask
-            ? sdf_union(mirrored_lobes_sdf, lower_point_sdf)
-            : sdf_intersection(upper_point_inverted_sdf, mirrored_plane_sdf);
-      `,
-    }
-  ],
-  [
-    'circle', {
-      label: "Circle",
-      uniforms: [
-        new Uniform(UniformType.float, 'uRadius'),
-        new Uniform(UniformType.int, 'uMode'),
-        new Uniform(UniformType.float, 'uRingStrokeWidth'),
-      ],
-      sdf_function: `
-        float sdf = length(p) - uRadius;
-        switch (uMode) {
-          case 0:
-          default: // Circle
-            break;
-          case 1: // Ring (Within Radius)
-            float half_extent = uRingStrokeWidth * 0.5;
-            sdf = abs(sdf + half_extent) - half_extent;
-            break;
-          case 2: // Ring (Centered on Radius)
-            sdf = abs(sdf) - (uRingStrokeWidth * 0.5);
-            break;
-        }
-        return sdf;
-      `,
-    }
-  ],
-  [
-    'plane', {
-      label: "Plane",
-      uniforms: [
-        new Uniform(UniformType.bool, 'uMirror'),
-        new Uniform(UniformType.vec2, 'uNormal', degToVec2), // TBD vector editor
-        new Uniform(UniformType.float, 'uDistanceFromOrigin'),
-      ],
-      sdf_function: `
-        float sdf = dot(p, uNormal);
-        if (uMirror) {
-          sdf = abs(sdf);
-        }
-        return sdf - uDistanceFromOrigin;
-      `,
-    }
-  ],
-  [
-    'capsule', {
-      label: "Capsule",
-      uniforms: [
-        new Uniform(UniformType.bool, 'uInvertPlane'),
-        new Uniform(UniformType.int, 'uAxis'),
-        new Uniform(UniformType.float, 'uRadius'),
-        new Uniform(UniformType.float, 'uLength'),
-      ],
-      sdf_function: `
-        p = abs(p);
-        float extent = uLength * 0.5;
-        if (p[uAxis] <= extent) {
-          float invert = (uInvertPlane ? -1.0 : 1.0);
-          vec2 perpendicular = vec2(1.0);
-          perpendicular[uAxis] = 0.0;
-          return (sdf_plane(p, perpendicular) - uRadius) * invert;
-        } else {
-          vec2 offset = vec2(0.0);
-          offset[uAxis] = extent;
-          return sdf_circle(p - offset, uRadius);
-        }
-      `,
-    }
-  ],
-  [
-    'venn-diagram', {
-      label: "Venn Diagram",
-      uniforms: [
-        new Uniform(UniformType.int, 'uOp'),
-      ],
-      sdf_function: `
-        float left = sdf_circle(p + vec2(0.25, 0.0), 0.4);
-        float right = sdf_circle(p - vec2(0.25, 0.0), 0.4);
+      const vec2 a = vec2(0.0, -0.5);
+      vec2 c = vec2(0.5 - r);
 
-        switch (uOp) {
-          // union
-          case 0: return min(left, right);
-          // intersection
-          case 1: return max(left, right);
-          // subtraction
-          case 2: return max(left, -right);
-          // Xor
-          case 3: return max(min(left, right), -max(left, right));
-        }
-      `,
-    }
-  ],
-  [
-    'mirror', {
-      label: "Mirrors",
-      uniforms: [
-        new Uniform(UniformType.int, 'uShape',),
-        new Uniform(UniformType.bool, 'uHorizontalMirror'),
-        new Uniform(UniformType.bool, 'uVerticalMirror'),
-        new Uniform(UniformType.bool, 'uSmoothMinimum'),
-      ],
-      sdf_function: `
-        if (uHorizontalMirror) {
-          p.x = abs(p.x);
-        }
-        if (uVerticalMirror) {
-          p.y = abs(p.y);
-        }
-        const float cos45 = 0.70710678118654752440084436210485;
-        switch (uShape) {
-          case 0: // Ring and Circles
-            const float ring_core = 0.4;
-            const float ring_inflate = 0.025;
-            const float dot_size = 0.075;
+      // Compute the lengths between vector <A> and vectors <C> and <T>.
+      vec2 c_to_a = a - c;
+      float s_squared = dot(c_to_a, c_to_a);
+      float s = sqrt(s_squared);
+      float q = sqrt(s_squared - r*r);
 
-            float t = uTime * TAU * 0.25;
-            vec2 path = vec2(cos(t), sin(t)) * ring_core;
+      // Compute the unit vector <N> by rotating a unit vector pointing
+      // from <C> towards <A> counter-clockwise by theta, to avoid
+      // calling trig functions. In this context, theta is the angle
+      // between points <ACT>. The angle between <CTA> is a right-angle.
+      float cos_theta = r/s;
+      float sin_theta = q/s;
+      vec2 unit_c_to_a = c_to_a / s;
 
-            float ring = sdf_torus(p, ring_core, ring_inflate);
-            float circle = sdf_circle(p - path, dot_size);
-            float orbitals = sdf_union(
-                sdf_circle(p - vec2(cos45) * ring_core, dot_size),
-                sdf_rectangle(p - rot90_cw(path), vec2(dot_size)));
+      // // 2-D Rotation Matrix
+      // mat2 rotation_theta = mat2(
+      //   cos_theta, sin_theta, // column #1
+      //   -sin_theta, cos_theta // column #2
+      // );
+      // vec2 n = rotation_theta * unit_c_to_a;
+      // // Another form of the 2-D Rotation Matrix multiplication above.
+      // vec2 n = (cos_theta * unit_c_to_a) +
+      //          (sin_theta * rot90_ccw(unit_c_to_a));
+      // Inline form of the 2-D Rotation Matrix multiplication above.
+      vec2 n = vec2(cos_theta*unit_c_to_a.x - sin_theta*unit_c_to_a.y,
+                    sin_theta*unit_c_to_a.x + cos_theta*unit_c_to_a.y);
 
-            float outer_shapes = sdf_union(circle, orbitals);
+      float h = sqrt(r - 0.25);
+      vec2 b = vec2(0.0, c.y + h);
+      vec2 a_to_p = p - a;
+      vec2 c_to_p = p - c;
+      vec2 d_to_p = p - b;
 
-            if (uSmoothMinimum) {
-              float smooth_factor = mix(0.025, 0.1, (1.0-cos(t*0.5)));
-              return sdf_smooth_union(ring, outer_shapes, smooth_factor);
-            } else {
-              return sdf_union(ring, outer_shapes);
+      // Typically these SDF calculations would be computed
+      // only within the branch needed. Placing here for demo
+      // purposes, to simplify uCompositionStep.
+
+      // An SDF circle which forms the right half of the mirrored heart lobes.
+      float mirrored_lobes_sdf = sdf_circle(c_to_p, r);
+      // An SDF circle which forms the right half of the mirrored heart lobes.
+      float lower_point_sdf = sdf_circle(a_to_p, 0.0);
+      // An inverted SDF point which forms the upward curve between the lobes
+      // of the heart, only values <= 0.
+      float upper_point_inverted_sdf = -sdf_circle(d_to_p, 0.0);
+      // An SDF plane, collinear with points <A> and <T>, with the positive side
+      // towards the 4th quadrant away from the shape.
+      float mirrored_plane_sdf = sdf_plane(a_to_p, n);
+
+
+      // Compute masks to split the render into different drawing regions.
+      // This is important to prevent shapes from overlapping each other.
+      // 1. The 3 outer circle shapes: left and right heart lobes, and
+      //    the lowest point where the mirrored planes meet.
+      // 2. The plane and inner circle shapes.
+
+      // Removes the regions to the left of or below the heart lobe edge, <B-C>.
+      bool outer_mask_cd = (p.y > c.y) && dot(c_to_p, rot90_cw(b - c)) > 0.0;
+      // Removes the regions to the left of or below the heart lobe edge, <T-C>.
+      bool outer_mask_ct = (p.y <= c.y) && dot(c_to_p, rot90_ccw(n)) > 0.0;
+      // Removes regions in the direction of the vector <A-T> and below <A>,
+      // i.e., to the left of or below the perpendicular of the normal.
+      bool outer_mask_an = (p.y <= a.y) && dot(a_to_p, rot90_cw(n)) > 0.0;
+      bool outer_circles_mask = outer_mask_cd || outer_mask_ct || outer_mask_an;
+
+      if (uMode == 1) {
+        switch (uCompositionStep) {
+          case 0: // Mirrored heart lobes and lower point
+            return sdf_union(mirrored_lobes_sdf, lower_point_sdf);
+          case 1: // Mirrored Plane
+            return mirrored_plane_sdf;
+          case 2: // Outer circle draw region
+            if (!outer_circles_mask) {
+              discard;
             }
-          case 1: // Plane
-            return sdf_plane(p, vec2(cos45, -cos45));
+            break;
+          case 3: // Opposite draw region, incomplete (without inverted point)
+            if (outer_circles_mask) {
+              discard;
+            }
+            return mirrored_plane_sdf;
+          case 4: // Incomplete Composition (Without inverted point)
+            return outer_circles_mask
+                ? sdf_union(mirrored_lobes_sdf, lower_point_sdf)
+                : mirrored_plane_sdf;
+          case 5: // Heart lobes with inverted point
+            return outer_circles_mask
+                ? sdf_union(mirrored_lobes_sdf, lower_point_sdf)
+                : upper_point_inverted_sdf;
+          case 6: // Plane with inverted point
+            if (outer_circles_mask) {
+              discard;
+            }
+            return sdf_intersection(upper_point_inverted_sdf, mirrored_plane_sdf);
+          default: // Complete Composition
+            break;
         }
-      `,
-    }
-  ],
-  [
-    'smooth-union', {
-      label: "Smooth Union",
-      uniforms: [
-        new Uniform(UniformType.bool, 'uSmoothMinimum'),
-        new Uniform(UniformType.float, 'uSmoothFactor'),
-      ],
-      sdf_function: `
-        float animation_time = (uTime * TAU) * 0.025;
-        float a = sin((length(p + vec2(0.25, 0.0))-animation_time)*9.0);
-        float b = sin((length(p - vec2(0.25, 0.0))-animation_time)*9.0);
-        if (uSmoothMinimum) {
-          // https://iquilezles.org/articles/smin/
-          // quadratic polynomial
-          float h = clamp( 0.5+0.5*(b-a)/uSmoothFactor, 0.0, 1.0 );
-          return mix( b, a, h ) - uSmoothFactor*h*(1.0-h);
-        } else {
-          return sdf_union(a, b);
-        }
-      `,
-    }
-  ],
-  [
-    'pattern', {
-      label: "Patterns",
-      uniforms: [
-        new Uniform(UniformType.int, 'uMode'),
-        new Uniform(UniformType.bool, 'uClipImage'),
-        new Uniform(UniformType.float, 'uDivisions'),
-      ],
-      sdf_function: `
-        if (uClipImage && sdf_rectangle(p, vec2(0.5)) > 0.0) {
-          discard;
-        }
-        float animation_time = (uTime * TAU) * 0.0125;
-        float t = TAU * uDivisions;
-        switch (uMode) {
-          default:
-          case 0: // Grid Cells
-            vec2 rad = vec2(cos(p.x*t), cos(p.y*t));
-            return sdf_union(rad.x, rad.y);
-          case 1: // Ripples
-            return sin((length(p)-animation_time)*t);
-        }
-      `,
-    }
-  ],
-]);
+      }
 
-const shader_definitions = Object.fromEntries(shader_templates.entries().map(([shader_key, value]) =>
-  [
-    shader_key,
-    {
+      return outer_circles_mask
+          ? sdf_union(mirrored_lobes_sdf, lower_point_sdf)
+          : sdf_intersection(upper_point_inverted_sdf, mirrored_plane_sdf);
+    `,
+  },
+  [ShaderKey.Circle]: {
+    label: "Circle",
+    uniforms: [
+      new Uniform(UniformType.float, 'uRadius'),
+      new Uniform(UniformType.int, 'uMode'),
+      new Uniform(UniformType.float, 'uRingStrokeWidth'),
+    ],
+    sdf_function: `
+      float sdf = length(p) - uRadius;
+      switch (uMode) {
+        case 0:
+        default: // Circle
+          break;
+        case 1: // Ring (Within Radius)
+          float half_extent = uRingStrokeWidth * 0.5;
+          sdf = abs(sdf + half_extent) - half_extent;
+          break;
+        case 2: // Ring (Centered on Radius)
+          sdf = abs(sdf) - (uRingStrokeWidth * 0.5);
+          break;
+      }
+      return sdf;
+    `,
+  },
+  [ShaderKey.Plane]: {
+    label: "Plane",
+    uniforms: [
+      new Uniform(UniformType.bool, 'uMirror'),
+      new Uniform(UniformType.vec2, 'uNormal', degToVec2), // TBD vector editor
+      new Uniform(UniformType.float, 'uDistanceFromOrigin'),
+    ],
+    sdf_function: `
+      float sdf = dot(p, uNormal);
+      if (uMirror) {
+        sdf = abs(sdf);
+      }
+      return sdf - uDistanceFromOrigin;
+    `,
+  },
+  [ShaderKey.Capsule]: {
+    label: "Capsule",
+    uniforms: [
+      new Uniform(UniformType.bool, 'uInvertPlane'),
+      new Uniform(UniformType.int, 'uAxis'),
+      new Uniform(UniformType.float, 'uRadius'),
+      new Uniform(UniformType.float, 'uLength'),
+    ],
+    sdf_function: `
+      p = abs(p);
+      float extent = uLength * 0.5;
+      if (p[uAxis] <= extent) {
+        float invert = (uInvertPlane ? -1.0 : 1.0);
+        vec2 perpendicular = vec2(1.0);
+        perpendicular[uAxis] = 0.0;
+        return (sdf_plane(p, perpendicular) - uRadius) * invert;
+      } else {
+        vec2 offset = vec2(0.0);
+        offset[uAxis] = extent;
+        return sdf_circle(p - offset, uRadius);
+      }
+    `,
+  },
+  [ShaderKey.VennDiagram]: {
+    label: "Venn Diagram",
+    uniforms: [
+      new Uniform(UniformType.int, 'uOp'),
+    ],
+    sdf_function: `
+      float left = sdf_circle(p + vec2(0.25, 0.0), 0.4);
+      float right = sdf_circle(p - vec2(0.25, 0.0), 0.4);
+
+      switch (uOp) {
+        // union
+        case 0: return min(left, right);
+        // intersection
+        case 1: return max(left, right);
+        // subtraction
+        case 2: return max(left, -right);
+        // Xor
+        case 3: return max(min(left, right), -max(left, right));
+      }
+    `,
+  },
+  [ShaderKey.Mirror]: {
+    label: "Mirrors",
+    uniforms: [
+      new Uniform(UniformType.int, 'uShape',),
+      new Uniform(UniformType.bool, 'uHorizontalMirror'),
+      new Uniform(UniformType.bool, 'uVerticalMirror'),
+      new Uniform(UniformType.bool, 'uSmoothMinimum'),
+    ],
+    sdf_function: `
+      if (uHorizontalMirror) {
+        p.x = abs(p.x);
+      }
+      if (uVerticalMirror) {
+        p.y = abs(p.y);
+      }
+      const float cos45 = 0.70710678118654752440084436210485;
+      switch (uShape) {
+        case 0: // Ring and Circles
+          const float ring_core = 0.4;
+          const float ring_inflate = 0.025;
+          const float dot_size = 0.075;
+
+          float t = uTime * TAU * 0.25;
+          vec2 path = vec2(cos(t), sin(t)) * ring_core;
+
+          float ring = sdf_torus(p, ring_core, ring_inflate);
+          float circle = sdf_circle(p - path, dot_size);
+          float orbitals = sdf_union(
+              sdf_circle(p - vec2(cos45) * ring_core, dot_size),
+              sdf_rectangle(p - rot90_cw(path), vec2(dot_size)));
+
+          float outer_shapes = sdf_union(circle, orbitals);
+
+          if (uSmoothMinimum) {
+            float smooth_factor = mix(0.025, 0.1, (1.0-cos(t*0.5)));
+            return sdf_smooth_union(ring, outer_shapes, smooth_factor);
+          } else {
+            return sdf_union(ring, outer_shapes);
+          }
+        case 1: // Plane
+          return sdf_plane(p, vec2(cos45, -cos45));
+      }
+    `,
+  },
+  [ShaderKey.SmoothUnion]: {
+    label: "Smooth Union",
+    uniforms: [
+      new Uniform(UniformType.bool, 'uSmoothMinimum'),
+      new Uniform(UniformType.float, 'uSmoothFactor'),
+    ],
+    sdf_function: `
+      float animation_time = (uTime * TAU) * 0.025;
+      float a = sin((length(p + vec2(0.25, 0.0))-animation_time)*9.0);
+      float b = sin((length(p - vec2(0.25, 0.0))-animation_time)*9.0);
+      if (uSmoothMinimum) {
+        // https://iquilezles.org/articles/smin/
+        // quadratic polynomial
+        float h = clamp( 0.5+0.5*(b-a)/uSmoothFactor, 0.0, 1.0 );
+        return mix( b, a, h ) - uSmoothFactor*h*(1.0-h);
+      } else {
+        return sdf_union(a, b);
+      }
+    `,
+  },
+  [ShaderKey.Pattern]: {
+    label: "Patterns",
+    uniforms: [
+      new Uniform(UniformType.int, 'uMode'),
+      new Uniform(UniformType.bool, 'uClipImage'),
+      new Uniform(UniformType.float, 'uDivisions'),
+    ],
+    sdf_function: `
+      if (uClipImage && sdf_rectangle(p, vec2(0.5)) > 0.0) {
+        discard;
+      }
+      float animation_time = (uTime * TAU) * 0.0125;
+      float t = TAU * uDivisions;
+      switch (uMode) {
+        default:
+        case 0: // Grid Cells
+          vec2 rad = vec2(cos(p.x*t), cos(p.y*t));
+          return sdf_union(rad.x, rad.y);
+        case 1: // Ripples
+          return sin((length(p)-animation_time)*t);
+      }
+    `,
+  },
+};
+
+const shaders = useShaders<DemoKey, ShaderKey>(
+  computed(() => player.entries(Player) as Record<DemoKey, IFrameContainer>),
+  (Object.entries(shader_templates) as [ShaderKey, IShaderTemplate][])
+  .reduce((result, entry) => {
+    const shader_key = entry[0];
+    const value = entry[1];
+    result[shader_key] = {
       label: value.label,
       uniforms: value.uniforms,
       sources: {
         vert: {source: default_vertex_shader},
         frag: {source: createSdfShader(value.uniforms, value.sdf_function)},
       }
-    }
-  ]
-));
+    };
+    return result;
+  },
+  <Record<ShaderKey, IShaderDefinition>>{}));
 
 /**
  * Generates unique bindings for PropertyEditor.properties.
@@ -835,18 +787,18 @@ const shader_definitions = Object.fromEntries(shader_templates.entries().map(([s
  * e.g., ('my-shader', { 'uInsideColor': { default_value: [1.0, 0.0, 0.0, 1.0] } })
  *
  * @param shader_key The key/name of the shader program to load.
- * @param property_overlay Object containing key-value pairs ([uniform_key, IPropertyOptions_instance_overrides]). The key names the uniform which will be overridden, and the value is an object which partially implements the derived IPropertyOptions type containing which key/value pairs to override.
+ * @param property_overlay Object containing key-value pairs ([uniform_key, IPropertyRow_instance_overrides]). The key names the uniform which will be overridden, and the value is an object which partially implements the derived IPropertyRow type containing which key/value pairs to override.
  */
-function getShaderProperties(shader_key, property_overlay) {
+function getShaderProperties(shader_key: ShaderKey, property_overlay?: PropertyOverlay) {
   const group_rendering_open = ref(null);
   const group_camera_open = ref(null);
   const group_colors_open = ref(null);
   const group_border_open = ref(null);
   const camera_scale = ref(null);
   var common_properties = [
-    new DividerOptions('divider-common', 'Common'),
-    new GroupOptions('group-rendering', 'Rendering', false).setModel(group_rendering_open),
-    new ComboBoxOptions('uDrawMode', 'Draw Mode', 2, [
+    new DividerRow('divider-common', 'Common'),
+    new GroupRow('group-rendering', 'Rendering', false).setModel(group_rendering_open),
+    new ComboBoxRow('uDrawMode', 'Draw Mode', 2, [
       [0, 'Flat'],
       [1, 'Flat Gradient'],
       [2, 'Flat Gradient Falloff'],
@@ -856,80 +808,80 @@ function getShaderProperties(shader_key, property_overlay) {
       [6, 'Mask Gradient'],
       [7, 'Mask Gradient Falloff'],
     ]).setCollapsed(computed(() => !group_rendering_open.value)),
-    new ToggleOptions('uShowClock', 'Show Clock', false).setCollapsed(computed(() => !group_rendering_open.value)),
-    new ToggleOptions('uShowReticle', 'Show Origin Reticle', false).setCollapsed(computed(() => !group_rendering_open.value)),
-    new ToggleOptions('uShowAxisX', 'Show X-Axis', false).setCollapsed(computed(() => !group_rendering_open.value)),
-    new ToggleOptions('uShowAxisY', 'Show Y-Axis', false).setCollapsed(computed(() => !group_rendering_open.value)),
-    new GroupOptions('group-camera', 'Camera', false).setModel(group_camera_open),
-    new NumberRangeOptions('uPositionX', 'Position X', 0.0, -1.0, 1.0, 0.01).setCollapsed(computed(() => !group_camera_open.value)),
-    new NumberRangeOptions('uPositionY', 'Position Y', 0.0, -1.0, 1.0, 0.01).setCollapsed(computed(() => !group_camera_open.value)),
-    new NumberRangeOptions('uRotation', 'Rotation', 0.0, 0, 360, 1).setCollapsed(computed(() => !group_camera_open.value)),
-    new NumberRangeOptions('uScale', 'Scale', 1.0, 1, 5, 0.25).setModel(camera_scale).setCollapsed(computed(() => !group_camera_open.value)).asReciprocal(),
-    new GroupOptions('group-colors', 'Colors', false).setCollapsed(true).setModel(group_colors_open), // TODO(Color4Options): Remove setCollapsed after implementing a color picker
-    new Color4Options('uInsideColor', 'Inside Color', [0.0, 0.0, 1.0, 1.0]).setCollapsed(computed(() => !group_colors_open.value)),
-    new Color4Options('uOutsideColor', 'Outside Color', [1.0, 0.0, 0.0, 1.0]).setCollapsed(computed(() => !group_colors_open.value)),
-    new Color4Options('uInsetColor', 'Inset Color', [1.0, 1.0, 1.0, 1.0]).setCollapsed(computed(() => !group_colors_open.value)),
-    new Color4Options('uOutsetColor', 'Outset Color', [0.0, 0.0, 0.0, 1.0]).setCollapsed(computed(() => !group_colors_open.value)),
-    new GroupOptions('group-border', 'Border', false).setModel(group_border_open),
-    new NumberRangeOptions('uInsetWidth', 'Inset Width', 0.01, 0, 0.1, 0.001).setCollapsed(computed(() => !group_border_open.value)),
-    new NumberRangeOptions('uOutsetWidth', 'Outset Width', 0.01, 0, 0.1, 0.001).setCollapsed(computed(() => !group_border_open.value)),
+    new ToggleRow('uShowClock', 'Show Clock', false).setCollapsed(computed(() => !group_rendering_open.value)),
+    new ToggleRow('uShowReticle', 'Show Origin Reticle', false).setCollapsed(computed(() => !group_rendering_open.value)),
+    new ToggleRow('uShowAxisX', 'Show X-Axis', false).setCollapsed(computed(() => !group_rendering_open.value)),
+    new ToggleRow('uShowAxisY', 'Show Y-Axis', false).setCollapsed(computed(() => !group_rendering_open.value)),
+    new GroupRow('group-camera', 'Camera', false).setModel(group_camera_open),
+    new NumberRangeRow('uPositionX', 'Position X', 0.0, -1.0, 1.0, 0.01).setCollapsed(computed(() => !group_camera_open.value)),
+    new NumberRangeRow('uPositionY', 'Position Y', 0.0, -1.0, 1.0, 0.01).setCollapsed(computed(() => !group_camera_open.value)),
+    new NumberRangeRow('uRotation', 'Rotation', 0.0, 0, 360, 1).setCollapsed(computed(() => !group_camera_open.value)),
+    new NumberRangeRow('uScale', 'Scale', 1.0, 1, 5, 0.25).setModel(camera_scale).setCollapsed(computed(() => !group_camera_open.value)).asReciprocal(),
+    new GroupRow('group-colors', 'Colors', false).setCollapsed(true).setModel(group_colors_open), // TODO(Color4Row): Remove setCollapsed after implementing a color picker
+    new Color4Row('uInsideColor', 'Inside Color', [0.0, 0.0, 1.0, 1.0]).setCollapsed(computed(() => !group_colors_open.value)),
+    new Color4Row('uOutsideColor', 'Outside Color', [1.0, 0.0, 0.0, 1.0]).setCollapsed(computed(() => !group_colors_open.value)),
+    new Color4Row('uInsetColor', 'Inset Color', [1.0, 1.0, 1.0, 1.0]).setCollapsed(computed(() => !group_colors_open.value)),
+    new Color4Row('uOutsetColor', 'Outset Color', [0.0, 0.0, 0.0, 1.0]).setCollapsed(computed(() => !group_colors_open.value)),
+    new GroupRow('group-border', 'Border', false).setModel(group_border_open),
+    new NumberRangeRow('uInsetWidth', 'Inset Width', 0.01, 0, 0.1, 0.001).setCollapsed(computed(() => !group_border_open.value)),
+    new NumberRangeRow('uOutsetWidth', 'Outset Width', 0.01, 0, 0.1, 0.001).setCollapsed(computed(() => !group_border_open.value)),
   ];
 
-  var local_properties;
+  var local_properties: PropertyType[] = [];
   switch (shader_key) {
-    case 'heart':
+    case ShaderKey.Heart:
       const mode = ref(null);
       local_properties = [
-        new DividerOptions('divider-heart', 'SDF Heart'),
-        new ComboBoxOptions('heart.uMode', 'Mode', 0, [
+        new DividerRow('divider-heart', 'SDF Heart'),
+        new ComboBoxRow('heart.uMode', 'Mode', 0, [
           [0, 'Heartbeat Animation'],
           [1, 'Step By Step Composition'],
           [2, 'Blend To Circle'],
         ]).setModel(mode),
-        new NumberRangeOptions('game.time_scale', 'Time Scale', 1.0, 0.0, 2.0, 0.25).setCollapsed(computed(() => mode.value !== 0)),
-        new NumberRangeOptions('heart.uAnimationAmplitude', 'Animation Amplitude', 1.0, 0, 1, 0.01).setCollapsed(computed(() => mode.value !== 0)),
-        new NumberRangeOptions('heart.uBlendToCircle', 'Blend To Circle', 0.0, 0, 1, 0.01).setCollapsed(computed(() => mode.value === 0)),
-        new ToggleOptions('heart.uHiddenCompositionAnimation', '(Hidden) Composition Animation', false).setCollapsed(true),
-        new NumberRangeOptions('heart.uCompositionStep', 'Composition Step', 7, 0, 7, 1).setCollapsed(computed(() => mode.value !== 1)),
+        new NumberRangeRow('game.time_scale', 'Time Scale', 1.0, 0.0, 2.0, 0.25).setCollapsed(computed(() => mode.value !== 0)),
+        new NumberRangeRow('heart.uAnimationAmplitude', 'Animation Amplitude', 1.0, 0, 1, 0.01).setCollapsed(computed(() => mode.value !== 0)),
+        new NumberRangeRow('heart.uBlendToCircle', 'Blend To Circle', 0.0, 0, 1, 0.01).setCollapsed(computed(() => mode.value === 0)),
+        new ToggleRow('heart.uHiddenCompositionAnimation', '(Hidden) Composition Animation', false).setCollapsed(true),
+        new NumberRangeRow('heart.uCompositionStep', 'Composition Step', 7, 0, 7, 1).setCollapsed(computed(() => mode.value !== 1)),
       ];
       break;
-    case 'circle':
+    case ShaderKey.Circle:
       const circle_mode = ref(null);
       local_properties = [
-        new DividerOptions('divider-circle', 'SDF Circle'),
-        new ComboBoxOptions('circle.uMode', 'Mode', 0, [
+        new DividerRow('divider-circle', 'SDF Circle'),
+        new ComboBoxRow('circle.uMode', 'Mode', 0, [
           [0, 'Circle'],
           [1, 'Ring (Within Radius)'],
           [2, 'Ring (Centered on Radius)'],
         ]).setModel(circle_mode),
-        new NumberRangeOptions('circle.uRadius', 'Core Radius', 0.5, 0, 1, 0.01),
-        new NumberRangeOptions('circle.uRingStrokeWidth', 'Annulus Radius', 0.1, 0, 1, 0.01).setCollapsed(computed(() => circle_mode.value === 0)),
+        new NumberRangeRow('circle.uRadius', 'Core Radius', 0.5, 0, 1, 0.01),
+        new NumberRangeRow('circle.uRingStrokeWidth', 'Annulus Radius', 0.1, 0, 1, 0.01).setCollapsed(computed(() => circle_mode.value === 0)),
       ];
       break;
-    case 'plane':
+    case ShaderKey.Plane:
       local_properties = [
-        new DividerOptions('divider-plane', 'SDF Plane'),
-        new ToggleOptions('plane.uMirror', 'Mirror Plane', false),
-        new NumberRangeOptions('plane.uNormal', 'Normal Angle', 0.0, 0, 360, 1),
-        new NumberRangeOptions('plane.uDistanceFromOrigin', 'Distance From Origin', 0.0, -0.5, 0.5, 0.01),
+        new DividerRow('divider-plane', 'SDF Plane'),
+        new ToggleRow('plane.uMirror', 'Mirror Plane', false),
+        new NumberRangeRow('plane.uNormal', 'Normal Angle', 0.0, 0, 360, 1),
+        new NumberRangeRow('plane.uDistanceFromOrigin', 'Distance From Origin', 0.0, -0.5, 0.5, 0.01),
       ];
       break;
-    case 'capsule':
+    case ShaderKey.Capsule:
       local_properties = [
-        new DividerOptions('divider-capsule', 'SDF Capsule'),
-        new ToggleOptions('capsule.uInvertPlane', 'Invert Plane SDF', true),
-        new ComboBoxOptions('capsule.uAxis', 'Axis', 0, [
+        new DividerRow('divider-capsule', 'SDF Capsule'),
+        new ToggleRow('capsule.uInvertPlane', 'Invert Plane SDF', true),
+        new ComboBoxRow('capsule.uAxis', 'Axis', 0, [
           [0, 'Horizontal'],
           [1, 'Vertical'],
         ]),
-        new NumberRangeOptions('capsule.uRadius', 'Radius', 0.2, 0.0, 1.0, 0.01),
-        new NumberRangeOptions('capsule.uLength', 'Length', 0.55, 0.0, 1.0, 0.01),
+        new NumberRangeRow('capsule.uRadius', 'Radius', 0.2, 0.0, 1.0, 0.01),
+        new NumberRangeRow('capsule.uLength', 'Length', 0.55, 0.0, 1.0, 0.01),
       ];
       break;
-    case 'venn-diagram':
+    case ShaderKey.VennDiagram:
       local_properties = [
-        new DividerOptions('divider-venn-diagram', 'SDF Capsule'),
-        new ComboBoxOptions('venn-diagram.uOp', 'Function', 0, [
+        new DividerRow('divider-venn-diagram', 'SDF Capsule'),
+        new ComboBoxRow('venn-diagram.uOp', 'Function', 0, [
           [0, 'Union'],
           [1, 'Intersection'],
           [2, 'Subtraction'],
@@ -937,44 +889,43 @@ function getShaderProperties(shader_key, property_overlay) {
         ]),
       ];
       break;
-    case 'mirror':
+    case ShaderKey.Mirror:
       const mirror_shape = ref(null);
       local_properties = [
-        new DividerOptions('divider-mirror', 'Mirrored Plane'),
-        new ComboBoxOptions('mirror.uShape', 'Shape', 0, [
+        new DividerRow('divider-mirror', 'Mirrored Plane'),
+        new ComboBoxRow('mirror.uShape', 'Shape', 0, [
           [0, 'Ring and Circles'],
           [1, 'Plane'],
         ]).setModel(mirror_shape),
-        new ToggleOptions('mirror.uHorizontalMirror', 'Mirror Horizontally', false),
-        new ToggleOptions('mirror.uVerticalMirror', 'Mirror Vertically', false),
-        new ToggleOptions('mirror.uSmoothMinimum', 'Smooth Minimum', true).setCollapsed(computed(() => mirror_shape.value !== 0)),
-        new NumberRangeOptions('game.time_scale', 'Time Scale', 1.0, -2.0, 2.0, 0.25).setCollapsed(computed(() => mirror_shape.value !== 0)),
+        new ToggleRow('mirror.uHorizontalMirror', 'Mirror Horizontally', false),
+        new ToggleRow('mirror.uVerticalMirror', 'Mirror Vertically', false),
+        new ToggleRow('mirror.uSmoothMinimum', 'Smooth Minimum', true).setCollapsed(computed(() => mirror_shape.value !== 0)),
+        new NumberRangeRow('game.time_scale', 'Time Scale', 1.0, -2.0, 2.0, 0.25).setCollapsed(computed(() => mirror_shape.value !== 0)),
       ];
       break;
-    case 'smooth-union':
+    case ShaderKey.SmoothUnion:
       const enable_smooth_min = ref(null);
       local_properties = [
-        new DividerOptions('divider-smooth-union', 'Smooth Union'),
-        new ToggleOptions('smooth-union.uSmoothMinimum', 'Smooth Minimum', true).setModel(enable_smooth_min),
-        new NumberRangeOptions('smooth-union.uSmoothFactor', 'uSmoothFactor', 1.0, 0.0, 1.0, 0.01).setDisabled(computed(() => !enable_smooth_min.value)),
-        new NumberRangeOptions('game.time_scale', 'Time Scale', 1.0, -2.0, 2.0, 0.25),
+        new DividerRow('divider-smooth-union', 'Smooth Union'),
+        new ToggleRow('smooth-union.uSmoothMinimum', 'Smooth Minimum', true).setModel(enable_smooth_min),
+        new NumberRangeRow('smooth-union.uSmoothFactor', 'uSmoothFactor', 1.0, 0.0, 1.0, 0.01).setDisabled(computed(() => !enable_smooth_min.value)),
+        new NumberRangeRow('game.time_scale', 'Time Scale', 1.0, -2.0, 2.0, 0.25),
       ];
       break;
-    case 'pattern':
+    case ShaderKey.Pattern:
       const pattern_mode = ref(null);
       local_properties = [
-        new ComboBoxOptions('uMode', 'Mode', 0, [
+        new ComboBoxRow('uMode', 'Mode', 0, [
           [0, 'Grid Cells'],
           [1, 'Ripples'],
         ]).setModel(pattern_mode),
-        new ToggleOptions('uClipImage', 'Clip Image', true),
-        new NumberRangeOptions('uDivisions', 'Divisions', 9.0, 1.0, 33.0, 1.0),
-        new NumberRangeOptions('game.time_scale', 'Time Scale', 1.0, -2.0, 2.0, 0.25).setDisabled(computed(() => pattern_mode.value !== 1)),
+        new ToggleRow('uClipImage', 'Clip Image', true),
+        new NumberRangeRow('uDivisions', 'Divisions', 9.0, 1.0, 33.0, 1.0),
+        new NumberRangeRow('game.time_scale', 'Time Scale', 1.0, -2.0, 2.0, 0.25).setDisabled(computed(() => pattern_mode.value !== 1)),
       ];
       break;
     default:
-      console.log(`unknown shader_key: ${shader_key}`);
-      break;
+      throw new Error(`unknown shader_key: ${shader_key}`);
   }
   const result = [
     ...local_properties,
@@ -986,33 +937,37 @@ function getShaderProperties(shader_key, property_overlay) {
       if (!overlay) {
         continue;
       }
-      Object.entries(overlay).forEach(([key, value]) => props[key] = value);
+      Object.entries(overlay).forEach(([key, value]) => { props[key] = value; });
     }
   }
   return result;
 }
 
-function degToRad(deg) {
+function degToRad(deg: number): number {
   return deg * (Math.PI / 180.0);
 }
 
-function degToVec2(deg) {
+function degToVec2(deg: number): [number, number] {
   var rad = degToRad(deg);
   return [Math.cos(rad), Math.sin(rad)];
 }
 
-function getShaderUniformsForMessage(shader_key, editor) {
+function getShaderUniformsForMessage(demo_key: DemosWithPropertyEditor): ShaderUniformsForPayload {
+  const shader_key = shaders.getAssociatedShaderKey(demo_key);
+  if (!shader_key) {
+    return [];
+  }
   const shader_uniforms = [
     ...shared_uniforms,
-    ...shader_definitions[shader_key].uniforms,
+    ...shaders[shader_key].uniforms,
   ];
   return [
     ...shader_uniforms.map(uniform => {
-      var value = unref(editor)?.get(uniform.name);
+      var value = property_editors[demo_key].get(uniform.name);
       if (value === undefined) {
-        value = unref(editor)?.get(`${shader_key}.${uniform.name}`);
+        value = property_editors[demo_key].get(`${shader_key}.${uniform.name}`);
       }
-      value = toRaw(value);
+      console.assert(!isRef(value), 'unexpected ref value');
       if (uniform.coerce) {
         value = uniform.coerce(value);
       }
@@ -1021,64 +976,101 @@ function getShaderUniformsForMessage(shader_key, editor) {
   ];
 }
 
-function onPlayerLoaded(frame: HTMLIFrameElement, editor, shader_key: string) {
-  FrameState.register(frame, editor).setKey(shader_key, UPDATE.Now);
+function postMessageWithPropertyEditor(demo_key: DemosWithPropertyEditor) {
+  shaders.update(demo_key,
+                 getShaderUniformsForMessage(demo_key),
+                 property_editors[demo_key].get<number>('game.time_scale'));
 }
 
-function onPlayerPropertyChanged(frame: HTMLIFrameElement, name: string) {
-  FrameState.get(frame)?.update(UPDATE.Schedule);
+function onPlayerLoaded(demo_key: DemosWithPropertyEditor, shader_key: ShaderKey) {
+  shaders.bind(demo_key, shader_key);
+  postMessageWithPropertyEditor(demo_key);
 }
 
-function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: int) {
-  frame.contentWindow?.postMessage({
-    sources: shader_definitions['heart'].sources,
-    uniforms: [
+function onStepByStepPlayerLoaded(demo_key: DemosWithoutPropertyEditor) {
+  shaders.bind(demo_key, ShaderKey.Heart);
+  shaders.update(demo_key, [
       // Common
-      ['uDrawMode',           {type: UniformType.int,     value: 2}],
-      ['uShowClock',          {type: UniformType.bool,    value: false}],
-      ['uShowReticle',        {type: UniformType.bool,    value: false}],
-      ['uShowAxisX',          {type: UniformType.bool,    value: false}],
-      ['uShowAxisY',          {type: UniformType.bool,    value: true}],
-      ['uPositionX',          {type: UniformType.float,   value: 0}],
-      ['uPositionY',          {type: UniformType.float,   value: 0}],
-      ['uRotation',           {type: UniformType.float,   value: 0}],
-      ['uScale',              {type: UniformType.float,   value: 1.5}],
-      ['uInsideColor',        {type: UniformType.vec4,    value: [0.0, 0.0, 1.0, 1.0]}],
-      ['uOutsideColor',       {type: UniformType.vec4,    value: [1.0, 0.0, 0.0, 1.0]}],
-      ['uInsetColor',         {type: UniformType.vec4,    value: [1.0, 1.0, 1.0, 1.0]}],
-      ['uOutsetColor',        {type: UniformType.vec4,    value: [0.0, 0.0, 0.0, 1.0]}],
-      ['uInsetWidth',         {type: UniformType.float,   value: 0.01}],
-      ['uOutsetWidth',        {type: UniformType.float,   value: 0.01}],
+      ['uDrawMode',       {type: UniformType.int,     value: 2}],
+      ['uShowClock',      {type: UniformType.bool,    value: false}],
+      ['uShowReticle',    {type: UniformType.bool,    value: false}],
+      ['uShowAxisX',      {type: UniformType.bool,    value: false}],
+      ['uShowAxisY',      {type: UniformType.bool,    value: true}],
+      ['uPositionX',      {type: UniformType.float,   value: 0}],
+      ['uPositionY',      {type: UniformType.float,   value: 0}],
+      ['uRotation',       {type: UniformType.float,   value: 0}],
+      ['uScale',          {type: UniformType.float,   value: 1.5}],
+      ['uInsideColor',    {type: UniformType.vec4,    value: [0.0, 0.0, 1.0, 1.0]}],
+      ['uOutsideColor',   {type: UniformType.vec4,    value: [1.0, 0.0, 0.0, 1.0]}],
+      ['uInsetColor',     {type: UniformType.vec4,    value: [1.0, 1.0, 1.0, 1.0]}],
+      ['uOutsetColor',    {type: UniformType.vec4,    value: [0.0, 0.0, 0.0, 1.0]}],
+      ['uInsetWidth',     {type: UniformType.float,   value: 0.01}],
+      ['uOutsetWidth',    {type: UniformType.float,   value: 0.01}],
       // Heart Shape
       ['uMode',                       {type: UniformType.int, value: 1}],
       ['uAnimationAmplitude',         {type: UniformType.float, value: 1}],
       ['uBlendToCircle',              {type: UniformType.float, value: 0.2}],
       ['uHiddenCompositionAnimation', {type: UniformType.bool, value: true}],
-      ['uCompositionStep',            {type: UniformType.int, value: composition_step}],
-    ],
-  }, window.location.origin);
+      ['uCompositionStep',            {type: UniformType.int, value: composition_step[demo_key]}],
+    ]);
 }
+
+function onPropertyChanged(demo_key: DemosWithPropertyEditor, _kind: PropertyEmits, _name: string, _new_value?: unknown) {
+  postMessageWithPropertyEditor(demo_key);
+}
+
+const property_editors: Record<DemosWithPropertyEditor, IUsePropertyEditorModel> = {
+  [DemoKey.Main]: usePropertyEditorModel(getShaderProperties(ShaderKey.Heart, {
+                        'uInsideColor': { default_value: [1.0, 0.0, 0.0, 1.0] },
+                        'uOutsideColor': { default_value: [0.0, 0.0, 1.0, 1.0] },
+                        'uInsetWidth': { default_value: 0.0 },
+                        'uOutsetWidth': { default_value: 0.0 },
+                      }), new PropertyEmitsHandler(onPropertyChanged.bind(null, DemoKey.Main))),
+  [DemoKey.Heart]: usePropertyEditorModel(getShaderProperties(ShaderKey.Heart,
+  {
+    'uScale': { default_value: 1.5 },
+    'uShowAxisY': { default_value: true },
+    'heart.uMode': { default_value: 1 },
+    'heart.uBlendToCircle': { default_value: 0.25 },
+  }), new PropertyEmitsHandler(onPropertyChanged.bind(null, DemoKey.Heart))),
+  [DemoKey.Circle]: usePropertyEditorModel(getShaderProperties(ShaderKey.Circle),
+                                 new PropertyEmitsHandler(onPropertyChanged.bind(null, DemoKey.Circle))),
+  [DemoKey.Plane]: usePropertyEditorModel(getShaderProperties(ShaderKey.Plane, {
+    'uShowReticle': { default_value: true },
+    'uShowAxisX': { default_value: true },
+    'uShowAxisY': { default_value: true },
+  }), new PropertyEmitsHandler(onPropertyChanged.bind(null, DemoKey.Plane))),
+  [DemoKey.Mirror]: usePropertyEditorModel(getShaderProperties(ShaderKey.Mirror, {
+    'uShowAxisX': { default_value: true },
+    'uShowAxisY': { default_value: true },
+  }), new PropertyEmitsHandler(onPropertyChanged.bind(null, DemoKey.Mirror))),
+  [DemoKey.VennDiagram]: usePropertyEditorModel(getShaderProperties(ShaderKey.VennDiagram),
+                                         new PropertyEmitsHandler(onPropertyChanged.bind(null, DemoKey.VennDiagram))),
+  [DemoKey.Capsule]: usePropertyEditorModel(getShaderProperties(ShaderKey.Capsule, {
+    'uShowAxisX': { default_value: true },
+    'uShowAxisY': { default_value: true },
+  }), new PropertyEmitsHandler(onPropertyChanged.bind(null, DemoKey.Capsule))),
+  [DemoKey.SmoothUnion]: usePropertyEditorModel(getShaderProperties(ShaderKey.SmoothUnion, {
+    'uDrawMode': { default_value: 4 }
+  }), new PropertyEmitsHandler(onPropertyChanged.bind(null, DemoKey.SmoothUnion))),
+  [DemoKey.Pattern]: usePropertyEditorModel(getShaderProperties(ShaderKey.Pattern, {
+    'uDrawMode': { default_value: 6},
+  }), new PropertyEmitsHandler(onPropertyChanged.bind(null, DemoKey.Pattern))),
+};
 </script>
 
 <template>
   <article>
-  <Player :ref="makePlayerRef('main')"
+  <Player :ref="player.ref(DemoKey.Main)"
           :title="title"
           :date="date"
           :lastmod="lastmod"
           frame="/library/projects/shader_loader/shader_loader.html"
           :state="player_states['main']"
-          @load="(frame) => onPlayerLoaded(frame, editors['main'], 'heart')" />
+          @load="onPlayerLoaded(DemoKey.Main, ShaderKey.Heart)" />
 
     <Section heading="Controls">
-      <PropertyEditor :ref="makeEditorRef('main')"
-                      :properties="getShaderProperties('heart', {
-                        'uInsideColor': { default_value: [1.0, 0.0, 0.0, 1.0] },
-                        'uOutsideColor': { default_value: [0.0, 0.0, 1.0, 1.0] },
-                        'uInsetWidth': { default_value: 0.0 },
-                        'uOutsetWidth': { default_value: 0.0 },
-                      })"
-                      @property-changed="(name) => onPlayerPropertyChanged(players['main'].inner_frame, name)" />
+      <PropertyEditor v-bind:rows="property_editors[DemoKey.Main].rows" v-model="property_editors[DemoKey.Main].models" v-on="property_editors[DemoKey.Main].onPropertyEmit" />
     </Section>
 
     <Section heading="Scope">
@@ -1125,46 +1117,51 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       <p>
         For clarity, here are definitions for some of the vector math symbols used in the formula frames below.
       </p>
-      <Formula caption="2-D vector V, and its 2x1 matrix.">
-        \begin{aligned}
-          \text{vector} \\
-          \left(\vec{V}\right) = \begin{bmatrix}
-            \vec{V}_{x} \\
-            \vec{V}_{y}
-          \end{bmatrix}
-        \end{aligned}
-      </Formula>
+      <Formula caption="2-D vector V, and its 2x1 matrix."
+               content="
+                \begin{aligned}
+                  \text{vector} \\
+                  \left(\vec{V}\right) = \begin{bmatrix}
+                    \vec{V}_{x} \\
+                    \vec{V}_{y}
+                  \end{bmatrix}
+                \end{aligned}
+               " />
 
-      <Formula caption="Perpendicular of vector V, rotated 90-degrees counter-clockwise from vector V, and its 2x1 matrix.">
-        \begin{aligned}
-          \text{perpendicular of vector V, rotated 90-deg CCW} \\
-          \left(\vec{V}_{\perp}\right) = \begin{bmatrix}
-            -\vec{V}_{y} \\
-            \vec{V}_{x}
-          \end{bmatrix}
-        \end{aligned}
-      </Formula>
+      <Formula caption="Perpendicular of vector V, rotated 90-degrees counter-clockwise from vector V, and its 2x1 matrix."
+               content="
+                \begin{aligned}
+                  \text{perpendicular of vector V, rotated 90-deg CCW} \\
+                  \left(\vec{V}_{\perp}\right) = \begin{bmatrix}
+                    -\vec{V}_{y} \\
+                    \vec{V}_{x}
+                  \end{bmatrix}
+                \end{aligned}
+                " />
 
-      <Formula caption="Unit vector V, with an identity.">
-        \begin{aligned}
-          \text{unit vector} \\
-          \left(\hat{V}\right) = \left(\tfrac{\vec{V}}{||\vec{V}||}\right)
-        \end{aligned}
-      </Formula>
+      <Formula caption="Unit vector V, with an identity."
+               content="
+                \begin{aligned}
+                  \text{unit vector} \\
+                  \left(\hat{V}\right) = \left(\tfrac{\vec{V}}{||\vec{V}||}\right)
+                \end{aligned}
+               " />
 
-      <Formula caption="Vector difference between A and B, in the direction A towards B, with an identity.">
-        \begin{aligned}
-          \text{vector difference, A towards B} \\
-          \left(\vec{AB}\right) = \left(\vec{B}-\vec{A}\right)
-        \end{aligned}
-      </Formula>
+      <Formula caption="Vector difference between A and B, in the direction A towards B, with an identity."
+               content="
+                \begin{aligned}
+                  \text{vector difference, A towards B} \\
+                  \left(\vec{AB}\right) = \left(\vec{B}-\vec{A}\right)
+                \end{aligned}
+               " />
 
-      <Formula caption="Unit vector in the direction A towards B, with an identity.">
-        \begin{aligned}
-          \text{unit vector, A towards B} \\
-          \left(\hat{\vec{AB}}\right) = \left(\tfrac{\vec{AB}}{||\vec{AB}||}\right)
-        \end{aligned}
-      </Formula>
+      <Formula caption="Unit vector in the direction A towards B, with an identity."
+               content="
+                \begin{aligned}
+                  \text{unit vector, A towards B} \\
+                  \left(\hat{\vec{AB}}\right) = \left(\tfrac{\vec{AB}}{||\vec{AB}||}\right)
+                \end{aligned}
+               " />
       <p>
         It's best to start with known variables and constraints.
       </p>
@@ -1177,39 +1174,40 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
         For inputs, we know that <b>R</b> must be constrained to a minimum of half quadrant 1, and a maximum of half the UV space.
         This is the maximum range allowed for the heart and circle transformation to maintain the illusion and stay within bounds of the 1x1 UV unit space.
       </p>
-      <Formula caption="R is within range [0.25, 0.5]">
-        R \in \left[\tfrac{1}{4},\tfrac{1}{2}\right]
-      </Formula>
+      <Formula caption="R is within range [0.25, 0.5]"
+               content="R \in \left[\tfrac{1}{4},\tfrac{1}{2}\right]" />
       <p>
         So far both vertex <b>A</b> and <b>C</b> are known values.
         Vertex <b>A</b> must be the lower-midpoint of the UV space.
       </p>
-      <Formula caption="A is the point [0, -0.5]">
-        \vec{A} = \begin{bmatrix}
-          0 \\
-          -\tfrac{1}{2}
-        \end{bmatrix}
-      </Formula>
+      <Formula caption="A is the point [0, -0.5]"
+               content="
+                \vec{A} = \begin{bmatrix}
+                  0 \\
+                  -\tfrac{1}{2}
+                \end{bmatrix}
+               " />
       <p>
         Vertex <b>C</b> is offset from both the top and right edges of the UV space by the radius <b>R</b>.
       </p>
-      <Formula caption="C is the point [0.5-R, 0.5-R]">
-        \vec{C} = \begin{bmatrix}
-          \tfrac{1}{2}-R \\
-          \tfrac{1}{2}-R \\
-        \end{bmatrix}
-      </Formula>
+      <Formula caption="C is the point [0.5-R, 0.5-R]"
+               content="
+                \vec{C} = \begin{bmatrix}
+                  \tfrac{1}{2}-R \\
+                  \tfrac{1}{2}-R \\
+                \end{bmatrix}
+               " />
       <p>
         This is enough information to start drawing with.
         So, looking at what's been solved for:
       </p>
-      <Player :ref="makePlayerRef(`heart-composition-step-0`)"
-              :title="`(Fig. 0) Mirrored Heart Lobe + Lower Point`"
+      <Player :ref="player.ref(DemoKey.HeartCompositionStep0)"
+              title="(Fig. 0) Mirrored Heart Lobe + Lower Point"
               :date="date"
               :lastmod="lastmod"
               frame="/library/projects/shader_loader/shader_loader.html"
               :state="player_states['heart-composition-step-0']"
-              @load="(frame) => onStepByStepPlayerLoaded(frame, 0)" />
+              @load="onStepByStepPlayerLoaded(DemoKey.HeartCompositionStep0)" />
       <Note>
         Demos in this section have been adjusted to show some space outside the 1x1 UV unit to make some details more apparent.
         In particular, the area below vertex <b>A</b>.
@@ -1221,14 +1219,15 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       <p>
         To find the tangent direction, we'll need the length <b>S</b> between vertices <b>A</b> and <b>C</b>, the length of the hypotenuse.
       </p>
-      <Formula caption="S is the length hypotenuse between vertex A and C.">
-        \begin{aligned}
-        S &=& ||\vec{CA}|| = \sqrt{\left(\vec{CA} \cdot \vec{CA}\right)} \\
-          &=& \sqrt{(\vec{A}_{x}-\vec{C}_{x})^2 + (\vec{A}_{y}-\vec{C}_{y})^2} \\
-          &=& \sqrt{\left(R-\tfrac{1}{2}\right)^2 + (R-1)^2} \\
-          &=& \sqrt{2R^2 - 3R + \left(\tfrac{5}{4}\right)} \\
-        \end{aligned}
-      </Formula>
+      <Formula caption="S is the length hypotenuse between vertex A and C."
+               content="
+                \begin{aligned}
+                  S &=& ||\vec{CA}|| = \sqrt{\left(\vec{CA} \cdot \vec{CA}\right)} \\
+                    &=& \sqrt{(\vec{A}_{x}-\vec{C}_{x})^2 + (\vec{A}_{y}-\vec{C}_{y})^2} \\
+                    &=& \sqrt{\left(R-\tfrac{1}{2}\right)^2 + (R-1)^2} \\
+                    &=& \sqrt{2R^2 - 3R + \left(\tfrac{5}{4}\right)} \\
+                \end{aligned}
+               " />
       <p>
         For the first approach, the tangent direction can be computed with a few trig functions.
         The angle of a vector pointing from vertex <b>C</b> to vertex <b>A</b> can be computed as the arctangent of the difference between their components.
@@ -1238,16 +1237,17 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
       <Note :color="ThemeColor.Warning">
         This solution uses 4 trig functions which are relatively expensive operations; this approach isn't recommended for production.
       </Note>
-      <Formula caption="unit vector N, computed through trig functions.">
-        \begin{aligned}
-          \alpha =& \arctan(\tfrac{\vec{CA}_{y}}{\vec{CA}_{x}}) \\
-          \theta =& \arccos(\tfrac{R}{S}) \\
-          \hat{N} =& \begin{bmatrix}
-            \cos(\alpha+\theta) \\
-            \sin(\alpha+\theta)
-          \end{bmatrix}
-        \end{aligned}
-      </Formula>
+      <Formula caption="unit vector N, computed through trig functions."
+               content="
+                \begin{aligned}
+                  \alpha =& \arctan(\tfrac{\vec{CA}_{y}}{\vec{CA}_{x}}) \\
+                  \theta =& \arccos(\tfrac{R}{S}) \\
+                  \hat{N} =& \begin{bmatrix}
+                    \cos(\alpha+\theta) \\
+                    \sin(\alpha+\theta)
+                  \end{bmatrix}
+                \end{aligned}
+               " />
       <p>
         For the second approach, the tangent direction can be computed without trig functions by using a <Link to="https://en.wikipedia.org/wiki/Rotation_matrix">rotation matrix</Link> based on <b class="nowrap">cos(θ)</b> and <b class="nowrap">sin(θ)</b>, rather than computing the angle <b>θ</b>.
         The rotation can be solved either with a rotation matrix, or with an identity of the matrix based on perpendicular unit vectors.
@@ -1256,22 +1256,21 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
         With the lengths <b>Q</b>, <b>R</b>, and <b>S</b> we can solve for <b class="nowrap">cos(θ)</b> and <b class="nowrap">sin(θ)</b>, rather than <b>θ</b> itself.
         Since <b>R</b> is known and <b>S</b> has been solved, use the <Link to="https://en.wikipedia.org/wiki/Pythagorean_theorem">pythagorean theorem</Link> to find the remaining leg.
       </p>
-      <Formula caption="Q is the length between vertex A and T.">
-        Q = \sqrt{S^2 - R^2}
-      </Formula>
+      <Formula caption="Q is the length between vertex A and T."
+               content="Q = \sqrt{S^2 - R^2}" />
 
-      <Formula caption="θ is the angle formed by the triangle vertices A, C, and T.">
-        \begin{aligned}
-          \cos(\theta)  &=& \left(\tfrac{R}{S}\right) \\
-          \sin(\theta)  &=& \left(\tfrac{Q}{S}\right) \\
-        \end{aligned}
-      </Formula>
+      <Formula caption="θ is the angle formed by the triangle vertices A, C, and T."
+               content="
+                \begin{aligned}
+                  \cos(\theta)  &=& \left(\tfrac{R}{S}\right) \\
+                  \sin(\theta)  &=& \left(\tfrac{Q}{S}\right) \\
+                \end{aligned}
+               " />
       <p>
         Next create a unit vector pointing from vertex <b>C</b> to vertex <b>A</b>, scaling the difference between them by the inverse length <b>S</b> to normalize.
       </p>
-      <Formula caption="unit vector pointing from vertex C to vertex A.">
-        \hat{\vec{CA}} = \tfrac{\vec{CA}}{S}
-      </Formula>
+      <Formula caption="unit vector pointing from vertex C to vertex A."
+               content="\hat{\vec{CA}} = \tfrac{\vec{CA}}{S}" />
       <p>
         Then there are a few more options to choose from to compute unit vector <b>N</b>:
       </p>
@@ -1280,19 +1279,20 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
           <p>
             Create a 2-D rotation matrix directly with the precomputed values <b class="nowrap">cos(θ)</b> and <b class="nowrap">sin(θ)</b>.
           </p>
-          <Formula caption="unit vector N, computed directly with a rotation matrix using matrix multiplication.">
-            \begin{aligned}
-              \hat{N} &=& \begin{bmatrix}
-                \cos(\theta) & \quad -\sin(\theta) \\
-                \sin(\theta) & \quad \cos(\theta)
-              \end{bmatrix} \cdot \hat{\vec{CA}} \\
+          <Formula caption="unit vector N, computed directly with a rotation matrix using matrix multiplication."
+               content="
+                \begin{aligned}
+                  \hat{N} &=& \begin{bmatrix}
+                    \cos(\theta) & \quad -\sin(\theta) \\
+                    \sin(\theta) & \quad \cos(\theta)
+                  \end{bmatrix} \cdot \hat{\vec{CA}} \\
 
-              &=& \begin{bmatrix}
-                \cos(\theta) \cdot \hat{\vec{CA}}_{x} - \sin(\theta) \cdot \hat{\vec{CA}}_{y} \\
-                \sin(\theta) \cdot \hat{\vec{CA}}_{x} + \cos(\theta) \cdot \hat{\vec{CA}}_{y}
-              \end{bmatrix}
-            \end{aligned}
-          </Formula>
+                  &=& \begin{bmatrix}
+                    \cos(\theta) \cdot \hat{\vec{CA}}_{x} - \sin(\theta) \cdot \hat{\vec{CA}}_{y} \\
+                    \sin(\theta) \cdot \hat{\vec{CA}}_{x} + \cos(\theta) \cdot \hat{\vec{CA}}_{y}
+                  \end{bmatrix}
+                \end{aligned}
+               " />
         </li>
         <li>
           <p>
@@ -1304,31 +1304,32 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
             Game engines often have a <b>local transform</b> API that exposes <u><b>unit</b></u> vectors like <b>forward</b>, <b>right</b>, <b>up</b>, and other <i>local</i> cardinal directions which can be helpful for rotating a vector without constructing a matrix.
             For game logic, an engine likely exposes at least one math API to logically simplify this type of calculation.
           </Note>
-          <Formula caption="unit vector N, computed with vector multiplication and addition, another form of the 2-D rotation matrix.">
-            \begin{aligned}
-              \hat{N} &=& \left(\cos(\theta) \cdot \hat{\vec{CA}} + \sin(\theta) \cdot \hat{\vec{CA}}_{\perp}\right) \\
-                      &=& \begin{bmatrix}
-                            \cos(\theta) \cdot \hat{\vec{CA}}_{x} \\
-                            \cos(\theta) \cdot \hat{\vec{CA}}_{y} \\
-                          \end{bmatrix} + \begin{bmatrix}
-                            \sin(\theta) \cdot -\hat{\vec{CA}}_{y} \\
-                            \sin(\theta) \cdot \hat{\vec{CA}}_{x} \\
-                          \end{bmatrix} \\
-                      &=& \left(\left(\tfrac{R}{S}\right) \cdot \hat{\vec{CA}} + \left(\tfrac{Q}{S}\right) \cdot \hat{\vec{CA}}_{\perp}\right) \\
-            \end{aligned}
-          </Formula>
+          <Formula caption="unit vector N, computed with vector multiplication and addition, another form of the 2-D rotation matrix."
+               content="
+                \begin{aligned}
+                  \hat{N} &=& \left(\cos(\theta) \cdot \hat{\vec{CA}} + \sin(\theta) \cdot \hat{\vec{CA}}_{\perp}\right) \\
+                          &=& \begin{bmatrix}
+                                \cos(\theta) \cdot \hat{\vec{CA}}_{x} \\
+                                \cos(\theta) \cdot \hat{\vec{CA}}_{y} \\
+                              \end{bmatrix} + \begin{bmatrix}
+                                \sin(\theta) \cdot -\hat{\vec{CA}}_{y} \\
+                                \sin(\theta) \cdot \hat{\vec{CA}}_{x} \\
+                              \end{bmatrix} \\
+                          &=& \left(\left(\tfrac{R}{S}\right) \cdot \hat{\vec{CA}} + \left(\tfrac{Q}{S}\right) \cdot \hat{\vec{CA}}_{\perp}\right) \\
+                \end{aligned}
+               " />
         </li>
       </ul>
       <p>
         Now that the unit normal <b>N</b> has been solved a plane can be drawn relative to vertex <b>A</b> which is tangent to the heart lobe through vertex <b>T</b>.
       </p>
-      <Player :ref="makePlayerRef(`heart-composition-step-1`)"
-              :title="`(Fig. 1) Mirrored Plane`"
+      <Player :ref="player.ref(DemoKey.HeartCompositionStep1)"
+              title="(Fig. 1) Mirrored Plane"
               :date="date"
               :lastmod="lastmod"
               frame="/library/projects/shader_loader/shader_loader.html"
               :state="player_states['heart-composition-step-1']"
-              @load="(frame) => onStepByStepPlayerLoaded(frame, 1)" />
+              @load="onStepByStepPlayerLoaded(DemoKey.HeartCompositionStep1)" />
       <p>
         Unfortunately, the shape can't easily be composed using boolean operations, so the image needs to be sliced into separate drawing regions.
         To create a seamless appearance when joining the plane and circle, the circles need to be cut from their center point to a tangent.
@@ -1354,98 +1355,93 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
         <Term term="Circles">Mostly outward curves like the heart lobes and a section below the point drawn at vertex <b>A</b>.</Term>
       </TermList>
       <TermList heading="Region Edges">
-        <Term term="Circle Edge CB"><Formula caption="">\vec{C} \quad \text{towards} \quad \hat{\vec{CB}}_{\perp}</Formula></Term>
-        <Term term="Circle Edge CT"><Formula caption="">\vec{C} \quad \text{towards} \quad -\hat{N}_{\perp}</Formula></Term>
-        <Term term="Point Edge A"><Formula caption="">\vec{A} \quad \text{towards} \quad \hat{N}_{\perp}</Formula></Term>
+        <Term term="Circle Edge CB"><Formula caption="" content="\vec{C} \quad \text{towards} \quad \hat{\vec{CB}}_{\perp}" /></Term>
+        <Term term="Circle Edge CT"><Formula caption="" content="\vec{C} \quad \text{towards} \quad -\hat{N}_{\perp}" /></Term>
+        <Term term="Point Edge A"><Formula caption="" content="\vec{A} \quad \text{towards} \quad \hat{N}_{\perp}" /></Term>
       </TermList>
       <p>
         Since vertex <b>B</b> lies on the vertical axis only the <b>Y</b> component is missing, which can be defined as relative to the <b>Y</b> component of vertex <b>C</b>.
         So, the vertical component of <b>B</b> is only missing the value <b>H</b> which can be solved for as follows.
       </p>
-      <Formula caption="H is the vertical difference between vertex B and C.">
-        \begin{aligned}
-          H &=& \sqrt{R^2 - \left(\vec{C}_{x}\right)^2} \\
-            &=& \sqrt{R^2 - \left(\tfrac{1}{2}-R\right)^2} \\
-            &=& \sqrt{R-\tfrac{1}{4}} \\
-        \end{aligned}
-      </Formula>
-      <Formula caption="B is the highest point where heart lobes meet.">
-        \begin{aligned}
-          \vec{B} &=& \begin{bmatrix}
-                        0 \\
-                        \vec{C}_{y} + H \\
-                      \end{bmatrix} \\
-                  &=& \begin{bmatrix}
-                        0 \\
-                        \left(\tfrac{1}{2}-R\right) + \sqrt{R-\tfrac{1}{4}} \\
-                      \end{bmatrix}
-        \end{aligned}
-      </Formula>
+      <Formula caption="H is the vertical difference between vertex B and C."
+               content="
+                \begin{aligned}
+                  H &=& \sqrt{R^2 - \left(\vec{C}_{x}\right)^2} \\
+                    &=& \sqrt{R^2 - \left(\tfrac{1}{2}-R\right)^2} \\
+                    &=& \sqrt{R-\tfrac{1}{4}} \\
+                \end{aligned}
+               " />
+      <Formula caption="B is the highest point where heart lobes meet."
+               content="
+                \begin{aligned}
+                  \vec{B} &=& \begin{bmatrix}
+                                0 \\
+                                \vec{C}_{y} + H \\
+                              \end{bmatrix} \\
+                          &=& \begin{bmatrix}
+                                0 \\
+                                \left(\tfrac{1}{2}-R\right) + \sqrt{R-\tfrac{1}{4}} \\
+                              \end{bmatrix}
+                \end{aligned}
+               " />
       <p>
         With drawing regions defined the image can be stitched together.
       </p>
-      <Player :ref="makePlayerRef(`heart-composition-step-2`)"
-              :title="`(Fig. 2) Draw Region #1, Outer Circles`"
+      <Player :ref="player.ref(DemoKey.HeartCompositionStep2)"
+              title="(Fig. 2) Draw Region #1, Outer Circles"
               :date="date"
               :lastmod="lastmod"
               frame="/library/projects/shader_loader/shader_loader.html"
               :state="player_states['heart-composition-step-2']"
-              @load="(frame) => onStepByStepPlayerLoaded(frame, 2)" />
-      <Player :ref="makePlayerRef(`heart-composition-step-3`)"
-              :title="`(Fig. 3) Draw Region #2, Plane (Incomplete)`"
+              @load="onStepByStepPlayerLoaded(DemoKey.HeartCompositionStep2)" />
+      <Player :ref="player.ref(DemoKey.HeartCompositionStep3)"
+              title="(Fig. 3) Draw Region #2, Plane (Incomplete)"
               :date="date"
               :lastmod="lastmod"
               frame="/library/projects/shader_loader/shader_loader.html"
               :state="player_states['heart-composition-step-3']"
-              @load="(frame) => onStepByStepPlayerLoaded(frame, 3)" />
-      <Player :ref="makePlayerRef(`heart-composition-step-4`)"
-              :title="`(Fig. 4) Heart Shape (Incomplete)`"
+              @load="onStepByStepPlayerLoaded(DemoKey.HeartCompositionStep3)" />
+      <Player :ref="player.ref(DemoKey.HeartCompositionStep4)"
+              title="(Fig. 4) Heart Shape (Incomplete)"
               :date="date"
               :lastmod="lastmod"
               frame="/library/projects/shader_loader/shader_loader.html"
               :state="player_states['heart-composition-step-4']"
-              @load="(frame) => onStepByStepPlayerLoaded(frame, 4)" />
+              @load="onStepByStepPlayerLoaded(DemoKey.HeartCompositionStep4)" />
       <p>
         That's close, the silhouette is correct but the area below vertex <b>B</b> doesn't look right.
         To fix this, an <i>inverted</i> point can be drawn at vertex <b>B</b> within the planes draw region, creating the illusion that the heart lobes have one continuous inner curve.
       </p>
-      <Player :ref="makePlayerRef(`heart-composition-step-5`)"
-              :title="`(Fig. 5) Outer Circles + Inverted Point in Draw Region #2`"
+      <Player :ref="player.ref(DemoKey.HeartCompositionStep5)"
+              title="(Fig. 5) Outer Circles + Inverted Point in Draw Region #2"
               :date="date"
               :lastmod="lastmod"
               frame="/library/projects/shader_loader/shader_loader.html"
               :state="player_states['heart-composition-step-5']"
-              @load="(frame) => onStepByStepPlayerLoaded(frame, 5)" />
-      <Player :ref="makePlayerRef(`heart-composition-step-6`)"
-              :title="`(Fig. 6) Draw Region #2, Plane + Inverted Point`"
+              @load="onStepByStepPlayerLoaded(DemoKey.HeartCompositionStep5)" />
+      <Player :ref="player.ref(DemoKey.HeartCompositionStep6)"
+              title="(Fig. 6) Draw Region #2, Plane + Inverted Point"
               :date="date"
               :lastmod="lastmod"
               frame="/library/projects/shader_loader/shader_loader.html"
               :state="player_states['heart-composition-step-6']"
-              @load="(frame) => onStepByStepPlayerLoaded(frame, 6)" />
+              @load="onStepByStepPlayerLoaded(DemoKey.HeartCompositionStep6)" />
       <p>
         With 2 drawing regions composed of 3 points, 1 plane, and 3 cutting edges; the heart is complete and is ready for animation.
       </p>
       <Details summary="Heart Signed-distance Function">
-        <Code lang="cpp"
-              caption="Heart signed-distance function."
-              :text="shader_templates.get('heart').sdf_function" />
+        <CodeMirror lang="cpp"
+                    caption="Heart signed-distance function."
+                    :content="shader_templates[ShaderKey.Heart].sdf_function" />
       </Details>
-      <Player :ref="makePlayerRef('heart')"
+      <Player :ref="player.ref(DemoKey.Heart)"
           title="Heart"
           :date="date"
           :lastmod="lastmod"
           frame="/library/projects/shader_loader/shader_loader.html"
           :state="player_states['heart']"
-          @load="(frame) => onPlayerLoaded(frame, editors['heart'], 'heart')" />
-      <PropertyEditor :ref="makeEditorRef('heart')"
-                      :properties="getShaderProperties('heart', {
-                        'uScale': { default_value: 1.5 },
-                        'uShowAxisY': { default_value: true },
-                        'heart.uMode': { default_value: 1 },
-                        'heart.uBlendToCircle': { default_value: 0.25 },
-                      })"
-                      @property-changed="(name) => onPlayerPropertyChanged(players['heart'].inner_frame, name)" />
+          @load="onPlayerLoaded(DemoKey.Heart, ShaderKey.Heart)" />
+      <PropertyEditor v-bind:rows="property_editors[DemoKey.Heart].rows" v-model="property_editors[DemoKey.Heart].models" v-on="property_editors[DemoKey.Heart].onPropertyEmit" />
     </Section>
 
     <Section heading="What is a signed-distance function (SDF)?">
@@ -1515,20 +1511,18 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
         Subtracting a radius from this value inflates the shape, with negative values falling inside the boundary formed at the radius.
       </p>
       <Details summary="Circle Signed-distance Functions">
-        <Code lang="cpp"
-              caption="Circle signed-distance function."
-              :text="shader_templates.get('circle').sdf_function" />
+        <CodeMirror lang="cpp"
+                    caption="Circle signed-distance function."
+                    :content="shader_templates[ShaderKey.Circle].sdf_function" />
       </Details>
-      <Player :ref="makePlayerRef('circle')"
+      <Player :ref="player.ref(DemoKey.Circle)"
               title="Circle"
               :date="date"
               :lastmod="lastmod"
               frame="/library/projects/shader_loader/shader_loader.html"
               :state="player_states['circle']"
-              @load="(frame) => onPlayerLoaded(frame, editors['circle'], 'circle')" />
-      <PropertyEditor :ref="makeEditorRef('circle')"
-                      :properties="getShaderProperties('circle')"
-                      @property-changed="(name) => onPlayerPropertyChanged(players['circle'].inner_frame, name)" />
+          @load="onPlayerLoaded(DemoKey.Circle, ShaderKey.Circle)" />
+      <PropertyEditor v-bind:rows="property_editors[DemoKey.Circle].rows" v-model="property_editors[DemoKey.Circle].models" v-on="property_editors[DemoKey.Circle].onPropertyEmit" />
     </Section>
 
     <Section heading="Planes and Lines">
@@ -1544,24 +1538,18 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
         Subtracting from the distance field <b>inflates</b> the boundary of the shape by shifting the field uniformly <b>away from the boundary</b>.
       </p>
       <Details summary="Plane signed-distance functions">
-        <Code lang="cpp"
-              caption="Plane signed-distance function."
-              :text="shader_templates.get('plane').sdf_function" />
+        <CodeMirror lang="cpp"
+                    caption="Plane signed-distance function."
+                    :content="shader_templates[ShaderKey.Plane].sdf_function" />
       </Details>
-      <Player :ref="makePlayerRef('plane')"
+      <Player :ref="player.ref(DemoKey.Plane)"
               title="Plane"
               :date="date"
               :lastmod="lastmod"
               frame="/library/projects/shader_loader/shader_loader.html"
               :state="player_states['plane']"
-              @load="(frame) => onPlayerLoaded(frame, editors['plane'], 'plane')" />
-      <PropertyEditor :ref="makeEditorRef('plane')"
-                      :properties="getShaderProperties('plane', {
-                        'uShowReticle': { default_value: true },
-                        'uShowAxisX': { default_value: true },
-                        'uShowAxisY': { default_value: true },
-                      })"
-                      @property-changed="(name) => onPlayerPropertyChanged(players['plane'].inner_frame, name)" />
+          @load="onPlayerLoaded(DemoKey.Plane, ShaderKey.Plane)" />
+      <PropertyEditor v-bind:rows="property_editors[DemoKey.Plane].rows" v-model="property_editors[DemoKey.Plane].models" v-on="property_editors[DemoKey.Plane].onPropertyEmit" />
     </Section>
 
     <Section heading="Symmetry">
@@ -1570,23 +1558,18 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
         For example, mirroring across the horizontal or vertical axis can be achieved by using the absolute value of their respective UV component when the shape is centered at the origin, causing anything drawn on the <b>positive</b> side of the axis to be mirrored, or the first quadrant when both axes are mirrored.
       </p>
       <Details summary="Mirrored Shapes Signed-distance Function">
-        <Code lang="cpp"
-              caption="Mirrored shapes signed-distance function."
-              :text="shader_templates.get('mirror').sdf_function" />
+        <CodeMirror lang="cpp"
+                    caption="Mirrored shapes signed-distance function."
+                    :content="shader_templates[ShaderKey.Mirror].sdf_function" />
       </Details>
-      <Player :ref="makePlayerRef('mirror')"
+      <Player :ref="player.ref(DemoKey.Mirror)"
               title="Mirrored Shapes"
               :date="date"
               :lastmod="lastmod"
               frame="/library/projects/shader_loader/shader_loader.html"
               :state="player_states['mirror']"
-              @load="(frame) => onPlayerLoaded(frame, editors['mirror'], 'mirror')" />
-      <PropertyEditor :ref="makeEditorRef('mirror')"
-                      :properties="getShaderProperties('mirror', {
-                        'uShowAxisX': { default_value: true },
-                        'uShowAxisY': { default_value: true },
-                      })"
-                      @property-changed="(name) => onPlayerPropertyChanged(players['mirror'].inner_frame, name)" />
+              @load="onPlayerLoaded(DemoKey.Mirror, ShaderKey.Mirror)" />
+      <PropertyEditor v-bind:rows="property_editors[DemoKey.Mirror].rows" v-model="property_editors[DemoKey.Mirror].models" v-on="property_editors[DemoKey.Mirror].onPropertyEmit" />
     </Section>
 
     <Section heading="Boolean Operations">
@@ -1596,20 +1579,18 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
         Accurate signed-distance fields are generally preferred since they're more flexible, but boolean operations can quickly compose a shape when only the shape boundary or mask is needed.
       </p>
       <Details summary="Venn Diagram: Boolean Operators">
-        <Code lang="cpp"
-              caption="SDF Venn Diagram boolean operators."
-              :text="shader_templates.get('venn-diagram').sdf_function" />
+        <CodeMirror lang="cpp"
+                    caption="SDF Venn Diagram boolean operators."
+                    :content="shader_templates[ShaderKey.VennDiagram].sdf_function" />
       </Details>
-      <Player :ref="makePlayerRef('venn-diagram')"
+      <Player :ref="player.ref(DemoKey.VennDiagram)"
               title="Venn Diagram"
               :date="date"
               :lastmod="lastmod"
               frame="/library/projects/shader_loader/shader_loader.html"
               :state="player_states['venn-diagram']"
-              @load="(frame) => onPlayerLoaded(frame, editors['venn-diagram'], 'venn-diagram')" />
-      <PropertyEditor :ref="makeEditorRef('venn-diagram')"
-                      :properties="getShaderProperties('venn-diagram')"
-                      @property-changed="(name) => onPlayerPropertyChanged(players['venn-diagram'].inner_frame, name)" />
+              @load="onPlayerLoaded(DemoKey.VennDiagram, ShaderKey.VennDiagram)" />
+      <PropertyEditor v-bind:rows="property_editors[DemoKey.VennDiagram].rows" v-model="property_editors[DemoKey.VennDiagram].models" v-on="property_editors[DemoKey.VennDiagram].onPropertyEmit" />
     </Section>
 
     <Section heading="Drawing Regions">
@@ -1633,23 +1614,18 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
         The default settings for the demo below inverts the <abbr>SDF</abbr> of the plane connecting the two points to highlight the drawing regions.
       </p>
       <Details summary="Aligned Capsule: Drawing Regions">
-        <Code lang="cpp"
-              caption="Aligned capsule signed-distance function. Draws a circle and plane, mirrored across both axes, with two drawing regions."
-              :text="shader_templates.get('capsule').sdf_function" />
+        <CodeMirror lang="cpp"
+                    caption="Aligned capsule signed-distance function. Draws a circle and plane, mirrored across both axes, with two drawing regions."
+                    :content="shader_templates[ShaderKey.Capsule].sdf_function" />
       </Details>
-      <Player :ref="makePlayerRef('capsule')"
+      <Player :ref="player.ref(DemoKey.Capsule)"
               title="Aligned Capsule"
               :date="date"
               :lastmod="lastmod"
               frame="/library/projects/shader_loader/shader_loader.html"
               :state="player_states['capsule']"
-              @load="(frame) => onPlayerLoaded(frame, editors['capsule'], 'capsule')" />
-      <PropertyEditor :ref="makeEditorRef('capsule')"
-                      :properties="getShaderProperties('capsule', {
-                        'uShowAxisX': { default_value: true },
-                        'uShowAxisY': { default_value: true },
-                      })"
-                      @property-changed="(name) => onPlayerPropertyChanged(players['capsule'].inner_frame, name)" />
+              @load="onPlayerLoaded(DemoKey.Capsule, ShaderKey.Capsule)" />
+      <PropertyEditor v-bind:rows="property_editors[DemoKey.Capsule].rows" v-model="property_editors[DemoKey.Capsule].models" v-on="property_editors[DemoKey.Capsule].onPropertyEmit" />
     </Section>
 
     <Section heading="Boundaries, Insets, and Outsets">
@@ -1663,9 +1639,9 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
         If the final texture was going to be a compositing mask, then maybe only values <b class="nowrap"><= 0.0</b> need to be filled and everything else could be <b>discard</b>-ed.
         To the opposite extreme, arrays could be used to specify many colors and distance-threshold values, through shader uniforms, constants, or encoded in texture data if you have a suitable use case.
       </p>
-      <Code lang="cpp"
-            caption="Simple SDF draw call with 4 layers: [outside, outset, inset, inside]."
-            text="
+      <CodeMirror lang="cpp"
+                  caption="Simple SDF draw call with 4 layers: [outside, outset, inset, inside]."
+                  content="
         vec4 draw(float sdf) {
           if (sdf + uInsetWidth <= 0.0) {
             return uInsideColor;
@@ -1683,9 +1659,9 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
         Simple animations can be added by looping over one or more wave functions, providing <b>frame time</b> or a similar value to interpolate properties of the scene such as object transformations, colors, or texture coordinates for example.
         This type of animation can easily be adjusted to warp time or play in reverse by scaling the real <b>delta time</b>, unless some property of the animation isn't deterministic or breaks time symmetry.
       </p>
-      <Code lang="cpp"
-            caption="Time based heartbeat animation cycle composed of two wave functions."
-            text="
+      <CodeMirror lang="cpp"
+                  caption="Time based heartbeat animation cycle composed of two wave functions."
+                  content="
         float animation_time = (uTime * TAU) * kAnimationFrequency;
         float wave1 = 0.5 + 0.5 * cos(animation_time);
         float wave2 = 0.5 + 0.5 * cos(animation_time * 2.0);
@@ -1703,22 +1679,18 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
         <Link to="https://iquilezles.org/articles/smin/">Smooth minimum</Link> is one mechanism for blending shapes to add detail or polish to a shape.
       </p>
       <Details summary="Smooth Union">
-        <Code lang="cpp"
-              caption="Quadratic smooth union signed-distance function."
-              :text="shader_templates.get('smooth-union').sdf_function" />
+        <CodeMirror lang="cpp"
+                    caption="Quadratic smooth union signed-distance function."
+                    :content="shader_templates[ShaderKey.SmoothUnion].sdf_function" />
       </Details>
-      <Player :ref="makePlayerRef('smooth-union')"
+      <Player :ref="player.ref(DemoKey.SmoothUnion)"
               title="Smooth Union"
               :date="date"
               :lastmod="lastmod"
               frame="/library/projects/shader_loader/shader_loader.html"
               :state="player_states['smooth-union']"
-              @load="(frame) => onPlayerLoaded(frame, editors['smooth-union'], 'smooth-union')" />
-      <PropertyEditor :ref="makeEditorRef('smooth-union')"
-                      :properties="getShaderProperties('smooth-union', {
-                        'uDrawMode': { default_value: 4 }
-                      })"
-                      @property-changed="(name) => onPlayerPropertyChanged(players['smooth-union'].inner_frame, name)" />
+              @load="onPlayerLoaded(DemoKey.SmoothUnion, ShaderKey.SmoothUnion)" />
+      <PropertyEditor v-bind:rows="property_editors[DemoKey.SmoothUnion].rows" v-model="property_editors[DemoKey.SmoothUnion].models" v-on="property_editors[DemoKey.SmoothUnion].onPropertyEmit" />
     </Section>
 
     <Section heading="Patterns">
@@ -1728,22 +1700,18 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
         Other approaches could be using the <b>fract</b> or <b>mod</b> methods to create a repeating domain, for example the range <b class="nowrap">[0, 1]</b>, or <b class="nowrap">[-&frac12;, &frac12;]</b>.
       </p>
       <Details summary="Patterns">
-        <Code lang="cpp"
-              caption="Shape pattern signed-distance function."
-              :text="shader_templates.get('pattern').sdf_function" />
+        <CodeMirror lang="cpp"
+                    caption="Shape pattern signed-distance function."
+                    :content="shader_templates[ShaderKey.Pattern].sdf_function" />
       </Details>
-      <Player :ref="makePlayerRef('pattern')"
+      <Player :ref="player.ref(DemoKey.Pattern)"
           title="Pattern"
           :date="date"
           :lastmod="lastmod"
           frame="/library/projects/shader_loader/shader_loader.html"
           :state="player_states['pattern']"
-          @load="(frame) => onPlayerLoaded(frame, editors['pattern'], 'pattern')" />
-      <PropertyEditor :ref="makeEditorRef('pattern')"
-                      :properties="getShaderProperties('pattern', {
-                        'uDrawMode': { default_value: 6},
-                      })"
-                      @property-changed="(name) => onPlayerPropertyChanged(players['pattern'].inner_frame, name)" />
+          @load="onPlayerLoaded(DemoKey.Pattern, ShaderKey.Pattern)" />
+      <PropertyEditor v-bind:rows="property_editors[DemoKey.Pattern].rows" v-model="property_editors[DemoKey.Pattern].models" v-on="property_editors[DemoKey.Pattern].onPropertyEmit" />
     </Section>
 
     <Section heading="Technical Notes">
@@ -1792,9 +1760,9 @@ function onStepByStepPlayerLoaded(frame: HTMLIFrameElement, composition_step: in
           This is a work in progress, but avoids the immediate issue as I continue learning Vue.
         </p>
         <Details summary="useIntersectionObserver Example">
-          <Code lang="vue"
-              caption="Example use of useIntersectionObserver"
-              text="
+          <CodeMirror lang="vue"
+                      caption="Example use of useIntersectionObserver"
+                      content="
             <script setup lang='ts'>
             import ChildComponent from '@/components/child_component.vue'
             import useIntersectionObserver from '@/util/use_intersection_observer';
