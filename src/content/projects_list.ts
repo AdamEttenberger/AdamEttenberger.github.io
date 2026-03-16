@@ -12,7 +12,7 @@ export default [
                   'Match-3 Game',
                   '/images/projects/match_three/icon.png',
                   new Date('2025/05/27'),
-                  new Date('2025/07/14')),
+                  new Date('2026/03/16')),
   new ProjectInfo('website',
                   () => import('@/content/projects/website/article.vue'),
                   'This Website',
