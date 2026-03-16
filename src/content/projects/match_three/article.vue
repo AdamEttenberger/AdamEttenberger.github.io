@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onUnmounted, onBeforeUnmount } from 'vue'
+import { onUnmounted, onBeforeUnmount, ref, type Ref, computed } from 'vue'
 import CodeMirror from '@/components/code-mirror.vue'
 import Details from '@/components/details.vue'
 import Figure from '@/components/figure.vue'
@@ -10,6 +10,7 @@ import Link from '@/components/link.vue'
 import Player from '@/components/player.vue'
 import PropertyEditor from '@/components/property_editor/property_editor.vue'
 import {
+  Color4Row,
   DividerRow,
   LabelRow,
   NumberRangeRow,
@@ -19,8 +20,99 @@ import { type IProjectInfo } from '@/types/project_types'
 // Pinia Stores
 import { useMatchThreeScorecardStore } from '@/stores/match_three_scorecard'
 import usePropertyEditorModel, { type IUsePropertyEditorModel } from '@/composables/property_editor_model'
+import { PlayerState } from '@/types/player_state'
+import useIntersectionObserver from '@/composables/intersection_observer'
+import type { IShaderDefinition, IShaderTemplate, ShaderUniformsForPayload } from '@/composables/shaders'
+import useFunctionRef, { toComponent, type WeakElement } from '@/composables/function_ref'
+import useShaders, { Uniform, UniformType } from '@/composables/shaders'
+import type { IFrameContainer } from '@/types/frame_container'
+import default_vertex_shader from '@/assets/shaders/default.vert?raw'
+import checker_board_fragment_shader from '@/assets/shaders/checker_board.frag?raw'
+import focus_reticle_fragment_shader from '@/assets/shaders/focus_reticle.frag?raw'
+import { PropertyEmits, PropertyEmitsHandler, type ExtractModelType } from '@/util/property_editor/property_interfaces'
+import TabList from '@/components/tabs/tab-list.vue'
 
 defineProps<IProjectInfo>();
+
+enum DemoKey {
+  CheckerBoard = 'checker-board',
+  FocusReticle = 'focus-reticle',
+};
+
+type ShaderTab = 'gdscript'|'glsl';
+
+const player_states = ref({}) as Ref<Record<DemoKey, PlayerState>>;
+
+const selected_checker_frag = ref<ShaderTab>('gdscript');
+const selected_reticle_frag = ref<ShaderTab>('gdscript');
+
+const { observe: mapPlayerIntersectionObserver } = useIntersectionObserver<DemoKey>((key, entry) => {
+  player_states.value[key] = entry.isIntersecting
+      ? PlayerState.Playing
+      : PlayerState.Empty;
+});
+
+const player = useFunctionRef<DemoKey>([
+  {
+    ref(e: undefined|WeakElement, demo_key: DemoKey): void {
+      mapPlayerIntersectionObserver(demo_key, toComponent(e, Player)?.$el);
+    }
+  }
+]);
+
+const shader_definitions: Record<DemoKey, IShaderDefinition> = {
+  [DemoKey.CheckerBoard]: {
+    label: "Checker Board",
+    uniforms: [
+      new Uniform(UniformType.vec4, 'uBackgroundColor'),
+      new Uniform(UniformType.vec4, 'uEvenColor'),
+      new Uniform(UniformType.vec4, 'uOddColor'),
+      new Uniform(UniformType.float, 'uGridSize'),
+    ],
+    sources: {
+      vert: {source: default_vertex_shader},
+      frag: {source: checker_board_fragment_shader},
+    }
+  },
+  [DemoKey.FocusReticle]: {
+    label: "Checker Board",
+    uniforms: [
+      new Uniform(UniformType.float, 'uStrokeWidth'),
+      new Uniform(UniformType.float, 'uGap'),
+      new Uniform(UniformType.vec4, 'uBackgroundColor'),
+      new Uniform(UniformType.vec4, 'uFillColor'),
+    ],
+    sources: {
+      vert: {source: default_vertex_shader},
+      frag: {source: focus_reticle_fragment_shader},
+    }
+  },
+};
+
+const shaders = useShaders<DemoKey, DemoKey>(computed(() => player.entries(Player) as Record<DemoKey, IFrameContainer>), shader_definitions);
+
+const shader_editors: Record<DemoKey, IUsePropertyEditorModel> = {
+  [DemoKey.CheckerBoard]: usePropertyEditorModel(
+    [
+      new DividerRow('divider-checker-board', 'Checker Board'),
+      new Color4Row('uBackgroundColor', 'Background Color', [0.392156862745098, 0.5843137254901961, 0.9294117647058824, 1.0]).setCollapsed(true),
+      new Color4Row('uEvenColor', 'Even Color', [0.2, 0.2, 0.2, 1.0]).setCollapsed(true),
+      new Color4Row('uOddColor', 'Odd Color', [0.3, 0.3, 0.3, 1.0]).setCollapsed(true),
+      new NumberRangeRow('uGridSize', 'Grid Size', 8, 1, 100, 1),
+    ],
+    new PropertyEmitsHandler(onPropertyChanged.bind(null, DemoKey.CheckerBoard))
+  ),
+  [DemoKey.FocusReticle]: usePropertyEditorModel(
+    [
+      new DividerRow('divider-focus-reticle', 'Focus Reticle'),
+      new NumberRangeRow('uStrokeWidth', 'Stroke Width', 0.15, 0.0, 0.5, 0.001),
+      new NumberRangeRow('uGap', 'Gap', 0.3, 0.0, 1.0, 0.001),
+      new Color4Row('uBackgroundColor', 'Background Color', [0.392156862745098, 0.5843137254901961, 0.9294117647058824, 1.0]).setCollapsed(true),
+      new Color4Row('uFillColor', 'Fill Color', [1.0, 1.0, 1.0, 1.0]).setCollapsed(true),
+    ],
+    new PropertyEmitsHandler(onPropertyChanged.bind(null, DemoKey.FocusReticle))
+  )
+};
 
 const gamedata = useMatchThreeScorecardStore();
 
@@ -76,6 +168,32 @@ function on_game_message(frame: HTMLIFrameElement, event: MessageEvent) {
 const message_controller = new AbortController();
 function bindGodotBridge(frame: HTMLIFrameElement) {
   window.addEventListener('message', on_game_message.bind(null, frame), { signal: message_controller.signal });
+}
+
+function postMessageWithPropertyEditor(demo_key: DemoKey) {
+  const editor = shader_editors[demo_key];
+  const shader_def = shaders.getAssociatedShaderDef(demo_key);
+  if (!editor || !shader_def) {
+    return;
+  }
+  const payload: ShaderUniformsForPayload = shader_def.uniforms.reduce(
+    (result, uniform) => {
+      result.push([uniform.name, { type: uniform.type, value: editor.get(uniform.name) }]);
+      return result;
+    }, <ShaderUniformsForPayload>[]);
+
+  shaders.update(demo_key, payload);
+}
+
+function onShaderFrameLoaded(demo_key: DemoKey): void {
+  shaders.bind(demo_key, demo_key);
+  postMessageWithPropertyEditor(demo_key);
+}
+
+function onPropertyChanged(demo_key: DemoKey, kind: PropertyEmits, _name: string, _new_value?: unknown) {
+  if (kind === PropertyEmits.Changed) {
+    postMessageWithPropertyEditor(demo_key);
+  }
 }
 
 onBeforeUnmount(() => {
@@ -657,25 +775,39 @@ onUnmounted(() => {
               src_dark="/images/projects/match_three/manhattan_distance_dark.png"
               alt="Composition of the reticle with two step functions." />
 
-      <!-- ShaderView -->
+      <Player :ref="player.ref(DemoKey.CheckerBoard)"
+              title="Checker Board"
+              date="2026/03/16"
+              frame="/library/projects/shader_loader/shader_loader.html"
+              :state="player_states[DemoKey.CheckerBoard]"
+              @load="onShaderFrameLoaded(DemoKey.CheckerBoard)" />
+
+      <PropertyEditor v-bind:rows="shader_editors[DemoKey.CheckerBoard].rows" v-model="shader_editors[DemoKey.CheckerBoard].models" v-on="shader_editors[DemoKey.CheckerBoard].onPropertyEmit" />
 
       <Details summary="Grid Shader">
-        <CodeMirror lang="gdscript"
-                    caption="Grid Shader"
-                    content="
-          shader_type spatial;
+        <TabList :entries="[['gdscript', 'GDScript'], ['glsl', 'GLSL']]" v-model:selected_tab="selected_checker_frag">
+          <CodeMirror v-show="selected_checker_frag === 'gdscript'"
+                      lang="gdscript"
+                      caption="Grid Shader"
+                      content="
+            shader_type spatial;
 
-          uniform vec4 checkered_a: source_color = vec4(vec3(0.2), 1);
-          uniform vec4 checkered_b: source_color = vec4(vec3(0.3), 1);
+            uniform vec4 checkered_a: source_color = vec4(vec3(0.2), 1);
+            uniform vec4 checkered_b: source_color = vec4(vec3(0.3), 1);
 
-          void fragment() {
-            vec3 world_pos = (INV_VIEW_MATRIX * vec4(VERTEX, 1.0)).xyz;
-            vec2 grid_uv = abs(world_pos.xy);
-            bool is_even = mod(floor(grid_uv.x) + floor(grid_uv.y), 2.0) == 0.0;
-            ALBEDO = is_even ? checkered_a.rgb : checkered_b.rgb;
-            ALPHA = 1;
-          }
-        " />
+            void fragment() {
+              vec3 world_pos = (INV_VIEW_MATRIX * vec4(VERTEX, 1.0)).xyz;
+              vec2 grid_uv = abs(world_pos.xy);
+              bool is_even = mod(floor(grid_uv.x) + floor(grid_uv.y), 2.0) == 0.0;
+              ALBEDO = is_even ? checkered_a.rgb : checkered_b.rgb;
+              ALPHA = 1;
+            }
+          " />
+          <CodeMirror v-show="selected_checker_frag === 'glsl'"
+                      lang="cpp"
+                      caption="Grid Shader"
+                      :content="checker_board_fragment_shader" />
+        </TabList>
       </Details>
     </Section>
 
@@ -686,26 +818,43 @@ onUnmounted(() => {
       <Figure src_light="/images/projects/match_three/reticle_composition_light.png"
               src_dark="/images/projects/match_three/reticle_composition_dark.png"
               alt="Composition of the reticle with two step functions." />
+
+      <Player :ref="player.ref(DemoKey.FocusReticle)"
+              title="Focus Reticle"
+              date="2026/03/16"
+              frame="/library/projects/shader_loader/shader_loader.html"
+              :state="player_states[DemoKey.FocusReticle]"
+              @load="onShaderFrameLoaded(DemoKey.FocusReticle)" />
+
+      <PropertyEditor v-bind:rows="shader_editors[DemoKey.FocusReticle].rows" v-model="shader_editors[DemoKey.FocusReticle].models" v-on="shader_editors[DemoKey.FocusReticle].onPropertyEmit" />
+
       <Details summary="Reticle Shader">
-        <CodeMirror lang="gdscript"
-                    caption="Reticle Shader"
-                    content="
-          shader_type spatial;
+        <TabList :entries="[['gdscript', 'GDScript'], ['glsl', 'GLSL']]" v-model:selected_tab="selected_reticle_frag">
+          <CodeMirror v-show="selected_reticle_frag === 'gdscript'"
+                      lang="gdscript"
+                      caption="Reticle Shader"
+                      content="
+            shader_type spatial;
 
-          uniform float stroke_width: hint_range(0.0, 0.5) = 0.075;
-          uniform float gap: hint_range(0.0, 1.0) = 0.5;
-          uniform vec4 color: source_color = vec4(1.0);
+            uniform float stroke_width: hint_range(0.0, 0.5) = 0.075;
+            uniform float gap: hint_range(0.0, 1.0) = 0.5;
+            uniform vec4 color: source_color = vec4(1.0);
 
-          void fragment() {
-            vec2 extent = abs(UV - vec2(0.5));
-            float min_extent = min(extent.x, extent.y);
-            float max_extent = max(extent.x, extent.y);
-            ALBEDO = color.rgb;
-            // First step cuts out the middle square,
-            // second step cuts gaps around each axis
-            ALPHA = min(step(0.5 - stroke_width, max_extent), step(gap * 0.5, min_extent));
-          }
-        " />
+            void fragment() {
+              vec2 extent = abs(UV - vec2(0.5));
+              float min_extent = min(extent.x, extent.y);
+              float max_extent = max(extent.x, extent.y);
+              ALBEDO = color.rgb;
+              // First step cuts out the middle square,
+              // second step cuts gaps around each axis
+              ALPHA = min(step(0.5 - stroke_width, max_extent), step(gap * 0.5, min_extent));
+            }
+          " />
+          <CodeMirror v-show="selected_reticle_frag === 'glsl'"
+                      lang="cpp"
+                      caption="Reticle Shader"
+                      :content="focus_reticle_fragment_shader" />
+        </TabList>
       </Details>
     </Section>
 
