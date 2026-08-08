@@ -81,55 +81,7 @@ import { EmailFeedback, EmailHiring } from '@/content/socials'
       </p>
       <ul>
         <li>This website is hosted by <Link to="https://pages.github.com/">GitHub Pages</Link>.</li>
-        <li>This website will, <b>with your consent</b>, collect anonymized telemetry with <Link to="https://posthog.com/">PostHog Cloud</Link> and route traffic through a proxy as recommended.</li>
       </ul>
-    </Section>
-
-    <Section heading="First-party Analytics">
-      <p>
-        This website would like to collect some anonymized telemetry with the help of <Link to="https://posthog.com/">PostHog Cloud</Link>, which among its many offerings includes anonymized cookieless website analytics and may be configured to be General Data Protection Regulation (GDPR) and California Consumer Privacy Act (CCPA) compliant.
-        The PostHog Cloud server which hosts and processes the collected analytics is located in the United States of America (USA).
-        The account will only process traffic to this domain name, and both the client and server configurations has been configured to be more privacy preserving (e.g., discarding client IP data, disabling session replay).
-      </p>
-      <p>
-        The client configuration may be found at <Link to="https://raw.githubusercontent.com/AdamEttenberger/AdamEttenberger.github.io/refs/heads/main/src/plugins/posthog.js">'@/plugins/posthog.js'</Link>.
-      </p>
-      <p>
-        Should you consent to first-party [metrics, telemetry, analytics, data collection], any data collected will only ever shared in aggregate form as mentioned on this page.
-        Examples of "aggregate form" include but are not limited to; "(annual || monthly) visitors", "(most || least) popular (page || game)".
-        Data collected will <b>never</b> be sold or shared with for advertising.
-      </p>
-      <p>
-        If you selected "Ok" on the dialog shown to new visitors at the top of the page, you have consented to collecting first-party analytics data.
-        If you would like to change this selection, open the settings menu by pressing the settings button ( <SettingsButton class="inline-button" /> ) to the right of the page header.
-      </p>
-      <p>
-        Following is an example of what a first-party analytics event should look like:
-      </p>
-      <CodeMirror lang="text"
-                  caption="Example of a first-party analytics API call."
-                  content="
-        # Telemetry event URL
-        'https://posthog-data.adamettenberger.com/i/v0/e/?ip=0&_={ANTI_CACHE_TIMESTAMP}&ver={VERSION}&compression=gzip-js'
-
-        # POST Payload (an example uncompressed event entry)
-        # RANDOM_HYPHENATED_32_BYTE_VALUE_NAME and RANDOM_HYPHENATED_32_BYTE_VALUE_ID
-        # generated when the single page app is first loaded or when reloaded.
-        # Associates page visits until leaving (or reloaded) the website.
-        {
-          'event': '$autocapture',
-          'Person': {
-              'display_name': '{RANDOM_HYPHENATED_32_BYTE_VALUE_NAME}',
-              'id': '{RANDOM_HYPHENATED_32_BYTE_VALUE_ID}'
-          },
-          'Url / Screen': 'https://adamettenberger.com/#/projects/match_three',
-          'properties.$lib': 'web',
-          'timestamp': '{TIMESTAMP}'
-        },
-
-        # PostHog local storage token to opt-in to collection.
-        __ph_opt_in_out_{DOMAIN_TOKEN}
-      " />
     </Section>
   </article>
 </template>
