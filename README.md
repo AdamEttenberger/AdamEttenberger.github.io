@@ -1,20 +1,39 @@
-# [AdamEttenberger.github.io](https://AdamEttenberger.github.io)
+# [AdamEttenberger.github.io](https://AdamEttenberger.github.io) / [AdamEttenberger.com](https://adamettenberger.com/)
 
 [![Deploy static content to Pages](https://github.com/AdamEttenberger/AdamEttenberger.github.io/actions/workflows/static.yml/badge.svg?branch=main)](https://github.com/AdamEttenberger/AdamEttenberger.github.io/actions/workflows/static.yml)
 
 Personal portfolio website containing projects and demos.
 
-# Website Design
+# Vue 3 + Vite Project
 
-## Hierarchy
+## Recommended IDE
 
-* Project Card List Layout
-  * Project Info Layout
+- Visual Studio Code 
 
-## Components
+## Project Setup
 
-![Components](./public/images/projects/website/components.png)
+```
+npm install
+```
 
-## Layouts
+### Compile and Hot-Reload for Development
 
-![Layouts](./public/images/projects/website/layouts.png)
+```
+npm run dev
+```
+
+> [!NOTE]
+> VSCode Launch (default hotkey: F5)
+
+### Compile and Minify for Production
+
+```
+npm run build
+```
+
+### Preview Production Build Locally
+
+```
+npm run preview
+```
+
