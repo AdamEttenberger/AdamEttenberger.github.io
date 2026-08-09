@@ -49,7 +49,11 @@ import { EmailFeedback } from '@/content/socials'
         <li><b>GitHub Pages</b> provides website hosting.</li>
         <li><b>Cloudflare</b> provides DNS and related network services.</li>
         <li><b>Font Awesome</b> provides icons used by the Website.</li>
-        <li><b>YouTube</b> may provide embedded videos displayed on certain pages. When an embedded <b>YouTube</b> video is loaded or used, <b>YouTube</b> may collect information about your visit and interaction with the video, subject to the privacy practices of <b>Google</b> and <b>YouTube</b></li>
+        <li>
+          Before consent is provided, <b>YouTube</b> videos are provided as external links and are not loaded or embedded on this website.
+          Following a <b>YouTube</b> link will take you to the <b>YouTube</b> website, where <b>Google</b> and <b>YouTube</b> may collect information about your visit and interaction with the video, including through cookies and other storage technologies, subject to the privacy practices of <b>Google</b> and <b>YouTube</b>.
+          If you provide consent, this website may embed <b>YouTube</b> videos directly within certain pages. Embedded videos may cause <b>YouTube</b> to collect information about your visit and interaction with the video, including through cookies and other storage technologies.
+        </li>
         <li>Links to <b>GitHub</b> and <b>LinkedIn</b> may take you to those services. Once you leave this Website, the privacy practices of the respective service apply.</li>
       </ul>
       <p>These services may process information according to their own privacy policies and terms.</p>
