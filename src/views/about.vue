@@ -7,35 +7,60 @@ import { ThemeColor } from '@/composables/theme'
 import { EmailHiring } from '@/content/socials'
 
 const current_job_title = "Senior Software Engineer";
-const years_in_industry = 12;
 </script>
 
 <template>
-  <Section heading="Hiring?">
+  <Section heading="About">
     <p>
-      If your team needs an experienced and flexible <b>{{ current_job_title }}</b>, use the template below:
+      I'm a <b>{{ current_job_title }}</b> specializing in <b>UI systems, rendering, tools development, systems design, optimization, and user-facing platform features</b>.
     </p>
-    <Button class="email" :to="EmailHiring" :color="ThemeColor.Accent" />
+    <p>
+      My career bridges two demanding domains: AAA game development and large-scale browser engineering.
+      That intersection taught me how to engineer high-performance underlying systems while keeping user experiences intuitive and seamless.
+    </p>
+    <p>
+      At <b>Microsoft</b>, I worked on <b>Microsoft Edge</b> and <b>Chromium</b>, contributing to layout, accessibility, composition, and AI-powered user input features.
+      My work included integrating handwriting-to-text and text prediction capabilities, contributing to the open-source Chromium project, and working with teams across Edge, Windows, and Microsoft Office.
+      I also mentored students through Microsoft's Explore program.
+    </p>
+    <p>
+      Before Microsoft, I worked at <b>Sledgehammer Games</b> on Call of Duty, where I developed UI systems and internal content-authoring tools for <b>Call of Duty: Advanced Warfare</b> and <b>Call of Duty: WWII</b>.
+      I built a <Link to="https://en.wikipedia.org/wiki/WYSIWYG">WYSIWYG</Link> UI editor that allowed designers to create sophisticated game interfaces without depending on dedicated UI engineers, including rendering, interaction, animation, asset serialization, and optimized Lua export.
+    </p>
+    <p>
+      Across both domains, I have gravitated toward problems where <b>systems engineering and user experience meet</b>: building the underlying technology, designing the abstractions around it, and turning it into something that other engineers, designers, or end users can actually use.
+    </p>
   </Section>
 
-  <Section :heading="current_job_title">
-    <p>
-      Creative software engineer with {{ years_in_industry }}+ years spanning <b>AAA game development</b> at Sledgehammer Games building UI systems and content authoring tools for two <i>Call of Duty</i> titles, and <b>browser engine development</b> on Microsoft Edge and Chromium contributing towards layout, accessibility, composition, and driving AI-powered feature integrations.
-      Driven by curiosity to learn and solve complex problems, and passion for game design and software development.
-    </p>
-    <p>
-      I bring a unique mix of insight, experience, and flexibility to any team having worked on massive software projects in both <i>'corporate'</i> and <i>'creative'</i> worlds.
-      I thrive in a remote work environment, earning a promotion to <b>Senior Software Engineer</b> at Microsoft while working remote full-time from around <DateText :date="new Date('2020/03/01')" /> - <DateText :date="new Date('2025/05/13')" />.
-    </p>
+  <Section heading="What I Work On">
     <p>
       I primarily work with <b>C++</b>, <b>C#</b>, <b>JavaScript</b>, and experiment with various other languages; pivoting between or adopting new programming languages comes easily.
       I've also been picking up <b>Godot Engine</b> on my own time, extending that same adaptability to game development outside proprietary engines.
     </p>
+
+    <ul>
+    <li>C++ and systems programming</li>
+    <li>UI, layout, rendering, and composition systems</li>
+    <li>Developer and content-authoring tools</li>
+    <li>Browser and game-engine development</li>
+    <li>Accessibility and platform integration</li>
+    <li>AI-powered feature integration</li>
+    <li>Software architecture, performance, and optimization</li>
+    <li>End-to-end feature development</li>
+    </ul>
+
+    <p>
+      I enjoy taking ambiguous problems from initial design through implementation and into a shipped product.
+      I'm particularly interested in technically challenging systems that have a direct impact on how people create or interact with software.
+    </p>
   </Section>
 
-  <Section heading="Featured Work">
+  <Section heading="Selected Work">
     <p>
-      Software I've worked on throughout my career include:
+      My professional work includes contributions to Microsoft Edge and open-source Chromium, as well as UI systems and tooling shipped in multiple Call of Duty titles.
+    </p>
+    <p>
+      Outside of professional work, I use this site to explore technologies and ideas that interest me, including game development, graphics, rendering, and procedural systems.
     </p>
     <ul class="software-titles list-none centered">
       <li><Link to="https://en.wikipedia.org/wiki/Call_of_Duty%3A_Advanced_Warfare">Call of Duty: Advanced Warfare</Link></li>
@@ -44,15 +69,12 @@ const years_in_industry = 12;
       <li><Link to="https://en.wikipedia.org/wiki/Chromium_(web_browser)">Chromium</Link></li>
     </ul>
   </Section>
-
-  <Section heading="About me">
+  
+  <Section heading="Hiring?">
     <p>
-      When I'm not working you'll often find me playing video games, tinkering with a side project, researching something I've recently become curious about, or spending time with family.
+      If your team needs an experienced and flexible <b>{{ current_job_title }}</b>, use the template below:
     </p>
-    <p>
-      I enjoy learning and experimenting with new technology; frequently researching what's new and shiny with open-source IT infrastructure tools since I maintain a few small virtualization servers as a hobby.
-      Among services hosted are ephemeral development virtual machines, network attached storage, a cookbook, and a suite of local AI text, image, and video generation tools to experiment with.
-    </p>
+    <Button class="email" :to="EmailHiring" :color="ThemeColor.Accent" />
   </Section>
 </template>
 
