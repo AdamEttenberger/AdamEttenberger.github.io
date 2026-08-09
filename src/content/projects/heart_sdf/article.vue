@@ -1101,7 +1101,6 @@ const property_editors: Record<DemosWithPropertyEditor, IUsePropertyEditorModel>
       <Figure src_light="/images/projects/sdf/heart_geometry_light.png"
               src_dark="/images/projects/sdf/heart_geometry_dark.png"
               alt="Illustration of the geometry composing the heart shape used for this demo." />
-      <h2 class="heart-terms-heading"></h2>
       <TermList class="heart-terms" heading="Components">
         <Term term="A: Vertex">Where the tangent lines meet forming a triangular point, lowest point in the shape.</Term>
         <Term term="B: Vertex">Highest point where the mirrored heart lobes meet.</Term>
