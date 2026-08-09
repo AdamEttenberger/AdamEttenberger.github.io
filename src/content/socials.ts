@@ -5,10 +5,10 @@ export const EmailFeedback = new EmailTemplate('feedback@adamettenberger.com', '
 export const EmailHiring = new EmailTemplate('hire-me@adamettenberger.com','[Hiring] <Company>, <Position>, <Location>, <Remote|Hybrid|Office>, <Salary Range>');
 
 export const SocialButtonList: Record<SocialType, ISocialButton> = {
-  [SocialType.About]: {
-    title: "About me",
-    to: "/about",
-    icon: ['fas', 'question'],
+  [SocialType.Home]: {
+    title: "Home",
+    to: "/",
+    icon: ['fas', 'house'],
   },
   [SocialType.GitHub]: {
     title: "GitHub",

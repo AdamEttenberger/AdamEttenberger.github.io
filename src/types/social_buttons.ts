@@ -1,8 +1,8 @@
 import type EmailTemplate from '@/types/email_template'
 
 export enum SocialType {
-  About = 'about',
   GitHub = 'github',
+  Home = 'home',
   HireMe = 'hire-me',
   LinkedIn = 'linkedin',
 };

@@ -6,7 +6,6 @@ import Link from '@/components/link.vue'
 <template>
   <footer class="rows">
     <Layer class="responsive-row">
-      <Link to="/about">About</Link>
       <Link to="/privacy">Privacy</Link>
       <Link to="/licenses">Licenses</Link>
       <div class="copyright">&copy;&nbsp;{{ new Date().getFullYear() }} Adam Ettenberger</div>

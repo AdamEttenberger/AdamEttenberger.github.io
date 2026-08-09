@@ -17,14 +17,10 @@ const WAIT_FOR_LAYOUT_TIMEOUT = 1000;
 const routes = [
   {
     path: "/",
-    component: () => import('@/views/projects.vue'),
+    component: () => import('@/views/home.vue'),
     props: {
       projects: ProjectsList,
     },
-  },
-  {
-    path: "/about/",
-    component: () => import('@/views/about.vue'),
   },
   {
     path: "/licenses",
@@ -56,7 +52,7 @@ const routes = [
     children: [
       {
         path: '',
-        redirect: '/', // TODO: Implement standalone landing page.
+        redirect: '/', // TODO: Implement standalone projects page.
       },
       ...ProjectsList.map(item => ({
         path: item.subpath,
