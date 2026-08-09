@@ -299,9 +299,7 @@ onUnmounted(() => {
         However, if the target system has <i>extremely</i> limited RAM like many embedded systems or micro-controllers, board information could be compressed by packing the tile information into a binary array where the <b>bits per-element</b> is the smallest power-of-two which can fit the entire range of tile values.
         The <b>compression</b> of multiple states in an <b>encoded</b> array (e.g., multiple values per-byte) unfortunately isn't free, since accessing (reading or writing) each cell becomes more expensive.
       </p>
-      <Layer>
-        <PropertyEditor v-bind:rows="bit_editor.rows" v-model="bit_editor.models" v-on="bit_editor.onPropertyEmit" />
-      </Layer>
+      <PropertyEditor v-bind:rows="bit_editor.rows" v-model="bit_editor.models" v-on="bit_editor.onPropertyEmit" />
     </Section>
 
     <Section heading="Core Loop">

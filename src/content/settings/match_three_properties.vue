@@ -37,5 +37,7 @@ const editor = usePropertyEditorModel(
 </script>
 
 <template>
-  <PropertyEditor v-bind:rows="editor.rows" v-model="editor.models" v-on="editor.onPropertyEmit" />
+  <div>
+    <PropertyEditor v-bind:rows="editor.rows" v-model="editor.models" v-on="editor.onPropertyEmit" />
+  </div>
 </template>

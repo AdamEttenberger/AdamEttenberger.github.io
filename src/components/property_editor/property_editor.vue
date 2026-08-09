@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import Layer from '@/components/layer.vue'
 import IndeterminateProgress from '@/components/progress/indeterminate-progress.vue'
 import PropertyRow from '@/components/property_editor/property_row.vue'
 import { PropertyEmits } from '@/util/property_editor/property_interfaces'
@@ -27,16 +28,18 @@ function onPropertyEmitsHandler(kind: PropertyEmits, name: string, new_value?: u
         <IndeterminateProgress />
       </template>
 
-      <div :class="['property-editor', ...theme.classNames]">
-        <PropertyRow  v-for="item in props.rows" :key="item.name"
-                      :item
-                      v-model="models[item.name]"
-                      @property-loaded="onPropertyEmitsHandler"
-                      @property-changing="onPropertyEmitsHandler"
-                      @property-changed="onPropertyEmitsHandler"
-                      @property-click="onPropertyEmitsHandler"
-                      @property-reset="onPropertyEmitsHandler" />
-      </div>
+      <Layer>
+        <div :class="['property-editor', ...theme.classNames]">
+          <PropertyRow  v-for="item in props.rows" :key="item.name"
+                        :item
+                        v-model="models[item.name]"
+                        @property-loaded="onPropertyEmitsHandler"
+                        @property-changing="onPropertyEmitsHandler"
+                        @property-changed="onPropertyEmitsHandler"
+                        @property-click="onPropertyEmitsHandler"
+                        @property-reset="onPropertyEmitsHandler" />
+        </div>
+      </Layer>
     </Suspense>
   </div>
 </template>
