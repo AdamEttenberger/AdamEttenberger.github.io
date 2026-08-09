@@ -73,29 +73,43 @@ const routes = [
 
 const controller = ref<AbortController>();
 
+function waitForStableLayoutAsync() {
+  return new Promise((resolve, rejected) => {
+    const timeout = setTimeout(rejected, WAIT_FOR_LAYOUT_TIMEOUT);
+    const observer = useResizeObserver(debounce(() => {
+      if (controller.value?.signal.aborted) {
+        rejected();
+        return;
+      }
+      clearTimeout(timeout);
+      observer.stop();
+      resolve();
+    }, WAIT_FOR_LAYOUT_DEBOUNCE));
+    observer.observe(document.documentElement);
+  }).catch(() => {
+    controller.value?.abort();
+  });
+}
+
 const router = createRouter({
   history: createWebHashHistory(),
   routes,
-  scrollBehavior: async (_to, _from, savedPosition) => {
-    if (!savedPosition) {
-      return { top: 0 };
+  scrollBehavior: async (to, _from, savedPosition) => {
+    await waitForStableLayoutAsync();
+
+    if (savedPosition) {
+      return savedPosition;
     }
-    await new Promise<void>((resolve, rejected) => {
-      const timeout = setTimeout(rejected, WAIT_FOR_LAYOUT_TIMEOUT);
-      const observer = useResizeObserver(debounce(() => {
-        if (controller.value?.signal.aborted) {
-          rejected();
-          return;
-        }
-        clearTimeout(timeout);
-        observer.stop();
-        resolve();
-      }, WAIT_FOR_LAYOUT_DEBOUNCE));
-      observer.observe(document.documentElement);
-    }).catch(() => {
-      controller.value?.abort();
-    });
-    return savedPosition;
+
+    if (to.hash) {
+      return {
+        el: to.hash,
+        top: 0,
+        behavior: 'smooth',
+      };
+    }
+
+    return { top: 0 };
   },
 });
 

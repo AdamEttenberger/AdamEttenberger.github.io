@@ -3,6 +3,7 @@ import Link from '@/components/link.vue'
 import Figure from '@/components/figure.vue'
 import Player from '@/components/player.vue'
 import Section from '@/components/section.vue'
+import TableOfContents from '@/components/table-of-contents.vue'
 import { type IProjectInfo } from '@/types/project_types'
 defineProps<IProjectInfo>();
 </script>
@@ -13,6 +14,8 @@ defineProps<IProjectInfo>();
             :date="date"
             :lastmod="lastmod"
             frame="/library/projects/renu/main.html" />
+
+    <TableOfContents />
 
     <Section heading="What's Imagine Cup?">
       <p>

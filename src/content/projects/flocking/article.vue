@@ -6,6 +6,7 @@ import Player from '@/components/player.vue'
 import { PlayerState } from '@/types/player_state'
 import PropertyEditor from '@/components/property_editor/property_editor.vue'
 import Section from '@/components/section.vue'
+import TableOfContents from '@/components/table-of-contents.vue'
 import { ThemeColor } from '@/composables/theme'
 import {
   ButtonRow,
@@ -110,6 +111,8 @@ function post_update(_snapshot: FlockingPayload) {
     <Section heading="Controls">
       <PropertyEditor v-bind:rows="editor.rows" v-model="editor.models" v-on="editor.onPropertyEmit" />
     </Section>
+
+    <TableOfContents />
 
     <Note :color="ThemeColor.Todo">
       Future plans to briefly describe Craig Reynolds' <Link to="https://www.red3d.com/cwr/boids/">Boids Algorithm</Link>.

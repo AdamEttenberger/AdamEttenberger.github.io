@@ -16,6 +16,7 @@ import {
   NumberRangeRow,
 } from '@/util/property_editor/property_types'
 import Section from '@/components/section.vue'
+import TableOfContents from '@/components/table-of-contents.vue'
 import { type IProjectInfo } from '@/types/project_types'
 // Pinia Stores
 import { useMatchThreeScorecardStore } from '@/stores/match_three_scorecard'
@@ -222,6 +223,8 @@ onUnmounted(() => {
       </p>
       <MatchThreeProperties />
     </Section>
+
+    <TableOfContents />
 
     <Section heading="Summary">
       <p>

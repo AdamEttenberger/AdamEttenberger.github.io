@@ -9,6 +9,7 @@ import PropertyEditor from '@/components/property_editor/property_editor.vue'
 import { PropertyEmits, PropertyEmitsHandler } from '@/util/property_editor/property_interfaces'
 import Quote from '@/components/quote.vue'
 import Section from '@/components/section.vue'
+import TableOfContents from '@/components/table-of-contents.vue'
 import {
   ComboBoxRow,
   NumberRangeRow,
@@ -176,6 +177,8 @@ function onPresetChanged() {
     <Section heading="Controls">
       <PropertyEditor v-bind:rows="editor.rows" v-model="editor.models" v-on="editor.onPropertyEmit" />
     </Section>
+
+    <TableOfContents />
 
     <Section>
       <template v-slot:heading>

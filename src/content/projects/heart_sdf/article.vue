@@ -9,6 +9,7 @@ import Figure from '@/components/figure.vue'
 import Formula from '@/components/formula.vue'
 import Note from '@/components/note.vue'
 import Player from '@/components/player.vue'
+import TableOfContents from '@/components/table-of-contents.vue'
 import { PlayerState } from '@/types/player_state'
 import PropertyEditor from '@/components/property_editor/property_editor.vue'
 import Section from '@/components/section.vue'
@@ -1072,6 +1073,8 @@ const property_editors: Record<DemosWithPropertyEditor, IUsePropertyEditorModel>
     <Section heading="Controls">
       <PropertyEditor v-bind:rows="property_editors[DemoKey.Main].rows" v-model="property_editors[DemoKey.Main].models" v-on="property_editors[DemoKey.Main].onPropertyEmit" />
     </Section>
+
+    <TableOfContents />
 
     <Section heading="Scope">
       <p>

@@ -7,6 +7,7 @@ import Figure from '@/components/figure.vue'
 import Player from '@/components/player.vue'
 import { PlayerState } from '@/types/player_state'
 import Section from '@/components/section.vue'
+import TableOfContents from '@/components/table-of-contents.vue'
 import { type IProjectInfo } from '@/types/project_types'
 import useIntersectionObserver from '@/composables/intersection_observer'
 import usePostMessage from '@/composables/post_message'
@@ -64,6 +65,8 @@ function onPlayerLoaded(target_frame: HTMLIFrameElement, frame_key: string, ref_
             :date="date"
             :lastmod="lastmod"
             frame="/library/projects/proto_engine/main.html" />
+
+      <TableOfContents />
 
       <Section heading="What's this?">
         <p>
