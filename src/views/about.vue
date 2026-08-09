@@ -59,15 +59,15 @@ const current_job_title = "Senior Software Engineer";
     <p>
       My professional work includes contributions to Microsoft Edge and open-source Chromium, as well as UI systems and tooling shipped in multiple Call of Duty titles.
     </p>
-    <p>
-      Outside of professional work, I use this site to explore technologies and ideas that interest me, including game development, graphics, rendering, and procedural systems.
-    </p>
     <ul class="software-titles list-none centered">
       <li><Link to="https://en.wikipedia.org/wiki/Call_of_Duty%3A_Advanced_Warfare">Call of Duty: Advanced Warfare</Link></li>
       <li><Link to="https://en.wikipedia.org/wiki/Call_of_Duty%3A_WWII">Call of Duty: WWII</Link></li>
       <li><Link to="https://en.wikipedia.org/wiki/Microsoft_Edge">Microsoft Edge</Link></li>
       <li><Link to="https://en.wikipedia.org/wiki/Chromium_(web_browser)">Chromium</Link></li>
     </ul>
+    <p>
+      Outside of professional work, I use this site to explore technologies and ideas that interest me, including game development, graphics, rendering, and procedural systems.
+    </p>
   </Section>
   
   <Section heading="Hiring?">
