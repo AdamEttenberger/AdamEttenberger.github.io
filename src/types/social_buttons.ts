@@ -8,6 +8,7 @@ export enum SocialType {
 };
 
 export interface ISocialButton {
+  type: SocialType;
   title: string;
   to: string|EmailTemplate;
   icon: string[];

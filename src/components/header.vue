@@ -20,7 +20,7 @@ const { theme } = useTheme(() => ({ depth: 1, absolute: true }));
       <Link class="title-text" to="/" :color="ThemeColor.Accent" :depth="5" absolute>Adam Ettenberger</Link>
       <div class="links columns">
         <div class="socials columns gap-s">
-          <SocialLink v-for="(item, key) in SocialButtonList" :key v-bind="item" />
+          <SocialLink v-for="item of SocialButtonList" :key="item.type" v-bind="item" />
         </div>
         <div class="controls columns gap-s">
           <PaletteButton />
