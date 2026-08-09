@@ -4,6 +4,7 @@ import { defineStore } from 'pinia'
 export const useConsentStore = defineStore('consent', () => {
   const consent_options = {
     allow_hiding_consent_banner: ref(false),
+    allow_embedded_youtube_videos: ref(false),
     allow_saving_user_preferences: ref(false),
     allow_saving_match_three_scorecard: ref(false),
   };

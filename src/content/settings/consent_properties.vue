@@ -13,12 +13,14 @@ const consent = useConsentStore();
 const {
   allow_hiding_consent_banner,
   allow_saving_user_preferences,
+  allow_embedded_youtube_videos,
   allow_saving_match_three_scorecard
 } = storeToRefs(consent);
 
 const editor = usePropertyEditorModel(
   [
     new ToggleRow('consent.allow_hiding_consent_banner', 'Hide consent banner', false).setModel(allow_hiding_consent_banner),
+    new ToggleRow('consent.allow_embedded_youtube_videos', 'Allow Embedded YouTube Videos', false).setModel(allow_embedded_youtube_videos),
     new ToggleRow('consent.allow_saving_user_preferences', 'Save User Preferences', false).setModel(allow_saving_user_preferences),
     new ToggleRow('consent.allow_saving_match_three_scorecard', 'Save Match-3 Scorecard', false).setModel(allow_saving_match_three_scorecard),
   ]
