@@ -43,7 +43,7 @@ defineProps<IProjectInfo>();
         <li>Peer review feedback, including concerns with accuracy or correctness.</li>
       </ul>
       <p>
-        Please review the <RouterLink to="/privacy">privacy statement</RouterLink>, then use the following email template including as much detail as possible, and I will attempt to mitigate or resolve concerns in a timely manner.
+        Please review the <RouterLink to="/privacy">privacy policy</RouterLink>, then use the following email template including as much detail as possible, and I will attempt to mitigate or resolve concerns in a timely manner.
       </p>
       <Button class="feedback" :to="EmailFeedback" :color="ThemeColor.Accent" />
     </Section>

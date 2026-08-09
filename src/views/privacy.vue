@@ -1,87 +1,84 @@
 <script setup lang="ts">
 import Button from '@/components/buttons/button.vue'
-import CodeMirror from '@/components/code-mirror.vue'
-import Link from '@/components/link.vue'
-import Quote from '@/components/quote.vue'
+import Divider from '@/components/divider.vue'
+import Details from '@/components/details.vue'
+import Note from '@/components/note.vue'
 import Section from '@/components/section.vue'
 import SettingsButton from '@/components/buttons/settings.vue'
-import { EmailFeedback, EmailHiring } from '@/content/socials'
+import { ThemeColor } from '@/composables/theme'
+import { EmailFeedback } from '@/content/socials'
 </script>
 
 <template>
   <article>
-    <Section heading="Disclaimer">
-      <p>
-        The materials on this website are not intended to be, nor should they be interpreted as, a legally binding contract or agreement.
-        Please consider I am not a lawyer, and this website is a personal project which produces no income.
-      </p>
-      <div class="section-quote centered max round">
-        <Quote name="Adam Ettenberger">( Please don't sue me. )</Quote>
-      </div>
-    </Section>
+    <Section heading="Privacy Policy">
+      <Note>Effective Date: August 9, 2026</Note>
 
-    <Section heading="Summary">
-      <p>
-        I strongly believe that privacy is a fundamental human right.
-        This website will not be used to collect private user information beyond what's required to operate the website.
-      </p>
-      <p>
-        However, <b>with your consent</b>, the website would like to collect some information regarding which pages receive traffic.
-        Setting aside privacy laws, integrating page tracking as an opt-in feature was important to me because it's plausible to correlate "spontaneous" traffic with an individual or organization.
-        While this information would provide valuable insights into website traffic, it's technically not essential for the website to operate.
-      </p>
-      <p>
-        This website isn't concerned with "who" in particular is visiting, only a rough gauge of website performance such as which pages receive traffic, how many pages were visited before leaving or refreshing the website, the bounce (navigating away from a page within 10 seconds) rate for articles to help identify issues, first and largest page load/paint latency, coarse geolocation information, and any feedback you may have on an any articles or demos which include a feedback mechanism (either some form of voting button, or pre-selected statements).
-      </p>
-      <p>
-        Raw telemetry data collected by this website will never by sold, and data collected will never be shared beyond the extent required to operate the website and process the data collected, or if compelled by applicable laws or a warrant.
-        Anonymized aggregate date, including but not limited to "(annual || monthly) visitors" or "(most || least) popular (page || game)", may either be shared on this website upon reaching significant milestones or while interviewing with potential employers.
-      </p>
-      <p>
-        Additionally <b>with your consent</b>, this website will store your consent selections and website preferences in browser local storage, to re-apply after reloading or visiting the app again from the same device.
-        As a bonus feature, if a user has multiple instances of this website open within the same browser and device, then the browser local storage events paired with reactive bindings enables automatic synchronization of preferences between tabs.
-      </p>
-    </Section>
+      <p>This Privacy Policy describes how information is handled when you visit <b>adamettenberger.com</b> (the "Website").</p>
+      <p>The Website is a personal portfolio and professional website. It does not sell personal information, use personal information for advertising, or operate a marketing program.</p>
 
-    <Section heading="Feedback">
-      <p>
-        If you believe I do not meet this standard and have feedback that is both specific and actionable, please use the following email template including as much detail as possible and I will attempt to mitigate or resolve concerns in a timely manner.
-      </p>
-      <Button class="centered feedback" :to="EmailFeedback" />
-      <p>
-        Reasons may include, but are not limited to:
-      </p>
+      <Divider heading="Information Collected Automatically" />
+      <p>When you visit the Website, certain information may be processed automatically by the services used to host and deliver it.</p>
+
+      <Details summary="GitHub Pages">
+        <p>The Website is hosted using GitHub Pages. GitHub may collect and retain information about requests to the Website, including IP addresses, for operational and security purposes. GitHub's handling of this information is governed by its own privacy policies.</p>
+      </Details>
+
+      <Details summary="Cloudflare">
+        <p>The Website uses Cloudflare for DNS and network services. Cloudflare provides aggregate traffic statistics for the domain, which may include metrics such as unique visitors, total requests, cached requests, and data served.</p>
+        <p>These statistics are used to understand the general amount of traffic reaching the Website and to maintain the service. I have not enabled Cloudflare Web Analytics or another website analytics platform.</p>
+        <p>Cloudflare's handling of information is governed by its own privacy policy and applicable terms.</p>
+      </Details>
+
+      <Divider heading="Browser Storage" />
+      <p>The Website may use browser <b>localStorage</b> to remember preferences or feature settings for features that require it.</p>
+      <p>Where a feature uses <b>localStorage</b>, the Website will ask for your consent before storing information in your browser for that purpose. You may choose whether to enable those features.</p>
+      <p>Information stored in <b>localStorage</b> remains on your device and is used to preserve your selected preferences or feature settings between visits and, where applicable, between multiple open tabs.</p>
+      <p>The Website does not use <b>localStorage</b> for advertising, analytics, or cross-site tracking.</p>
+      <p>You can remove locally stored information through your browser's settings, or by using the storage controls available on the <b>settings</b> (<SettingsButton />) page.</p>
+
+      <Divider heading="Information You Provide" />
+      <p>The Website provides email links for professional inquiries, hiring opportunities, and feedback.</p>
+      <p>If you contact me by email, I may receive information such as your email address, name, the contents of your message, and any other information you choose to provide.</p>
+      <p>This information is used only to receive and respond to your inquiry or feedback, or to communicate regarding a professional opportunity. It is not used for marketing purposes and will not be shared with third parties except as necessary to provide email services, with your consent, or when required by law.</p>
+      <p>Email communications may be retained for as long as reasonably necessary to respond to an inquiry, maintain appropriate business records, or address legal or security matters.</p>
+
+      <Divider heading="Third-Party Services" />
+      <p>The Website relies on third-party services to operate:</p>
       <ul>
-        <li>A security vulnerability, weakness, or code flaw was found in the <Link to="https://github.com/AdamEttenberger/AdamEttenberger.github.io">Github repo</Link>.</li>
-        <li>A dependency of this project is found to be critically insecure or could inadvertently leak user information.</li>
-        <li>Error messages are displayed on the page or in console output.</li>
-        <li>Behavior on the website is an anti-pattern, please include its common name or reasoning.</li>
-        <li>Contents of this website have been found elsewhere.</li>
-        <li>You believe someone may be impersonating me, or you received any unsolicited digital communication from someone claiming to be myself in a context where that would be unusual.</li>
-        <li>You found a link on this website that is dead, stale, misdirected, or otherwise not working as intended.</li>
+        <li><b>GitHub Pages</b> provides website hosting.</li>
+        <li><b>Cloudflare</b> provides DNS and related network services.</li>
+        <li><b>Font Awesome</b> provides icons used by the Website.</li>
+        <li>Links to <b>GitHub</b> and <b>LinkedIn</b> may take you to those services. Once you leave this Website, the privacy practices of the respective service apply.</li>
       </ul>
-    </Section>
+      <p>These services may process information according to their own privacy policies and terms.</p>
 
-    <Section heading="Email Policy">
-      <p>
-        The email domain "@adamettenberger.com" will only be used to receive email, responding to inquiries and feedback, or to apply for a new opportunity.
-        Should you choose to send an email to any "@adamettenberger.com" address, information shared will be treated as confidential and will not be shared without consent beyond what's required to send and receive email through relevant third-party email services, or if compelled by applicable laws or a warrant.
-      </p>
-      <ul>
-        <li>If you're a company hiring manager or recruiter seeking to hire me through the alias <Link :to="EmailHiring">{{ EmailHiring.toDomainAlias() }}</Link>, I will aim to respond within 1-5 business days.</li>
-        <li>If you raise a concern through the alias <Link :to="EmailFeedback">{{ EmailFeedback.toDomainAlias() }}</Link>, I will aim to respond only when necessary and within 1-5 business days depending on the severity of the concern.</li>
-        <li>Unless given express written consent, your email address will not be used for any other purpose.</li>
-      </ul>
-    </Section>
+      <Divider heading="Cookies and Tracking" />
+      <p>The Website does not intentionally use cookies for advertising, behavioral profiling, or cross-site tracking.</p>
+      <p>The Website also does not currently use a dedicated website analytics service such as Google Analytics, Microsoft Clarity, or similar services.</p>
+      <p>Third-party infrastructure providers may nevertheless process technical information as part of delivering, securing, and operating the Website.</p>
 
-    <Section heading="Third-party Processing">
-      <p>
-        This website is built with the help of some third-party services and is subject to applicable terms and conditions, including but not limited to data handling, retention, and privacy policies.
-        For example:
-      </p>
-      <ul>
-        <li>This website is hosted by <Link to="https://pages.github.com/">GitHub Pages</Link>.</li>
-      </ul>
+      <Divider heading="Sharing and Sale of Information" />
+      <p>Personal information provided directly to the Website is not sold or rented.</p>
+      <p>Information is not shared for advertising or marketing purposes. Information may be processed or disclosed when necessary to operate the Website through service providers, to protect the security of the Website, to comply with applicable law, or to respond to a valid legal process.</p>
+
+      <Divider heading="Data Security" />
+      <p>Reasonable technical and organizational measures are used to protect information under my control. However, no website, electronic communication, or storage system can be guaranteed to be completely secure.</p>
+
+      <Divider heading="Your Privacy Rights" />
+      <p>Depending on where you live, you may have rights concerning your personal information, including rights to request access, correction, deletion, restriction of processing, or information about how your information is used.</p>
+      <p>If the GDPR or another applicable privacy law applies to you, you may also have additional rights provided by that law, including the right to withdraw consent where processing is based on consent.</p>
+      <p>To exercise an applicable privacy right or ask a question about this policy, please contact me using the email address provided on the Website. I will consider and respond to requests in accordance with applicable law.</p>
+      <p>You may also have the right to lodge a complaint with the relevant data protection or privacy authority in your jurisdiction.</p>
+
+      <Divider heading="Changes to This Policy" />
+      <p>This Privacy Policy may be updated when the Website's functionality, services, or applicable legal requirements change. The effective date at the top of this page indicates when the current version took effect.</p>
+
+      <Divider heading="Contact" />
+      <p>For questions about this Privacy Policy, privacy concerns, or requests concerning personal information, please use the Website's feedback or contact email links.</p>
+      <Button class="centered feedback" :to="EmailFeedback" :color="ThemeColor.Accent" />
+
+
     </Section>
   </article>
 </template>

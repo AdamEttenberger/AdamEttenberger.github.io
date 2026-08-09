@@ -45,7 +45,7 @@ function onDeleteAllLocalStorage() {
         Selections will not persist between different browsers, devices, or when exiting 'private' browsing sessions that automatically erase local storage.
       </p>
       <p>
-        For more details, please review the <RouterLink to="/privacy">privacy statement</RouterLink>.
+        For more details, please review the <RouterLink to="/privacy">privacy policy</RouterLink>.
       </p>
     </Section>
 

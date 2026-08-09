@@ -2,22 +2,34 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 
 export const useConsentStore = defineStore('consent', () => {
-  const allow_hiding_consent_banner = ref(false);
-  const allow_saving_user_preferences = ref(false);
-  const allow_saving_match_three_scorecard = ref(false);
+  const consent_options = {
+    allow_hiding_consent_banner: ref(false),
+    allow_saving_user_preferences: ref(false),
+    allow_saving_match_three_scorecard: ref(false),
+  };
 
   function $reset() {
-    allow_hiding_consent_banner.value = false;
-    allow_saving_user_preferences.value = false;
-    allow_saving_match_three_scorecard.value = false;
+    Object.values(consent_options).forEach((option) => {
+      option.value = false;
+    });
+  }
+
+  function onUserGrantConsent() {
+    Object.values(consent_options).forEach((option) => {
+      option.value = true;
+    });
+  }
+
+  function onUserGrantHideConsent() {
+    consent_options.allow_hiding_consent_banner.value = true;
   }
 
   return {
     // State
-    allow_hiding_consent_banner,
-    allow_saving_user_preferences,
-    allow_saving_match_three_scorecard,
+    ...consent_options,
     // Actions
     $reset,
+    onUserGrantConsent,
+    onUserGrantHideConsent,
   };
 });
