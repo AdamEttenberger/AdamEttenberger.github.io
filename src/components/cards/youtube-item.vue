@@ -7,12 +7,6 @@ import DateText from '@/components/date_text.vue'
 import { type IThemeProps } from '@/composables/theme'
 import { type DateLike } from '@/util/date'
 
-import { useConsentStore } from '@/stores/consent'
-const consent = useConsentStore();
-const {
-  allow_embedded_youtube_videos,
-} = storeToRefs(consent);
-
 defineProps<IThemeProps & {
   youtube_id: string;
   title: Array<string>;
@@ -24,8 +18,7 @@ defineProps<IThemeProps & {
   <div class="youtube-item">
     <Layer class="responsive-container" transparent>
       <div class="player-wrapper">
-        <iframe v-if="allow_embedded_youtube_videos"
-                class="player"
+        <iframe class="player"
                 :src="`https://www.youtube-nocookie.com/embed/${youtube_id}`"
                 title="YouTube video player"
                 frameborder="0"
@@ -33,15 +26,6 @@ defineProps<IThemeProps & {
                 referrerpolicy="strict-origin-when-cross-origin"
                 allowfullscreen>
         </iframe>
-        <div v-if="!allow_embedded_youtube_videos" class="player">
-          <img class="play-thumbnail"
-               :src="`https://img.youtube.com/vi/${youtube_id}/hqdefault.jpg`"
-               alt="video thumbnail" />
-          <Button class="play-button"
-                  :to="`https://www.youtube.com/watch/?v=${youtube_id}`"
-                  :icon="['fas', 'up-right-from-square']"
-                  transparent />
-        </div>
       </div>
       <Layer class="info">
         <div class="title">

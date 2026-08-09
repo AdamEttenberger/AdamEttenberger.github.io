@@ -50,16 +50,17 @@ import { EmailFeedback } from '@/content/socials'
         <li><b>Cloudflare</b> provides DNS and related network services.</li>
         <li><b>Font Awesome</b> provides icons used by the Website.</li>
         <li>
-          Before consent is provided, <b>YouTube</b> videos are provided as external links and are not loaded or embedded on this website.
-          Following a <b>YouTube</b> link will take you to the <b>YouTube</b> website, where <b>Google</b> and <b>YouTube</b> may collect information about your visit and interaction with the video, including through cookies and other storage technologies, subject to the privacy practices of <b>Google</b> and <b>YouTube</b>.
-          If you provide consent, this website may embed <b>YouTube</b> videos directly within certain pages. Embedded videos may cause <b>YouTube</b> to collect information about your visit and interaction with the video, including through cookies and other storage technologies.
+          <b>YouTube</b> videos are embedded directly on certain pages of this website using <b>YouTube's</b> privacy-enhanced mode.
+          When an embedded video is loaded or used, <b>Google</b> and <b>YouTube</b> may collect information about your visit and interaction with the video and may access or store information on your device, including through cookies, local storage, and other storage technologies.
+          This may occur even when using <b>YouTube's</b> privacy-enhanced mode and is not under the control of this website.
+          The collection and use of information by <b>Google</b> and <b>YouTube</b> is subject to their respective privacy practices.
         </li>
         <li>Links to <b>GitHub</b> and <b>LinkedIn</b> may take you to those services. Once you leave this Website, the privacy practices of the respective service apply.</li>
       </ul>
       <p>These services may process information according to their own privacy policies and terms.</p>
 
       <Divider heading="Cookies and Tracking" />
-      <p>The Website does not intentionally use cookies for advertising, behavioral profiling, or cross-site tracking.</p>
+      <p>The website does not intentionally use cookies for analytics, advertising, behavioral profiling, or cross-site tracking.</p>
       <p>The Website also does not currently use a dedicated website analytics service such as Google Analytics, Microsoft Clarity, or similar services.</p>
       <p>Third-party infrastructure providers may nevertheless process technical information as part of delivering, securing, and operating the Website.</p>
 
