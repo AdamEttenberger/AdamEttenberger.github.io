@@ -5,7 +5,9 @@ import DateText from '@/components/date_text.vue'
 import Section from '@/components/section.vue'
 import { ThemeColor } from '@/composables/theme'
 import { EmailHiring } from '@/content/socials'
+
 const current_job_title = "Senior Software Engineer";
+const years_in_industry = 12;
 </script>
 
 <template>
@@ -18,7 +20,7 @@ const current_job_title = "Senior Software Engineer";
 
   <Section :heading="current_job_title">
     <p>
-      Creative software engineer with experience in game development, layout engines, large platform development, and optimization.
+      Creative software engineer with {{ years_in_industry }}+ years spanning <b>AAA game development</b> at Sledgehammer Games building UI systems and content authoring tools for two <i>Call of Duty</i> titles, and <b>browser engine development</b> on Microsoft Edge and Chromium contributing towards layout, accessibility, composition, and driving AI-powered feature integrations.
       Driven by curiosity to learn and solve complex problems, and passion for game design and software development.
     </p>
     <p>
@@ -26,13 +28,14 @@ const current_job_title = "Senior Software Engineer";
       I thrive in a remote work environment, earning a promotion to <b>Senior Software Engineer</b> at Microsoft while working remote full-time from around <DateText :date="new Date('2020/03/01')" /> - <DateText :date="new Date('2025/05/13')" />.
     </p>
     <p>
-      With 12+ years professional experience working with C++, C#, JavaScript, and experimenting with various other languages; pivoting between or adopting new programming languages comes easily.
+      I primarily work with <b>C++</b>, <b>C#</b>, <b>JavaScript</b>, and experiment with various other languages; pivoting between or adopting new programming languages comes easily.
+      I've also been picking up <b>Godot Engine</b> on my own time, extending that same adaptability to game development outside proprietary engines.
     </p>
   </Section>
 
-  <Section heading="Projects">
+  <Section heading="Featured Work">
     <p>
-      Projects I've worked on during my career include:
+      Software I've worked on throughout my career include:
     </p>
     <ul class="software-titles list-none centered">
       <li><Link to="https://en.wikipedia.org/wiki/Call_of_Duty%3A_Advanced_Warfare">Call of Duty: Advanced Warfare</Link></li>
