@@ -10,8 +10,8 @@ const { theme } = useTheme(() => ({ color: unref(props.color), depth: 0 }));
 
 <template>
   <div :class="['divider', transparent?'transparent':'', ...theme.classNames]">
-    <h2 v-if="$slots.default" class="heading"><slot></slot></h2>
-    <h2 v-else-if="heading" class="heading">{{ heading }}</h2>
+    <h1 v-if="$slots.default" class="heading"><slot></slot></h1>
+    <h1 v-else-if="heading" class="heading">{{ heading }}</h1>
   </div>
 </template>
 
