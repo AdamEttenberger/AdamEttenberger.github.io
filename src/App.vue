@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import ConsentBanner from '@/components/consent_banner.vue'
 import Footer from '@/components/footer.vue'
-import Header from './components/header.vue'
+import Header from '@/components/header.vue'
 // Pinia Stores
 import { useConsentStore } from '@/stores/consent'
 import { useUserPreferencesStore } from '@/stores/user_preferences'

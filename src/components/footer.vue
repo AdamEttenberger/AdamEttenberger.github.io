@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Layer from '@/components/layer.vue'
-import Link from './link.vue'
+import Link from '@/components/link.vue'
 </script>
 
 <template>
