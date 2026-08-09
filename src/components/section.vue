@@ -2,9 +2,11 @@
 import Divider from '@/components/divider.vue'
 import Layer from '@/components/layer.vue'
 import { type IThemeProps } from '@/composables/theme'
-defineProps<IThemeProps & {
+withDefaults(defineProps<IThemeProps & {
   heading?: string;
-}>();
+}>(), {
+  transparent: true,
+});
 </script>
 
 <template>
