@@ -13,7 +13,6 @@ import { useRootThemeStore } from '@/stores/root_theme'
 import useLocalStorage from '@/composables/local_storage'
 const consent = useConsentStore();
 const {
-  // allow_first_party_tracking,
   allow_hiding_consent_banner,
   allow_saving_user_preferences,
   allow_saving_match_three_scorecard,

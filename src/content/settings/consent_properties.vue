@@ -12,7 +12,6 @@ const consent = useConsentStore();
 
 const {
   allow_hiding_consent_banner,
-  allow_first_party_tracking,
   allow_saving_user_preferences,
   allow_saving_match_three_scorecard
 } = storeToRefs(consent);
@@ -20,7 +19,6 @@ const {
 const editor = usePropertyEditorModel(
   [
     new ToggleRow('consent.allow_hiding_consent_banner', 'Hide consent banner', false).setModel(allow_hiding_consent_banner),
-    new ToggleRow('consent.allow_first_party_tracking', 'Allow first-party tracking', false).setModel(allow_first_party_tracking),
     new ToggleRow('consent.allow_saving_user_preferences', 'Save User Preferences', false).setModel(allow_saving_user_preferences),
     new ToggleRow('consent.allow_saving_match_three_scorecard', 'Save Match-3 Scorecard', false).setModel(allow_saving_match_three_scorecard),
   ]

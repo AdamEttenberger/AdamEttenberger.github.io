@@ -23,7 +23,6 @@ function onConsentDialogComplete(consent_given: boolean, remember_choice: boolea
   if (!consent_given) {
     return;
   }
-  consent.allow_first_party_tracking = true;
   consent.allow_saving_user_preferences = true;
 }
 
