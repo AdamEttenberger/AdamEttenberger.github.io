@@ -91,13 +91,13 @@ const router = createRouter({
   history: createWebHashHistory(),
   routes,
   scrollBehavior: async (to, _from, savedPosition) => {
-    await waitForStableLayoutAsync();
-
     if (savedPosition) {
+      await waitForStableLayoutAsync();
       return savedPosition;
     }
 
     if (to.hash) {
+      await waitForStableLayoutAsync();
       return {
         el: to.hash,
         top: 0,
