@@ -113,6 +113,23 @@ const current_job_title = "Senior Software Engineer";
   justify-content: center;
   align-content: center;
   gap: var(--padding-xxlarge);
+
+  /**
+   * Some magic to rescale the project cards.
+   * @container won't accept variables, so manually addressing 3 zoom steps:
+   * 1. The default colulmn width: 55rem, see var(--app-column-max-width)
+   * 2. 40rem is about when 3-column cards become too small, reset zoom and resume with 2-column layout.
+   * 3. 20rem is about when 2-column cards become too small, reset zoom and resume with 1-column layout.
+   */
+  @container article (max-width: 55rem) {
+    zoom: clamp(0.5, calc(100cqmin / 55rem), 1.0);
+  }
+  @container article (max-width: 40rem) {
+    zoom: clamp(0.5, calc(100cqmin / 40rem), 1.0);
+  }
+  @container article (max-width: 20rem) {
+    zoom: clamp(0.5, calc(100cqmin / 20rem), 1.0);
+  }
 }
 
 .email {
