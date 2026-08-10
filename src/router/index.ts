@@ -70,7 +70,7 @@ const routes = [
 const controller = ref<AbortController>();
 
 function waitForStableLayoutAsync() {
-  return new Promise((resolve, rejected) => {
+  return new Promise<void>((resolve, rejected) => {
     const timeout = setTimeout(rejected, WAIT_FOR_LAYOUT_TIMEOUT);
     const observer = useResizeObserver(debounce(() => {
       if (controller.value?.signal.aborted) {
