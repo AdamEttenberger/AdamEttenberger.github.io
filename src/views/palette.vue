@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import CodeMirror from '@/components/code-mirror.vue'
 import ColorPalette from '@/content/experiments/color_palette.vue'
+import Link from '@/components/link.vue'
 import Layer from '@/components/layer.vue'
 import Details from '@/components/details.vue'
 import Divider from '@/components/divider.vue'
@@ -32,6 +33,13 @@ const editor = usePropertyEditorModel(
 
 <template>
   <article>
+    <Section heading="Summary">
+      <p>
+        A visual reference and development tool for the website's <Link to="https://github.com/AdamEttenberger/AdamEttenberger.github.io/blob/main/src/assets/theme.css">theme</Link> and color system.
+        It documents the static theme palette, provides interactive "Lightness" gradients for exploring alternative theme colors, and demonstrates the current palette across representative layouts and UI styles.
+      </p>
+    </Section>
+
     <Section heading="Color Palette">
       <ColorPalette />
     </Section>
