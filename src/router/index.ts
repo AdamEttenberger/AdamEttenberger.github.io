@@ -100,7 +100,7 @@ const router = createRouter({
       await waitForStableLayoutAsync();
       return {
         el: to.hash,
-        top: 0,
+        top: document.querySelector('header')?.offsetHeight ?? 0,
         behavior: 'smooth',
       };
     }

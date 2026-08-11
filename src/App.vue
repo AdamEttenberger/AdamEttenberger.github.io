@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
-import ConsentBanner from '@/components/consent_banner.vue'
 import Footer from '@/components/footer.vue'
 import Header from '@/components/header.vue'
 // Pinia Stores
@@ -13,7 +12,6 @@ import { useRootThemeStore } from '@/stores/root_theme'
 import useLocalStorage from '@/composables/local_storage'
 const consent = useConsentStore();
 const {
-  allow_hiding_consent_banner,
   allow_saving_user_preferences,
   allow_saving_match_three_scorecard,
 } = storeToRefs(consent);
@@ -31,25 +29,36 @@ const { theme } = useTheme(() => root_theme.value);
 
 <template>
   <div :class="['app', ...theme.classNames]">
+    <Header class="header" />
+
     <div class="app-column">
-      <Header />
-
-      <ConsentBanner v-if="!allow_hiding_consent_banner" />
-
       <main>
         <RouterView />
       </main>
-
-      <Footer />
     </div>
+
+    <Footer class="footer" />
   </div>
 </template>
 
 <style scoped>
 .app {
   display: grid;
-  grid-template-columns: auto minmax(0, var(--app-column-max-width)) auto;
+  grid-template-columns: minmax(0, auto) minmax(0, var(--app-column-max-width)) minmax(0, auto);
+  grid-template-rows: min-content auto min-content;
   min-height: 100svh;
+
+  & > :is(.header, .footer) {
+    grid-column: 1 / 4;
+  }
+
+  & > .header {
+    padding-bottom: var(--padding-xxlarge);
+  }
+
+  & > .footer {
+    padding-top: var(--padding-xxlarge);
+  }
 
   & > .app-column {
     grid-column: 2 / 3;

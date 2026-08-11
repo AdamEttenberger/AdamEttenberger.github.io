@@ -4,6 +4,7 @@
 
 /* sizing variables */
 :root {
+  --z-index-max: 2147483647;
   --padding-normal: 0.5rem;
   --padding-small: calc(var(--padding-normal) * 0.5);
   --padding-xsmall: calc(var(--padding-normal) * 0.25);
@@ -13,6 +14,7 @@
   --padding-xxlarge: calc(var(--padding-normal) * 3.0);
 
   --size-border-radius: 0.5rem;
+  --size-header-footer-border: 0.25rem;
 
   --app-column-max-width: 55rem;
   --component-project-item-size: calc((var(--app-column-max-width) / 3.0) - (2.0 * var(--padding-xxlarge)));

@@ -1,13 +1,20 @@
 <script setup lang="ts">
 import Layer from '@/components/layer.vue'
 import Link from '@/components/link.vue'
+import SocialLink from '@/components/buttons/social_link.vue'
+import { SocialButtonList } from '@/content/socials'
 </script>
 
 <template>
   <footer class="rows">
-    <Layer class="responsive-row">
-      <Link to="/privacy">Privacy</Link>
-      <Link to="/licenses">Licenses</Link>
+    <Layer class="responsive-row" :depth="0" absolute>
+      <div class="socials columns gap-s">
+        <SocialLink v-for="item of SocialButtonList" :key="item.type" v-bind="item" />
+      </div>
+      <div class="links">
+        <Link to="/privacy">Privacy</Link>
+        <Link to="/licenses">Licenses</Link>
+      </div>
       <div class="copyright">&copy;&nbsp;{{ new Date().getFullYear() }} Adam Ettenberger</div>
     </Layer>
   </footer>
@@ -29,19 +36,34 @@ footer {
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   gap: 0;
+  border-radius: 0;
+  border-top: var(--size-header-footer-border) solid var(--theme-accent-500);
 
-  & > :not(:first-child)::before {
-    display: inline-block;
-    content: '\00B7 ';
-    padding: 0 var(--padding-normal);
+  & > .socials {
+    justify-self: left;
   }
 
-  @container (max-width: 35rem) {
-    flex-direction: column;
+  & > .links {
+    justify-self: center;
     & > :not(:first-child)::before {
-      content: none;
+      display: inline-block;
+      content: '\00B7 ';
+      padding: 0 var(--padding-normal);
+    }
+  }
+
+  & > .copyright {
+    justify-self: right;
+  }
+
+  @container (max-width: 40rem) {
+    flex-direction: column;
+    justify-content: center;
+
+    & > :is(.copyright, .links, .socials) {
+      justify-self: center;
     }
   }
 }

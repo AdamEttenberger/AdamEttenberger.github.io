@@ -36,7 +36,7 @@ function onUserConsentGiven() {
 </script>
 
 <template>
-  <div>
+  <div class="dialog-container">
   <Layer v-if="dialog_state == ConsentDialogState.Default" class="dialog">
     <p>
       This website does not intentionally use cookies for analytics, advertising, behavioral profiling, or cross-site tracking.
@@ -68,9 +68,14 @@ function onUserConsentGiven() {
 </template>
 
 <style scoped>
+.dialog-container {
+  align-self: center;
+}
+
 .dialog {
   font-size: small;
   gap: var(--padding-normal);
+  width: var(--app-column-max-width);
 }
 
 .button-list {

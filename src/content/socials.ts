@@ -6,12 +6,6 @@ export const EmailHiring = new EmailTemplate('hire-me@adamettenberger.com','[Hir
 
 export const SocialButtonList: ISocialButton[] = [
   {
-    type: SocialType.Home,
-    title: "Home",
-    to: "/",
-    icon: ['fas', 'house'],
-  },
-  {
     type: SocialType.LinkedIn,
     title: "LinkedIn",
     to: "https://www.linkedin.com/in/adamettenberger/",
