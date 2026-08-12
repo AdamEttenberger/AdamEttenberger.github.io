@@ -3,6 +3,10 @@ import Layer from '@/components/layer.vue'
 import Link from '@/components/link.vue'
 import SocialButton from '@/components/buttons/social-button.vue'
 import { SocialButtonList } from '@/content/socials'
+import { type IAuthor } from '@/content/author'
+defineProps<{
+  author: IAuthor;
+}>();
 </script>
 
 <template>
@@ -15,7 +19,7 @@ import { SocialButtonList } from '@/content/socials'
         <span><Link to="/privacy">Privacy</Link></span>
         <span><Link to="/licenses">Licenses</Link></span>
       </div>
-      <div class="copyright">&copy;&nbsp;{{ new Date().getFullYear() }} Adam Ettenberger</div>
+      <div class="copyright">&copy;&nbsp;{{ new Date().getFullYear() }} {{ author.name }}</div>
     </Layer>
   </footer>
 </template>

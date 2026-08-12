@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Button from '@/components/buttons/button.vue'
-import HeroSection from '@/components/hero-section.vue'
+import HeroSection from '@/components/hero/hero-section.vue'
 import Link from '@/components/link.vue'
 import Section from '@/components/section.vue'
 import { EmailHiring } from '@/content/socials'
@@ -8,21 +8,20 @@ import { type IProjectInfo } from '@/types/project_types'
 import { ThemeColor } from '@/composables/theme'
 import ProjectItem from '@/components/cards/project-item.vue'
 import YouTubeItem from '@/components/cards/youtube-item.vue'
+import Author from '@/content/author'
 
 defineProps<{
   projects: Array<IProjectInfo>;
 }>();
-
-const current_job_title = "Senior Software Engineer";
 </script>
 
 <template>
   <article>
-    <HeroSection />
+    <HeroSection :author="Author" />
 
     <Section heading="About">
       <p>
-        I'm a <b>{{ current_job_title }}</b> specializing in <b>UI systems, rendering, tools development, systems design, optimization, and user-facing platform features</b>.
+        I'm a <b>{{ Author.job_title }}</b> specializing in <b>UI systems, rendering, tools development, systems design, optimization, and user-facing platform features</b>.
       </p>
       <p>
         My career bridges two demanding domains: AAA game development and large-scale browser engineering.
@@ -100,7 +99,7 @@ const current_job_title = "Senior Software Engineer";
 
     <Section heading="Hiring?">
       <p>
-        If your team needs an experienced and flexible <b>{{ current_job_title }}</b>, use the template below:
+        If your team needs an experienced and flexible <b>{{ Author.job_title }}</b>, use the template below:
       </p>
       <Button class="email" :to="EmailHiring" :color="ThemeColor.Accent" />
     </Section>

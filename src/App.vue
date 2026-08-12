@@ -10,6 +10,7 @@ import { useMatchThreeScorecardStore } from '@/stores/match_three_scorecard'
 import useTheme from '@/composables/theme'
 import { useRootThemeStore } from '@/stores/root_theme'
 import useLocalStorage from '@/composables/local_storage'
+import Author from '@/content/author'
 const consent = useConsentStore();
 const {
   allow_saving_user_preferences,
@@ -29,7 +30,7 @@ const { theme } = useTheme(() => root_theme.value);
 
 <template>
   <div :class="['app', ...theme.classNames]">
-    <Header class="header" />
+    <Header class="header" :author="Author" />
 
     <div class="app-column">
       <main>
@@ -37,7 +38,7 @@ const { theme } = useTheme(() => root_theme.value);
       </main>
     </div>
 
-    <Footer class="footer" />
+    <Footer class="footer" :author="Author" />
   </div>
 </template>
 
@@ -46,24 +47,17 @@ const { theme } = useTheme(() => root_theme.value);
   display: grid;
   grid-template-columns: minmax(0, auto) minmax(0, var(--app-column-max-width)) minmax(0, auto);
   grid-template-rows: min-content auto min-content;
-  min-height: 100svh;
+  min-height: 100dvh;
 
   & > :is(.header, .footer) {
     grid-column: 1 / 4;
-  }
-
-  & > .header {
-    padding-bottom: var(--padding-xxlarge);
-  }
-
-  & > .footer {
-    padding-top: var(--padding-xxlarge);
   }
 
   & > .app-column {
     grid-column: 2 / 3;
     display: flex;
     flex-direction: column;
+    padding: var(--padding-xxlarge) 0;
     & > main {
       flex: 1;
     }

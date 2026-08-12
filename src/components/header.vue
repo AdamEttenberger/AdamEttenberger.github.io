@@ -9,6 +9,11 @@ import SettingsButton from '@/components/buttons/settings.vue'
 import ThemeToggle from '@/components/buttons/theme_toggle.vue'
 import { useConsentStore } from '@/stores/consent'
 import useTheme, { ThemeColor } from '@/composables/theme'
+import { type IAuthor } from '@/content/author'
+
+defineProps<{
+  author: IAuthor;
+}>();
 
 const consent = useConsentStore();
 const {
@@ -21,7 +26,7 @@ const { theme } = useTheme(() => ({ depth: 1, absolute: true }));
 <template>
   <header :class="['rows', ...theme.classNames]">
     <Layer class="responsive-row" :depth="0" absolute>
-      <Link class="title-text" to="/" :color="ThemeColor.Accent" :depth="5" absolute>Adam Ettenberger</Link>
+      <Link class="title-text" to="/" :color="ThemeColor.Accent" :depth="5" absolute>{{ author.name }}</Link>
       <div class="buttons columns gap-s">
         <HomeButton />
         <PaletteButton />
@@ -45,7 +50,8 @@ header {
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    padding: var(--padding-normal) calc(var(--padding-xxlarge) * 2.0);
+    padding: 0 calc(var(--padding-xxlarge) * 2.0);
+    height: var(--size-header-height);
     gap: 0;
     border-radius: 0;
     border-bottom: var(--size-header-footer-border) solid var(--theme-accent-500);
@@ -70,6 +76,10 @@ header {
   header > .responsive-row {
     display: flex;
     flex-direction: column;
+
+    & > .buttons {
+      padding-bottom: var(--padding-normal);
+    }
   }
 }
 </style>

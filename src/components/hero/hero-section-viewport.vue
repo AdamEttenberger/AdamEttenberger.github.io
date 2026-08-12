@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useTemplateRef, onMounted, onUnmounted } from 'vue'
-import { debounce, throttle } from '@/util/rate_limit'
+import { throttle } from '@/util/rate_limit'
 
 const RESIZE_VIEWPORT_THROTTLE = 300;
 
@@ -28,8 +28,8 @@ interface CanvasState {
     value: WebGLBuffer;
   })[];
   uniforms?: {
-    uResolution: WebGLUniformLocation;
-    uTime: WebGLUniformLocation;
+    uResolution: WebGLUniformLocation|null;
+    uTime: WebGLUniformLocation|null;
   };
   fsm: FMSState;
 };
@@ -111,13 +111,6 @@ function createShader(gl: WebGL2RenderingContext, type: number, source: string):
   return shader;
 }
 
-function requireUniform(gl: WebGL2RenderingContext, program: WebGLProgram, name: string): WebGLUniformLocation {
-  const uniform = gl.getUniformLocation(program, name);
-  if (!uniform) {
-    throw new Error(`Failed to bind uniform ${name}`);
-  }
-  return uniform;
-}
 
 function initializeShaders(gl: WebGL2RenderingContext) {
   const shaders: (WebGLShader|null)[] = [
@@ -171,13 +164,11 @@ function initializeShaders(gl: WebGL2RenderingContext) {
     console.error('Program linking error:', gl.getProgramInfoLog(program));
   }
   
-  try {
-    state.uniforms = {
-      uResolution: requireUniform(gl, program, 'uResolution'),
-      uTime: requireUniform(gl, program, 'uTime'),
-    };
-    state.shaderProgram = program;
-  } catch { }
+  state.uniforms = {
+    uResolution: gl.getUniformLocation(program, 'uResolution'),
+    uTime: gl.getUniformLocation(program, 'uTime'),
+  };
+  state.shaderProgram = program;
 }
 
 function initializeGeometry(gl: WebGL2RenderingContext) {
@@ -248,15 +239,19 @@ function onAnimationFrame(timestamp: number) {
   gl.clear(gl.COLOR_BUFFER_BIT);
   gl.useProgram(state.shaderProgram);
 
-  if (canvas.value.width !== state.size.cssWidth ||
-      canvas.value.height !== state.size.cssHeight) {
-    canvas.value.width = state.size.cssWidth;
-    canvas.value.height = state.size.cssHeight;
+  if (canvas.value.width !== state.size.displayWidth ||
+      canvas.value.height !== state.size.displayHeight) {
+    canvas.value.width = state.size.displayWidth;
+    canvas.value.height = state.size.displayHeight;
     gl.viewport(0, 0, state.size.displayWidth, state.size.displayHeight);
-    gl.uniform3f(state.uniforms.uResolution, state.size.displayWidth, state.size.displayHeight, state.size.displayWidth / state.size.displayHeight);
+    if (state.uniforms.uResolution) {
+      gl.uniform3f(state.uniforms.uResolution, state.size.displayWidth, state.size.displayHeight, state.size.displayWidth / state.size.displayHeight);
+    }
   }
 
-  gl.uniform1f(state.uniforms.uTime, timestamp * 0.001);
+  if (state.uniforms.uTime) {
+    gl.uniform1f(state.uniforms.uTime, timestamp * 0.001);
+  }
   
   state.buffers.forEach((item) => gl.bindBuffer(item.type, item.value));
 
@@ -303,9 +298,6 @@ onUnmounted(() => {
 <template>
   <div class="hero-section-viewport-container" ref="container">
     <canvas ref="canvas"></canvas>
-    <div class="scroll-slot">
-      <slot name="scroll-indicator" />
-    </div>
   </div>
 </template>
 
@@ -320,11 +312,5 @@ onUnmounted(() => {
     height: 100%;
     background-color: black;
   }
-
-  & > .scroll-slot {
-    position: absolute;
-    inset: auto 0 0 0;
-  }
 }
-
 </style>
