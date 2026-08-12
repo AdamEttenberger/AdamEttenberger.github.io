@@ -1,8 +1,5 @@
 <script setup lang="ts">
 import { useTemplateRef, onMounted, onUnmounted } from 'vue'
-import { throttle } from '@/util/rate_limit'
-
-const RESIZE_VIEWPORT_THROTTLE = 300;
 
 enum FMSState {
   Idle,
@@ -268,7 +265,7 @@ onMounted(() => {
   if (!gl) {
     return;
   }
-  let resizeObserver = new ResizeObserver(throttle(onCanvasSizeChanged, RESIZE_VIEWPORT_THROTTLE));
+  let resizeObserver = new ResizeObserver(onCanvasSizeChanged);
   let intersectionObserver = new IntersectionObserver(onIntersectionObserver);
   state = {
     fsm: FMSState.Idle,
