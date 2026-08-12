@@ -10,7 +10,7 @@ function Buffer( gl, bufferType, GL_ARRAY_TYPE, arr, itemSize ) {
     gl.bufferData( type, new Float32Array(arr), gl.STATIC_DRAW );
   } else if ( type == gl.ELEMENT_ARRAY_BUFFER ) {
     gl.bindBuffer( type, this.buff );
-    gl.bufferData( type, new Uint8Array(arr), gl.STATIC_DRAW );
+    gl.bufferData( type, new Uint16Array(arr), gl.STATIC_DRAW );
   } else {
     throw new Error("Must supply ARRAY_BUFFER or ELEMENT_ARRAY_BUFFER as GL_ARRAY_TYPE");
   }
@@ -28,7 +28,7 @@ function Buffer( gl, bufferType, GL_ARRAY_TYPE, arr, itemSize ) {
     if (type == gl.ARRAY_BUFFER) {
       result = new Float32Array(this.numItems * this.itemSize);
     } else if (type == gl.ELEMENT_ARRAY_BUFFER) {
-      result = new Uint8Array(this.numItems * this.itemSize);
+      result = new Uint16Array(this.numItems * this.itemSize);
     } else {
       throw new Error("Must supply ARRAY_BUFFER or ELEMENT_ARRAY_BUFFER as GL_ARRAY_TYPE");
     }

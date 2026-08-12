@@ -74,7 +74,7 @@ function TextureModelComponent() {
     TextureModelComponent.Shader.setUniformMat4(TextureModelComponent.UniformType.vMatrix, g_game.vMatrix);
     TextureModelComponent.Shader.setUniformMat4(TextureModelComponent.UniformType.pMatrix, g_game.pMatrix);
 
-    gl.drawElements(gl.TRIANGLES, numItems, gl.UNSIGNED_BYTE, 0);
+    gl.drawElements(gl.TRIANGLES, numItems, gl.UNSIGNED_SHORT, 0);
 
     this.buffers.forEach(element => TextureModelComponent.Shader.unbindBuffer(element));
     gl.bindTexture(gl.TEXTURE_2D, null);
