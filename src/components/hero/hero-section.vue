@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import HeroSectionViewport from '@/components/hero/hero-section-viewport.vue';
+import Layer from '@/components/layer.vue';
 import type { IAuthor } from '@/content/author';
 
 defineProps<{
@@ -13,11 +14,33 @@ defineProps<{
       <HeroSectionViewport />
       <!-- <canvas ref="canvas"></canvas> -->
       <div class="content">
-        <div class="info-card">
+        <Layer class="info-card">
           <h1>{{ author.name }}</h1>
           <h2>{{ author.job_title }}</h2>
-          <h3>{{ author.years_of_experience }}+ Years of experience</h3>
-        </div>
+          <h3><span class="yoe theme-color-accent">{{ author.years_of_experience }}+</span> Years of experience</h3>
+          <hr>
+          <h4>
+            <ul class="specialties theme-color-secondary">
+              <li>Rendering</li>
+              <li>Layout</li>
+              <li>UI</li>
+              <li>UX</li>
+              <li>Systems</li>
+              <li>Tools</li>
+              <li>Browsers</li>
+              <li>Games</li>
+            </ul>
+          </h4>
+          <hr>
+          <h4>
+            <ul class="preferred-languages theme-color-secondary">
+              <li>C++</li>
+              <li>C#</li>
+              <li>JS &middot; TS</li>
+              <li>Lua</li>
+            </ul>
+          </h4>
+        </Layer>
       </div>
       <div class="scroll-indicator">
         <div>Scroll</div>
@@ -48,8 +71,10 @@ defineProps<{
       inset: 0;
       justify-self: center;
       place-content: center;
+      width: 24rem;
 
       & > .info-card {
+        gap: var(--padding-xlarge);
         background-color: var(--theme-primary-50);
         border-radius: 2rem;
         padding: var(--padding-xxlarge);
@@ -72,5 +97,25 @@ defineProps<{
       }
     }
   }
+}
+
+ul:is(.specialties, .preferred-languages) {
+  list-style: none;
+  padding-inline-start: 0;
+  display: flex;
+  flex-flow: row wrap;
+  gap: var(--padding-normal);
+}
+
+.yoe, li {
+  color: var(--theme-text);
+  background-color: var(--theme-background);
+  border: 3px solid var(--theme-border);
+  border-radius: var(--size-border-radius);
+  padding: var(--padding-small) var(--padding-normal);
+}
+
+.yoe {
+  border-radius: 50%;
 }
 </style>
