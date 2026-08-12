@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import Button from '@/components/buttons/button.vue'
+import HeroSection from '@/components/hero-section.vue'
 import Link from '@/components/link.vue'
 import Section from '@/components/section.vue'
 import { EmailHiring } from '@/content/socials'
@@ -17,6 +18,8 @@ const current_job_title = "Senior Software Engineer";
 
 <template>
   <article>
+    <HeroSection />
+
     <Section heading="About">
       <p>
         I'm a <b>{{ current_job_title }}</b> specializing in <b>UI systems, rendering, tools development, systems design, optimization, and user-facing platform features</b>.
