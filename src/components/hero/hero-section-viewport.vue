@@ -1,10 +1,31 @@
 <script setup lang="ts">
 import { useTemplateRef, onMounted, onUnmounted } from 'vue'
 
+function isPowerOf2(value: number) {
+  return value > 0 && (value & (value - 1)) === 0;
+}
+
 enum FMSState {
   Idle,
   Playing,
   Stopping,
+};
+
+type Range<N extends number, A extends number[] = []> =
+  A["length"] extends N ? A[number] : Range<N, [...A, A["length"]]>;
+type TextureUnit =
+  WebGL2RenderingContext[`TEXTURE${Range<32>}`];
+type TextureTarget = WebGL2RenderingContext[
+  | "TEXTURE_2D"
+  | "TEXTURE_CUBE_MAP"
+  | "TEXTURE_3D"
+  | "TEXTURE_2D_ARRAY"
+];
+
+interface TextureInfo {
+  unit: TextureUnit;
+  target: TextureTarget;
+  texture: WebGLTexture;
 };
 
 interface CanvasState {
@@ -20,6 +41,7 @@ interface CanvasState {
   resizeObserver?: ResizeObserver;
   resolutionQuery?: MediaQueryList;
   shaderProgram?: WebGLProgram;
+  textures?: TextureInfo[];
   buffers?: ({
     type: WebGL2RenderingContext["ARRAY_BUFFER"]|WebGL2RenderingContext["ELEMENT_ARRAY_BUFFER"];
     value: WebGLBuffer;
@@ -27,6 +49,7 @@ interface CanvasState {
   uniforms?: {
     uResolution: WebGLUniformLocation|null;
     uTime: WebGLUniformLocation|null;
+    uSampler0: WebGLUniformLocation|null;
   };
   fsm: FMSState;
 };
@@ -108,6 +131,39 @@ function createShader(gl: WebGL2RenderingContext, type: number, source: string):
   return shader;
 }
 
+async function loadTexture2D(gl: WebGL2RenderingContext, src: string, unit: TextureUnit): Promise<TextureInfo> {
+  return new Promise<TextureInfo|null>((resolve) => {
+    const image = new Image();
+    image.onload = () => {
+      const texture = gl.createTexture();
+      const level = 0;
+      const internalFormat = gl.RGBA;
+      const srcFormat = gl.RGBA;
+      const srcType = gl.UNSIGNED_BYTE;
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, srcFormat, srcType, image);
+      if (isPowerOf2(image.width) && isPowerOf2(image.height)) {
+        gl.generateMipmap(gl.TEXTURE_2D);
+      } else {
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      }
+      resolve({
+        unit,
+        target: gl.TEXTURE_2D,
+        texture
+      });
+    };
+    image.src = src;
+  });
+}
+
+async function initializeTextures(gl: WebGL2RenderingContext) {
+  state.textures = [
+    await loadTexture2D(gl, perlin_noise, gl.TEXTURE0)
+  ].filter(x => x !== null);
+}
 
 function initializeShaders(gl: WebGL2RenderingContext) {
   const shaders: (WebGLShader|null)[] = [
@@ -164,6 +220,7 @@ function initializeShaders(gl: WebGL2RenderingContext) {
   state.uniforms = {
     uResolution: gl.getUniformLocation(program, 'uResolution'),
     uTime: gl.getUniformLocation(program, 'uTime'),
+    uSampler0: gl.getUniformLocation(program, 'uSampler0'),
   };
   state.shaderProgram = program;
 }
@@ -250,6 +307,20 @@ function onAnimationFrame(timestamp: number) {
     gl.uniform1f(state.uniforms.uTime, timestamp * 0.001);
   }
   
+  state.textures?.forEach((item) => {
+    gl.activeTexture(item.unit);
+    gl.bindTexture(item.target, item.texture);
+    switch (item.unit) {
+      default:
+        console.error("Unexpected texture unit");
+        break;
+      case WebGL2RenderingContext['TEXTURE0']:
+        if (state.uniforms?.uSampler0) {
+          gl.uniform1i(state.uniforms.uSampler0, 0);
+        }
+        break;
+    }
+  });
   state.buffers.forEach((item) => gl.bindBuffer(item.type, item.value));
 
   gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
@@ -275,6 +346,7 @@ onMounted(() => {
   };
   onDisplayResolutionChanged();
   onCanvasSizeChanged();
+  initializeTextures(gl);
   initializeShaders(gl);
   initializeGeometry(gl);
   intersectionObserver.observe(canvas.value);
