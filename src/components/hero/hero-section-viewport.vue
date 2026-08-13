@@ -1,5 +1,11 @@
 <script setup lang="ts">
 import { useTemplateRef, onMounted, onUnmounted } from 'vue'
+import { vec3, mat4, quat, type Mat4Like, type Vec3Like, type QuatLike } from 'ts-gl-matrix'
+
+const kToRadianScalar = Math.PI / 180.0;
+function toRadian(degrees: number) {
+  return degrees * kToRadianScalar;
+}
 
 function isPowerOf2(value: number) {
   return value > 0 && (value & (value - 1)) === 0;
@@ -34,12 +40,22 @@ interface CanvasState {
     cssHeight: number;
     displayWidth: number;
     displayHeight: number;
+    aspect: number;
   };
   devicePixelRatio?: number;
   context?: WebGL2RenderingContext|null;
   intersectionObserver?: IntersectionObserver;
   resizeObserver?: ResizeObserver;
   resolutionQuery?: MediaQueryList;
+  camera?: {
+    position: Vec3Like;
+    rotation: QuatLike;
+    scale: Vec3Like;
+    cached?: {
+      vMatrix: Mat4Like; // View matrix: camera orientation in 3D space.
+      pMatrix: Mat4Like; // Projection matrix: perspective / orthographic projection.
+    };
+  };
   shaderProgram?: WebGLProgram;
   textures?: TextureInfo[];
   buffers?: ({
@@ -47,6 +63,9 @@ interface CanvasState {
     value: WebGLBuffer;
   })[];
   uniforms?: {
+    mMatrix: WebGLUniformLocation|null;
+    vMatrix: WebGLUniformLocation|null;
+    pMatrix: WebGLUniformLocation|null;
     uResolution: WebGLUniformLocation|null;
     uTime: WebGLUniformLocation|null;
     uSampler0: WebGLUniformLocation|null;
@@ -92,6 +111,28 @@ function onIntersectionObserver(entries: IntersectionObserverEntry[], observer: 
   }
 }
 
+function updateCameraMatrix() {
+  if (!state.size) {
+    return;
+  }
+  if (!state.camera) {
+    // TODO: Better defeault camera values and initialization process.
+    state.camera = {
+      position: vec3.fromValues(0.0, 5.0, 20.0),
+      rotation: quat.fromEuler(quat.create(), toRadian(-15.0), 0.0, 0.0),
+      scale: vec3.fromValues(1.0, 1.0, 1.0),
+    };
+  }
+  const fovy = toRadian(45.0);
+  const near = 0.1;
+  const far = 100.0;
+  const cameraWorldMatrix = mat4.fromRotationTranslationScale(mat4.create(), state.camera.rotation, state.camera.position, state.camera.scale);
+  state.camera.cached = {
+    vMatrix: mat4.invert(mat4.create(), cameraWorldMatrix),
+    pMatrix: mat4.perspectiveZO(mat4.create(), fovy, state.size.aspect, near, far),
+  };
+}
+
 function onCanvasSizeChanged() {
   if (!container.value || !state.devicePixelRatio || !state?.context) {
     return;
@@ -101,8 +142,10 @@ function onCanvasSizeChanged() {
     cssWidth: box.width,
     cssHeight: box.height,
     displayWidth: Math.max(1, Math.round(box.width * state.devicePixelRatio)),
-    displayHeight: Math.max(1, Math.round(box.height * state.devicePixelRatio))
+    displayHeight: Math.max(1, Math.round(box.height * state.devicePixelRatio)),
+    aspect: box.width / box.height,
   };
+  updateCameraMatrix();
 }
 
 function onDisplayResolutionChanged() {
@@ -177,8 +220,12 @@ function initializeShaders(gl: WebGL2RenderingContext) {
 
       out vec2 UV;
 
+      uniform mat4 mMatrix; // World ( Model-View ) Matrix
+      uniform mat4 vMatrix; // View Matrix
+      uniform mat4 pMatrix; // Projection Matrix
+
       void main() {
-        gl_Position = vec4(aVertexPosition, 1.0);
+        gl_Position = pMatrix * vMatrix * mMatrix * vec4(aVertexPosition, 1.0);
         UV = aTextureCoord;
       }
     `),
@@ -218,6 +265,9 @@ function initializeShaders(gl: WebGL2RenderingContext) {
   }
   
   state.uniforms = {
+    mMatrix: gl.getUniformLocation(program, 'mMatrix'),
+    vMatrix: gl.getUniformLocation(program, 'vMatrix'),
+    pMatrix: gl.getUniformLocation(program, 'pMatrix'),
     uResolution: gl.getUniformLocation(program, 'uResolution'),
     uTime: gl.getUniformLocation(program, 'uTime'),
     uSampler0: gl.getUniformLocation(program, 'uSampler0'),
@@ -279,6 +329,7 @@ function initializeGeometry(gl: WebGL2RenderingContext) {
 function onAnimationFrame(timestamp: number) {
   if (!canvas.value||
       state.fsm !== FMSState.Playing ||
+      !state.camera ||
       !state.context ||
       !state.size ||
       !state.shaderProgram ||
@@ -293,14 +344,22 @@ function onAnimationFrame(timestamp: number) {
   gl.clear(gl.COLOR_BUFFER_BIT);
   gl.useProgram(state.shaderProgram);
 
+  // Reset the Model Matrix.
+  gl.uniformMatrix4fv(state.uniforms.mMatrix, false, mat4.create());
+
   if (canvas.value.width !== state.size.displayWidth ||
       canvas.value.height !== state.size.displayHeight) {
     canvas.value.width = state.size.displayWidth;
     canvas.value.height = state.size.displayHeight;
     gl.viewport(0, 0, state.size.displayWidth, state.size.displayHeight);
     if (state.uniforms.uResolution) {
-      gl.uniform3f(state.uniforms.uResolution, state.size.displayWidth, state.size.displayHeight, state.size.displayWidth / state.size.displayHeight);
+      gl.uniform3f(state.uniforms.uResolution, state.size.displayWidth, state.size.displayHeight, state.size.aspect);
     }
+  }
+
+  if (state.uniforms.vMatrix && state.uniforms.pMatrix && state.camera.cached) {
+    gl.uniformMatrix4fv(state.uniforms.vMatrix, false, state.camera.cached.vMatrix);
+    gl.uniformMatrix4fv(state.uniforms.pMatrix, false, state.camera.cached.pMatrix);
   }
 
   if (state.uniforms.uTime) {
