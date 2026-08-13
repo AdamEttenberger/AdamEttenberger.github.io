@@ -342,6 +342,9 @@ function onAnimationFrame(timestamp: number) {
   const gl = state.context;
   gl.clearColor(0.3922, 0.5843, 0.9294, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.enable(gl.BLEND);
+  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+  
   gl.useProgram(state.shaderProgram);
 
   // Reset the Model Matrix.
