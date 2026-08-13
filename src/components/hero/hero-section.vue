@@ -87,11 +87,11 @@ defineProps<{
 
       & > .info-card {
         gap: var(--padding-xlarge);
-        background-color: rgb(from var(--theme-primary-50) r g b / 0.65);
+        background-color: rgb(from var(--theme-primary-50) r g b / 0.75);
         border-radius: 2rem;
         padding: var(--padding-xxlarge);
 
-        backdrop-filter: blur(24px);
+        backdrop-filter: blur(4px);
         will-change: backdrop-filter;
 
         & > .headings {
@@ -114,7 +114,7 @@ defineProps<{
       font-size: 1.25rem;
       padding: var(--padding-normal) 0;
       color: var(--theme-accent-500);
-      backdrop-filter: blur(24px);
+      backdrop-filter: blur(8px);
       will-change: backdrop-filter;
 
       & > div {
