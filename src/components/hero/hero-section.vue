@@ -1,17 +1,27 @@
 <script setup lang="ts">
-import HeroSectionViewport from '@/components/hero/hero-section-viewport.vue';
-import Layer from '@/components/layer.vue';
-import type { IAuthor } from '@/content/author';
+import { useTemplateRef } from 'vue'
+import HeroSectionWebGPU from '@/components/hero/hero-section-webgpu.vue'
+import Layer from '@/components/layer.vue'
+import type { IAuthor } from '@/content/author'
+
+const renderer = useTemplateRef('renderer');
 
 defineProps<{
   author: IAuthor;
 }>();
+
+function onMouseMove(evt: MouseEvent) {
+  // Handle mouse move from outside the renderer, rather directly on the <canvas>.
+  // This is to allow the renderer to see mouse movement that happens over the
+  // content and scroll-indicators elements.
+  renderer.value?.handleMouseMoveEvent(evt);
+}
 </script>
 
 <template>
   <section class="hero-section">
-    <div class="overlay" ref="overlay">
-      <HeroSectionViewport />
+    <div class="overlay" @mousemove="onMouseMove">
+      <HeroSectionWebGPU ref="renderer" />
       <div class="scroll-indicators">
         <div>
           <div>Scroll</div>
