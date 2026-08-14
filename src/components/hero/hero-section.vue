@@ -10,6 +10,10 @@ defineProps<{
   author: IAuthor;
 }>();
 
+defineEmits<{
+  scrollToContent: [],
+}>();
+
 function onMouseMove(evt: MouseEvent) {
   // Handle mouse move from outside the renderer, rather directly on the <canvas>.
   // This is to allow the renderer to see mouse movement that happens over the
@@ -22,7 +26,7 @@ function onMouseMove(evt: MouseEvent) {
   <section class="hero-section">
     <div class="overlay" @mousemove="onMouseMove">
       <HeroSectionWebGPU ref="renderer" />
-      <div class="scroll-indicators">
+      <div class="scroll-indicators" @click="$emit('scrollToContent')">
         <div>
           <div>Scroll</div>
           <font-awesome-icon class="fa-icon" :icon="['fas', 'chevron-down']" />
@@ -126,6 +130,7 @@ function onMouseMove(evt: MouseEvent) {
       color: var(--theme-accent-500);
       backdrop-filter: blur(8px);
       will-change: backdrop-filter;
+      cursor: pointer;
 
       & > div {
         display: flex;

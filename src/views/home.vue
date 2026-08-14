@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useTemplateRef } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import Button from '@/components/buttons/button.vue'
 import HeroSection from '@/components/hero/hero-section.vue'
 import Link from '@/components/link.vue'
@@ -10,16 +12,31 @@ import ProjectItem from '@/components/cards/project-item.vue'
 import YouTubeItem from '@/components/cards/youtube-item.vue'
 import Author from '@/content/author'
 
+const route = useRoute();
+const router = useRouter();
+const firstSection = useTemplateRef<Element>('first-section');
+
 defineProps<{
   projects: Array<IProjectInfo>;
 }>();
+
+function onScrollToContent() {
+  if (!firstSection.value) {
+    return;
+  }
+  router.push({
+    path: route.path,
+    query: route.query,
+    hash: `#${firstSection.value.id}`,
+  })
+}
 </script>
 
 <template>
   <article>
-    <HeroSection :author="Author" />
+    <HeroSection :author="Author" @scroll-to-content="onScrollToContent" />
 
-    <Section heading="About">
+    <Section heading="About" ref="first-section">
       <p>
         I'm a <b>{{ Author.job_title }}</b> specializing in <b>UI systems, rendering, tools development, systems design, optimization, and user-facing platform features</b>.
       </p>

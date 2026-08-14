@@ -9,6 +9,9 @@ withDefaults(defineProps<IThemeProps & {
   transparent: true,
 });
 const anchor_id = useId();
+defineExpose({
+  id: anchor_id
+});
 </script>
 
 <template>
