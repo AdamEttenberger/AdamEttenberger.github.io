@@ -101,7 +101,7 @@ const router = createRouter({
       return {
         el: to.hash,
         top: document.querySelector('header')?.offsetHeight ?? 0,
-        behavior: 'smooth',
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
       };
     }
 
