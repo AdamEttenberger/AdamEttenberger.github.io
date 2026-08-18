@@ -44,6 +44,7 @@ function onMouseMove(evt: MouseEvent) {
         <Layer class="info-card">
           <div class="headings">
             <h1>{{ author.name }}</h1>
+            <br />
             <h2>{{ author.job_title }}</h2>
             <h3><span class="yoe theme-color-accent">{{ author.years_of_experience }}+</span> Years of experience</h3>
           </div>
@@ -101,9 +102,11 @@ function onMouseMove(evt: MouseEvent) {
 
       & > .info-card {
         gap: var(--padding-xlarge);
-        background-color: rgb(from var(--theme-primary-50) r g b / 0.75);
-        border-radius: 2rem;
         padding: var(--padding-xxlarge);
+
+        background-color: rgb(from var(--theme-primary-50) r g b / 0.75);
+        border: 3px solid var(--theme-border);
+        border-radius: 2rem;
 
         backdrop-filter: blur(4px);
         will-change: backdrop-filter;

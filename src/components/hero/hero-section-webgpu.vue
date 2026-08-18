@@ -1,7 +1,23 @@
 <script setup lang="ts">
 import { useTemplateRef, onMounted, onUnmounted } from 'vue'
-import { vec2, vec3, mat4, quat, type Vec3Like, type QuatLike, type Mat4Like, vec4 } from 'ts-gl-matrix'
-import shader_code from '@/assets/shaders/hero-section/shader.wgsl?raw'
+import WebGPULogo from '@/components/webgpu-logo.vue'
+import { vec2, vec3, mat4, quat, type Vec3Like, type QuatLike, vec4, Vec3 } from 'ts-gl-matrix'
+import ocean_simulation_material_code from '@/assets/shaders/hero-section/ocean_simulation_material.wgsl?raw'
+import ocean_simulation_flipbook_normal_height_map_src from '@/assets/textures/hero-section/normal_height_map_256_64f.webp'
+import { WebGPUStruct } from '@/util/webgpu/webgpu_struct'
+import { useUserPreferencesStore } from '@/stores/user_preferences'
+const user_preferences = useUserPreferencesStore();
+
+const kAnimationGridSize = vec2.fromValues(8, 8); // Number of animation frame [columns, rows]
+
+const kInstanceTileScale = vec3.fromValues(200, 20, 200);
+const kInstanceTileArea = vec4.fromValues(-5, -3, 5, 0);
+
+const kOceanAlbedo: Vec3 = vec3.fromValues(0.0, 0.467, 0.745);
+
+const kCameraPosition = vec3.fromValues(0, 150, 200);
+const kCameraRotation = quat.fromEuler(quat.create(), -15, 0, 0);
+const kLightDirection = vec3.normalize(vec3.create(), vec3.transformQuat(vec3.create(), vec3.fromValues(0, 0, -1), quat.fromEuler(quat.create(), 220, 15, 0)));
 
 const kToRadianScalar = Math.PI / 180.0;
 function toRadian(degrees: number) {
@@ -14,12 +30,28 @@ enum ViewportState {
   Stopping,
 };
 
+enum BindGroupIndex {
+  Global,
+  Material,
+  Instance,
+}
+
+enum MeshKey {
+  OceanSimulation
+};
+
+enum TextureLayerKey {
+  OceanSimulation,
+};
+const TextureLayerKey_Count = Object.keys(TextureLayerKey).length / 2;
+
 /**
  * Helper which manages the Viewport state tied to a Canvas.
  * Automatically responds to display size and resolution changes.
  * Automatically starts/stops rendering depending on whether the Canvas is visible.
  */
 class Viewport {
+  private _device: GPUDevice;
   private _container: WeakRef<Element>;
   private _canvas: WeakRef<HTMLCanvasElement>;
   private _onResizeEvent: ((viewport: Viewport) => void)|null;
@@ -37,12 +69,16 @@ class Viewport {
   private _devicePixelRatio: number = 0;
   private _state: ViewportState = ViewportState.Idle;
 
+  private _depth_stencil_texture: GPUTexture|null = null;
+  private _depth_stencil_texture_view: GPUTextureView|null = null;
+
   /**
    * @param container The container around the canvas element which the canvas is intended to fill.
    * @param canvas The canvas element used for rendering the scene.
    * @param onAnimationFrame Callback executed to render a new frame.
    */
-  constructor(container: Element, canvas: HTMLCanvasElement, onResizeEvent: ((viewport: Viewport) => void)|null, onAnimationFrame: ((timestamp: number) => void)|null) {
+  constructor(device: GPUDevice, container: Element, canvas: HTMLCanvasElement, onResizeEvent: ((viewport: Viewport) => void)|null, onAnimationFrame: ((timestamp: number) => void)|null) {
+    this._device = device;
     this._container = new WeakRef(container);
     this._canvas = new WeakRef(canvas);
     this._onResizeEvent = onResizeEvent;
@@ -62,6 +98,8 @@ class Viewport {
   public get devicePixelRatio(): number { return this._devicePixelRatio; }
   public get state(): ViewportState { return this._state; }
 
+  public get depthStencilTextureView(): GPUTextureView|null { return this._depth_stencil_texture_view; }
+
   public destroy() {
     if (this._resizeObserver) {
       this._resizeObserver?.disconnect();
@@ -74,6 +112,10 @@ class Viewport {
     if (this._intersectionObserver) {
       this._intersectionObserver.disconnect();
       this._intersectionObserver = null;
+    }
+    if (this._depth_stencil_texture) {
+      this._depth_stencil_texture.destroy();
+      this._depth_stencil_texture = null;
     }
     this._onResizeEvent = null;
     this._onAnimationFrame = null;
@@ -101,6 +143,15 @@ class Viewport {
       canvas.width = Math.floor(this.physicalWidth);
       canvas.height = Math.floor(this.physicalHeight);
     }
+
+    this._depth_stencil_texture?.destroy();
+    this._depth_stencil_texture = this._device.createTexture({
+      size: [this.physicalWidth, this.physicalHeight],
+      format: 'depth24plus-stencil8',
+      usage: GPUTextureUsage.RENDER_ATTACHMENT,
+    });
+    this._depth_stencil_texture_view = this._depth_stencil_texture.createView();
+
     this._onResizeEvent?.(this);
   }
 
@@ -126,123 +177,151 @@ class Viewport {
   }
 }
 
-type WebGPUUniformType =
-    'f32' | 'i32' | 'u32' |
-    'vec2f' | 'vec2i' | 'vec2u' |
-    'vec3f' | 'vec3i' | 'vec3u' |
-    'vec4f' | 'vec4i' | 'vec4u' |
-    'mat2x2f' | 'mat3x3f' | 'mat4x4f';
-
-interface WebGPUUniformTypeSpec {
-  size: number;
-  align: number;
+interface IGlobalUniforms {
+  vMatrix:          Float32Array<ArrayBuffer>;
+  pMatrix:          Float32Array<ArrayBuffer>;
+  iResolution:      Float32Array<ArrayBuffer>;
+  iCameraPosition:  Float32Array<ArrayBuffer>;
+  iTime:            Float32Array<ArrayBuffer>;
+  iMouse:           Float32Array<ArrayBuffer>;
+  iLightDirection:  Float32Array<ArrayBuffer>;
+  iLightColor:      Float32Array<ArrayBuffer>;
 }
 
-const TYPE_SPECS: Record<WebGPUUniformType, WebGPUUniformTypeSpec> = {
-  f32:      { size: 4,  align: 4 },
-  i32:      { size: 4,  align: 4 },
-  u32:      { size: 4,  align: 4 },
-  vec2f:    { size: 8,  align: 8 },
-  vec2i:    { size: 8,  align: 8 },
-  vec2u:    { size: 8,  align: 8 },
-  vec3f:    { size: 12, align: 16 },
-  vec3i:    { size: 12, align: 16 },
-  vec3u:    { size: 12, align: 16 },
-  vec4f:    { size: 16, align: 16 },
-  vec4i:    { size: 16, align: 16 },
-  vec4u:    { size: 16, align: 16 },
-  mat2x2f:  { size: 16, align: 8 },
-  mat3x3f:  { size: 48, align: 16 },
-  mat4x4f:  { size: 64, align: 16 },
-};
-
-interface WebGPUUniformFieldDefinition {
-  name: string;
-  type: WebGPUUniformType;
+class GlobalUniforms extends WebGPUStruct<IGlobalUniforms>
+{
+  public constructor(
+    device: GPUDevice,
+  ) {
+    super(device, {
+      vMatrix:          { type: 'mat4x4f' },
+      pMatrix:          { type: 'mat4x4f' },
+      iResolution:      { type: 'vec4f'   },
+      iCameraPosition:  { type: 'vec3f'   },
+      iTime:            { type: 'f32'     },
+      iMouse:           { type: 'vec2f'   },
+      iLightDirection:  { type: 'vec3f'   },
+      iLightColor:      { type: 'vec3f'   },
+    }, 1, GPUBufferUsage.UNIFORM);
+  }
 }
 
-class WebGPUStruct {
-  public readonly gpuBuffer: GPUBuffer;
-  public readonly arrayBuffer: ArrayBuffer;
-  protected readonly fieldSizes: Record<string, number> = {};
-  protected readonly fieldOffsets: Record<string, number> = {};
-  private readonly _device: GPUDevice;
+interface IMaterialData {
+  normal_height_texture: Uint32Array<ArrayBuffer>;
+  albedo: Float32Array<ArrayBuffer>;
+  grid_size: Float32Array<ArrayBuffer>;
+  cell_size: Float32Array<ArrayBuffer>;
+}
 
-  constructor(device: GPUDevice, schema: WebGPUUniformFieldDefinition[]) {
-    this._device = device;
+class MaterialData extends WebGPUStruct<IMaterialData>
+{
+  public constructor(
+    device: GPUDevice,
+    instances: number,
+  ) {
+    super(device, {
+      normal_height_texture:  { type: 'u32'   },
+      albedo:                 { type: 'vec3f' },
+      grid_size:              { type: 'vec2f' },
+      cell_size:              { type: 'vec2f' },
+  }, instances, GPUBufferUsage.STORAGE);
+  }
+}
 
-    let currentOffset = 0;
-    for (const field of schema) {
-      const { size, align } = TYPE_SPECS[field.type];
-      currentOffset = Math.ceil(currentOffset / align) * align;
-      this.fieldSizes[field.name] = size;
-      this.fieldOffsets[field.name] = currentOffset;
-      currentOffset += size;
-    }
-    this.arrayBuffer = new ArrayBuffer(Math.ceil(currentOffset / 16) * 16);
-    this.gpuBuffer = device.createBuffer({
-      size: this.byteLength,
-      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+interface IMeshInstance {
+  mMatrix: Float32Array<ArrayBuffer>;
+  material_id: Uint32Array<ArrayBuffer>;
+}
+
+class MeshInstance extends WebGPUStruct<IMeshInstance> {
+  public readonly bindGroup: GPUBindGroup;
+  public readonly vertexBuffer: GPUBuffer;
+  public readonly indexBuffer: GPUBuffer;
+
+  public constructor(
+    device: GPUDevice,
+    instances: number,
+    bindGroupLayout: GPUBindGroupLayout,
+    vertices: Float32Array,
+    indices: Uint32Array,
+  ) {
+    super(device, {
+      mMatrix:      { type: 'mat4x4f' },
+      material_id:  { type: 'u32'     },
+    }, instances, GPUBufferUsage.STORAGE);
+    this.bindGroup = device.createBindGroup({
+      layout: bindGroupLayout,
+      entries: [
+        { binding: 0, resource: { buffer: this.gpuBuffer } },
+      ],
     });
-  }
-
-  public get byteLength(): number { return this.arrayBuffer.byteLength; }
-
-  public submit = () => {
-    this._device.queue.writeBuffer(this.gpuBuffer, 0, this.arrayBuffer);
-  }
-
-  protected getFloatField(name: string): Float32Array<ArrayBuffer> {
-    return new Float32Array<ArrayBuffer>(
-      this.arrayBuffer,
-      this.fieldOffsets[name]!,
-      this.fieldSizes[name]! / 4
-    );
-  }
-
-  protected getUIntField(name: string): Uint32Array<ArrayBuffer> {
-    return new Uint32Array<ArrayBuffer>(
-      this.arrayBuffer,
-      this.fieldOffsets[name]!,
-      this.fieldSizes[name]! / 4
-    );
+    this.vertexBuffer = device.createBuffer({
+      size: vertices.byteLength,
+      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+    });
+    this.indexBuffer = device.createBuffer({
+      size: indices.byteLength,
+      usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
+    });
+    device.queue.writeBuffer(this.vertexBuffer, 0, vertices);
+    device.queue.writeBuffer(this.indexBuffer, 0, indices);
   }
 }
 
-class HeroSectionUniforms extends WebGPUStruct {
-  public mMatrix: Float32Array<ArrayBuffer>;
-  public vMatrix: Float32Array<ArrayBuffer>;
-  public pMatrix: Float32Array<ArrayBuffer>;
-  public iResolution: Float32Array<ArrayBuffer>;
-  public iMouse: Float32Array<ArrayBuffer>;
-  private _iTime: Float32Array<ArrayBuffer>;
+class OceanMeshes extends MeshInstance {
+  constructor(device: GPUDevice, instance_count: number, bindGroupLayout: GPUBindGroupLayout, gridsize: number = 1) {
+    const vert_width = gridsize + 1;
+    const vert_stride = 5; // {x, y, z, u, v}
+    const vert_distance = 1 / gridsize;
 
-  public get iTime(): number { return this._iTime[0]!; }
-  public set iTime(value: number) { this._iTime[0] = value; }
+    const vertices = new Float32Array(vert_width * vert_width * vert_stride);
+    const indices = new Uint32Array(gridsize * gridsize * 6);
 
-  constructor(device: GPUDevice) {
-    super(device, [
-      { name: 'mMatrix',      type: 'mat4x4f' },
-      { name: 'vMatrix',      type: 'mat4x4f' },
-      { name: 'pMatrix',      type: 'mat4x4f' },
-      { name: 'iResolution',  type: 'vec4f'   },
-      { name: 'iMouse',       type: 'vec2f'   },
-      { name: 'iTime',        type: 'f32'     },
-    ]);
+    // Begin in the "top-left" corner, right-handed coordinate space,
+    // (-Z) into screen, UV [0, 0]
+    let vert_index = 0;
+    for (let row = 0; row <= gridsize; ++row) {
+      let dy = row * vert_distance;
+      for (let col = 0; col <= gridsize; ++col) {
+        let dx = col * vert_distance;
+        /*x=*/ vertices[vert_index]     = dx - 0.5;
+        /*y=*/ vertices[vert_index + 1] = 0;
+        /*z=*/ vertices[vert_index + 2] = dy - 0.5;
+        /*u=*/ vertices[vert_index + 3] = dx;
+        /*v=*/ vertices[vert_index + 4] = dy;
+        vert_index += vert_stride;
+      }
+    }
 
-    this.mMatrix = this.getFloatField('mMatrix');
-    this.vMatrix = this.getFloatField('vMatrix');
-    this.pMatrix = this.getFloatField('pMatrix');
-    this.iResolution = this.getFloatField('iResolution');
-    this.iMouse = this.getFloatField('iMouse');
-    this._iTime = this.getFloatField('iTime');
+    let quad_index = 0;
+    for (let row = 0; row < gridsize; ++row) {
+      let quad_tl = row * vert_width;
+      for (let col = 0; col < gridsize; ++col) {
+        let quad_br = quad_tl + vert_width + 1;
+        /*tl=*/ indices[quad_index]     = quad_tl;
+        /*bl=*/ indices[quad_index + 1] = quad_br - 1;
+        /*br=*/ indices[quad_index + 2] = quad_br;
+        /*tl=*/ indices[quad_index + 3] = quad_tl;
+        /*br=*/ indices[quad_index + 4] = quad_br;
+        /*tr=*/ indices[quad_index + 5] = quad_tl + 1;
+        quad_index += 6;
+        ++quad_tl;
+      }
+    }
+
+    super(
+      device,
+      instance_count,
+      bindGroupLayout,
+      vertices,
+      indices,
+    );
   }
 }
 
 interface Camera {
   position: Vec3Like;
   rotation: QuatLike;
-  scale: Vec3Like;
   projection: ({
     type: 'perspective',
     fovy: number;
@@ -265,11 +344,19 @@ interface MainState {
   adapter: GPUAdapter;
   device: GPUDevice;
   format: GPUTextureFormat;
-  uniforms: HeroSectionUniforms;
+  global_uniforms: GlobalUniforms;
+  materials: MaterialData,
   pipeline: GPURenderPipeline;
-  bindGroup: GPUBindGroup;
-  vertexBuffer: GPUBuffer;
-  indexBuffer: GPUBuffer;
+  bindGroupLayouts: {
+    [K in BindGroupIndex]: GPUBindGroupLayout;
+  };
+  globalBindGroups: {
+    [BindGroupIndex.Global]: GPUBindGroup;
+    [BindGroupIndex.Material]: GPUBindGroup;
+  };
+  meshes: {
+    [K in MeshKey]: MeshInstance;
+  };
   camera: Camera;
 };
 
@@ -300,58 +387,152 @@ async function setup() {
     alphaMode: 'opaque',
   });
 
-  const vertices = new Float32Array([
-    // position   // uv   // color
-    -1,  1, 0,    0, 0,   1, 0, 0, 1, // top-left
-    -1, -1, 0,    0, 1,   0, 1, 0, 1, // bottom-left
-     1, -1, 0,    1, 1,   0, 0, 1, 1, // bottom-right
-     1,  1, 0,    1, 0,   1, 1, 1, 1, // top-right
-  ]);
-  const indices = new Uint32Array([
-    0, 1, 2,
-    0, 2, 3,
-  ]);
-  const uniforms = new HeroSectionUniforms(device);
+  const global_uniforms = new GlobalUniforms(device);
+  const materials = new MaterialData(device, 1);
+  
+  const ocean_simulation_datamap = await loadTexture(ocean_simulation_flipbook_normal_height_map_src);
+  materials.value[0].normal_height_texture[0] = TextureLayerKey.OceanSimulation;
+  vec3.copy(materials.value[0].albedo, kOceanAlbedo)
+  vec2.copy(materials.value[0].grid_size, kAnimationGridSize);
+  vec2.set(materials.value[0].cell_size,
+    ocean_simulation_datamap.width / kAnimationGridSize.x,
+    ocean_simulation_datamap.height / kAnimationGridSize.y
+  );
+  materials.submit();
 
-  const vertexBuffer = device.createBuffer({
-    size: vertices.byteLength,
-    usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-  });
-  const indexBuffer = device.createBuffer({
-    size: indices.byteLength,
-    usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
+  const global_texture_bucket = device.createTexture({
+    size: { width: ocean_simulation_datamap.width, height: ocean_simulation_datamap.height, depthOrArrayLayers: TextureLayerKey_Count },
+    format: 'rgba8unorm',
+    usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
   });
 
-  const shaderModule = device.createShaderModule({ code: shader_code });
-  const bindGroupLayout = device.createBindGroupLayout({
-    entries: [
-      {
-        binding: 0,
-        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
-        buffer: { type: 'uniform' },
-      }
-    ]
+  const global_sampler = device.createSampler({
+    magFilter: 'linear',
+    minFilter: 'linear',
+    addressModeU: 'repeat',
+    addressModeV: 'repeat',
   });
-  const bindGroup = device.createBindGroup({
-    layout: bindGroupLayout,
-    entries: [
-      { binding: 0, resource: { buffer: uniforms.gpuBuffer } },
-    ],
-  });
+
+  device.queue.copyExternalImageToTexture(
+    { source: await loadTexture(ocean_simulation_flipbook_normal_height_map_src) },
+    { texture: global_texture_bucket, origin: { x: 0, y: 0, z: TextureLayerKey.OceanSimulation }, premultipliedAlpha: false, colorSpace: 'srgb' },
+    { width: ocean_simulation_datamap.width, height: ocean_simulation_datamap.height }
+  );
+
+  const shaderModule = device.createShaderModule({ code: ocean_simulation_material_code });
+
+  const bindGroupLayouts: { [K in BindGroupIndex]: GPUBindGroupLayout } = {
+    [BindGroupIndex.Global]: device.createBindGroupLayout({
+      entries: [
+        {
+          binding: 0,
+          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+          buffer: { type: 'uniform' },
+        },
+        {
+          binding: 1,
+          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+          texture: {
+            sampleType: 'float',
+            viewDimension: '2d-array',
+            multisampled: false,
+          },
+        },
+        {
+          binding: 2,
+          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+          sampler: {},
+        },
+      ]
+    }),
+    [BindGroupIndex.Material]: device.createBindGroupLayout({
+      entries: [
+        {
+          binding: 0,
+          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+          buffer: {
+            type: 'read-only-storage',
+            hasDynamicOffset: false,
+          },
+        },
+      ],
+    }),
+    [BindGroupIndex.Instance]: device.createBindGroupLayout({
+      entries: [
+        {
+          binding: 0,
+          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+          buffer: {
+            type: 'read-only-storage',
+            hasDynamicOffset: false,
+          },
+        },
+      ],
+    }),
+  };
+
+  const globalBindGroups = {
+    [BindGroupIndex.Global]: device.createBindGroup({
+      layout: bindGroupLayouts[BindGroupIndex.Global],
+      entries: [
+        { binding: 0, resource: { buffer: global_uniforms.gpuBuffer } },
+        {
+          binding: 1,
+          resource: global_texture_bucket.createView({
+            dimension: '2d-array',
+            baseArrayLayer: 0,
+            arrayLayerCount: TextureLayerKey_Count,
+          })
+        },
+        { binding: 2, resource: global_sampler },
+      ],
+    }),
+    [BindGroupIndex.Material]: device.createBindGroup({
+      layout: bindGroupLayouts[BindGroupIndex.Material],
+      entries: [
+        { binding: 0, resource: { buffer: materials.gpuBuffer } },
+      ],
+    }),
+  };
+
+  const ocean_tiles = new OceanMeshes(
+    device,
+    /*instance_count=*/(kInstanceTileArea.z - kInstanceTileArea.x + 1) * (kInstanceTileArea.w - kInstanceTileArea.y + 1),
+    bindGroupLayouts[BindGroupIndex.Instance],
+    /*gridsize=*/100,
+  );
+  let row_stride = (kInstanceTileArea.z - kInstanceTileArea.x + 1);
+  for (var y = kInstanceTileArea.y; y <= kInstanceTileArea.w; ++y) {
+    for (var x = kInstanceTileArea.x; x <= kInstanceTileArea.z; ++x) {
+      let instance_id = (x - kInstanceTileArea.x) + ((y - kInstanceTileArea.y) * row_stride);
+      mat4.fromRotationTranslationScale(ocean_tiles.value[instance_id].mMatrix,
+       quat.create(),
+       vec3.fromValues(x * kInstanceTileScale.x, 0, y * kInstanceTileScale.z),
+       kInstanceTileScale);
+      ocean_tiles.value[instance_id].material_id[0] = 0;
+    }
+  }
+  ocean_tiles.submit();
+
   const pipeline = device.createRenderPipeline({
-    layout: device.createPipelineLayout({ bindGroupLayouts: [bindGroupLayout] }),
+    layout: device.createPipelineLayout({ bindGroupLayouts: Object.values(bindGroupLayouts) }),
+    depthStencil: {
+      format: 'depth24plus-stencil8',
+      depthWriteEnabled: true,
+      depthCompare: 'less',
+    },
     vertex: {
       module: shaderModule,
       entryPoint: 'vs_main',
       buffers: [
         {
-          arrayStride: 9 * Float32Array.BYTES_PER_ELEMENT,
+          stepMode: 'vertex',
+          arrayStride: 5 * Float32Array.BYTES_PER_ELEMENT,
           attributes: [
             { shaderLocation: 0, offset: 0, format: 'float32x3' },
             { shaderLocation: 1, offset: 3 * Float32Array.BYTES_PER_ELEMENT, format: 'float32x2' },
-            { shaderLocation: 2, offset: 5 * Float32Array.BYTES_PER_ELEMENT, format: 'float32x4' }
           ],
-        }
+        },
       ],
     },
     fragment: {
@@ -361,35 +542,31 @@ async function setup() {
     },
     primitive: {
       topology: 'triangle-list',
+      frontFace: 'ccw',
+      cullMode: 'back',
     }
   });
 
-  device.queue.writeBuffer(vertexBuffer, 0, vertices);
-  device.queue.writeBuffer(indexBuffer, 0, indices);
-
   state = {
-    viewport: new Viewport(container.value, canvas.value, resize, render),
+    viewport: new Viewport(device, container.value, canvas.value, resize, render),
     context,
     adapter,
     device,
     format,
-    uniforms,
+    global_uniforms,
+    materials,
     pipeline,
-    bindGroup,
-    vertexBuffer,
-    indexBuffer,
+    bindGroupLayouts,
+    globalBindGroups,
+    meshes: {
+      [MeshKey.OceanSimulation]: ocean_tiles,
+    },
     camera: {
-      position: vec3.fromValues(0, 0, 1),
-      rotation: quat.create(),
-      // position: vec3.fromValues(0.0, 5.0, 20.0),
-      // rotation: quat.fromEuler(quat.create(), toRadian(-15.0), 0.0, 0.0),
-      scale: vec3.fromValues(1, 1, 1),
+      position: kCameraPosition,
+      rotation: kCameraRotation,
       projection: {
-        type: "orthogonal",
-        left: -1,
-        right: 1,
-        bottom: -1,
-        top: 1,
+        type: "perspective",
+        fovy: toRadian(60),
         near: 0.1,
         far: 1000.0,
       }
@@ -401,27 +578,38 @@ function shutdown() {
   state?.viewport.destroy();
 }
 
+async function loadTexture(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.src =  src;
+    image.onerror = (err) => reject(err);
+    image.onload = () => resolve(image);
+  });
+}
+
 function updateCameraMatrix() {
   if (!state) {
     return;
   }
-  const cameraWorldMatrix = mat4.fromRotationTranslationScale(mat4.create(), state.camera.rotation, state.camera.position, state.camera.scale);
-  mat4.invert(state.uniforms.vMatrix, cameraWorldMatrix);
+  const cameraWorldMatrix = mat4.fromRotationTranslationScale(mat4.create(), state.camera.rotation, state.camera.position, vec3.fromValues(1, 1, 1));
+  mat4.invert(state.global_uniforms.value[0].vMatrix, cameraWorldMatrix);
+
   switch (state.camera.projection.type) {
     case 'perspective':
-      mat4.perspectiveZO(state.uniforms.pMatrix, state.camera.projection.fovy, state.viewport.aspect, state.camera.projection.near, state.camera.projection.far);
+      mat4.perspectiveZO(state.global_uniforms.value[0].pMatrix, state.camera.projection.fovy, state.viewport.aspect, state.camera.projection.near, state.camera.projection.far);
       break;
     case 'orthogonal':
-      mat4.orthoZO(state.uniforms.pMatrix, state.camera.projection.left, state.camera.projection.right, state.camera.projection.bottom, state.camera.projection.top, state.camera.projection.near, state.camera.projection.far);
+      mat4.orthoZO(state.global_uniforms.value[0].pMatrix, state.camera.projection.left, state.camera.projection.right, state.camera.projection.bottom, state.camera.projection.top, state.camera.projection.near, state.camera.projection.far);
       break;
   }
+  vec3.copy(state.global_uniforms.value[0].iCameraPosition, state.camera.position);
 }
 
 function resize(viewport: Viewport) {
   if (!state) {
     return;
   }
-  vec4.set(state.uniforms.iResolution,
+  vec4.set(state.global_uniforms.value[0].iResolution,
       viewport.physicalWidth,
       viewport.physicalHeight,
       viewport.devicePixelRatio,
@@ -429,32 +617,51 @@ function resize(viewport: Viewport) {
 }
 
 function render(timestamp: number) {
-  if (!state) {
+  if (!state || !state.viewport.depthStencilTextureView) {
     return;
   }
+  const useDarkMode = user_preferences.useDarkMode;
+  let sky_color = useDarkMode
+    ? vec3.fromValues(0.016, 0.102, 0.251)
+    : vec3.fromValues(0.529, 0.808, 0.922);
 
-  mat4.identity(state.uniforms.mMatrix);
   updateCameraMatrix();
-  state.uniforms.iTime = timestamp * 0.001;
-  state.uniforms.submit();
+
+  vec3.copy(state.global_uniforms.value[0].iLightDirection, kLightDirection);
+  vec3.copy(state.global_uniforms.value[0].iLightColor, sky_color);
+  state.global_uniforms.value[0].iTime[0] = timestamp * 0.001;
+  state.global_uniforms.submit();
 
   const encoder = state.device.createCommandEncoder();
   const pass = encoder.beginRenderPass({
     colorAttachments: [
       {
         view: state.context.getCurrentTexture().createView(),
-        clearValue: { r: 0.3922, g: 0.5843, b: 0.9294, a: 1.0 },
+        clearValue: { r: sky_color.r, g: sky_color.g, b: sky_color.b, a: 1 },
         loadOp: 'clear',
         storeOp: 'store',
       },
     ],
+    depthStencilAttachment: {
+      view: state.viewport.depthStencilTextureView,
+      depthClearValue: 1,
+      stencilClearValue: 0,
+      depthLoadOp: 'clear',
+      depthStoreOp: 'store',
+      stencilLoadOp: 'clear',
+      stencilStoreOp: 'store',
+    },
   });
 
   pass.setPipeline(state.pipeline);
-  pass.setBindGroup(0, state.bindGroup);
-  pass.setVertexBuffer(0, state.vertexBuffer);
-  pass.setIndexBuffer(state.indexBuffer, 'uint32');
-  pass.drawIndexed(state.indexBuffer.size / 4);
+  pass.setBindGroup(BindGroupIndex.Global, state.globalBindGroups[BindGroupIndex.Global]);
+  pass.setBindGroup(BindGroupIndex.Material, state.globalBindGroups[BindGroupIndex.Material]);
+  Object.values(state.meshes).forEach(mesh => {
+    pass.setBindGroup(BindGroupIndex.Instance, mesh.bindGroup);
+    pass.setVertexBuffer(0, mesh.vertexBuffer);
+    pass.setIndexBuffer(mesh.indexBuffer, 'uint32');
+    pass.drawIndexed(mesh.indexBuffer.size / 4, mesh.count);
+  });
   pass.end();
 
   state.device.queue.submit([encoder.finish()]);
@@ -467,7 +674,7 @@ function handleMouseMoveEvent(evt: MouseEvent) {
   const box = (evt.currentTarget as HTMLCanvasElement).getBoundingClientRect();
   const x = (evt.clientX - box.left) / box.width;
   const y = (evt.clientY - box.top) / box.height;
-  vec2.set(state.uniforms.iMouse, x, y);
+  vec2.set(state.global_uniforms.value[0].iMouse, x, y);
 }
 
 function onContextMenu(evt: PointerEvent) {
@@ -490,6 +697,9 @@ defineExpose({
     <canvas ref="canvas" @contextmenu="onContextMenu">
       <div class='error'><img src='/images/html5_white.png' width='128' height='128' /><h2>This page requires support for HTML5 Canvas and WebGPU</h2></div>
     </canvas>
+    <div class="webgpu-container">
+      <WebGPULogo />
+    </div>
   </div>
 </template>
 
@@ -504,5 +714,12 @@ defineExpose({
     height: 100%;
     background-color: black;
   }
+}
+
+.webgpu-container img {
+  position: absolute;
+  inset: 0 0 auto auto;
+  height: 5rem;
+  pointer-events: none;
 }
 </style>

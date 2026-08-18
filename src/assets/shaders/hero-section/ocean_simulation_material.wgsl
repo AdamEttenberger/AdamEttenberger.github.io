@@ -1,5 +1,5 @@
 const kFrameCount: vec2f = vec2f(8.0, 8.0);
-const kFrameRate: f32 = 16.0;
+const kFrameRate: f32 = 8.0;
 const kMipMapSafeTexelInset: f32 = 4.0;
 const PI: f32 = 3.14159265359;
 
@@ -160,11 +160,6 @@ fn get_roughness() -> f32 {
   return 0.2;
 }
 
-fn calculate_brdf(material: MaterialData, surface_normal: vec3f, view_direction: vec3f, light_direction: vec3f) -> vec3f {
-  let reflectance: CookTorranceReflectance = cook_torrance_reflectance(surface_normal, view_direction, light_direction);
-  return reflectance.diffuse_ratio * (material.albedo / PI) + reflectance.specular;
-}
-
 fn calculate_irradiance(world_normal: vec3f, light_direction: vec3f) -> vec3f {
   return global.iLightColor * max(dot(world_normal, light_direction), 0.0);
 }
@@ -197,7 +192,7 @@ fn vs_main(input: VertexInput) -> VertexOutput {
   let sample_blend: f32 = fract(global.iTime * kFrameRate);
   
   var displacedPosition: vec4f = vec4f(input.position, 1.0);
-  displacedPosition.z += get_surface_height(material, frame_coords);
+  displacedPosition.y += get_surface_height(material, frame_coords);
 
   out.world_position = instance.mMatrix * displacedPosition;
   out.clip_position = global.pMatrix * global.vMatrix * out.world_position;
