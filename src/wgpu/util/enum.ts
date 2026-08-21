@@ -1,104 +1,60 @@
 export type EnumLike = Record<string, string | number>;
 
-export type EnumName<T extends EnumLike> =
-  Extract<keyof T, string>;
+type EnumName<T extends EnumLike> = Extract<keyof T, string>;
 
-export type EnumValue<T extends EnumLike> =
-  Extract<keyof T, number>;
-
-export type EnumForward<T extends EnumLike> = {
-  [K in EnumName<T>]: EnumValue<T>
-};
-
-export type EnumReverse<T extends EnumLike> = {
-  [K in EnumValue<T>]: EnumName<T>
-};
+export type EnumValue<
+  T extends EnumLike,
+  K extends EnumName<T> = EnumName<T>
+> = T[K];
 
 export type EnumNameValueEntry<T extends EnumLike> = {
-  [K in EnumName<T>]: [K, T[K]]
+  [K in EnumName<T>]: [K, EnumValue<T, K>]
 }[EnumName<T>];
 
 export type EnumValueNameEntry<T extends EnumLike> = {
-  [K in EnumValue<T>]: [K, T[K]]
-}[EnumValue<T>];
+  [K in EnumName<T>]: [EnumValue<T, K>, K]
+}[EnumName<T>];
 
-type EnumReduceValueNameCallback<
+/**
+ * Accumulator callback for `reduce` functionality.
+ * Unlike Array.reduce, this consumes an Iterator,
+ * so teh enum `name` (key) and `enumType` are provided
+ * in place of `currentIndex` and `array`.
+ */
+type EnumReduceCallback<
   T extends EnumLike,
   U
-> = <K extends EnumValue<T>>(
+> = <K extends EnumName<T>>(
   previousValue: U,
-  value: K,
-  name: T[K],
+  value: EnumValue<T, K>,
+  name: K,
+  enumType: T,
 ) => U;
 
 /**
- * For any enum, is the `key` (string|number) is valid for `enumType`.
- * @param enumType The `enum` type
- * @param key The key to check validity of
- * @returns True if `key` is valid for `enumType`, false otherwise
+ * Reverse mapped integral values are represented as a string (e.g., "0").
+ * @param key The key to test.
+ * @returns Returns true if the string is an integral value, false otherwise.
  */
-export function isEnumKey<
-  T extends EnumLike
->(
-  enumType: T,
-  key: unknown
-) : key is keyof T {
-  return (typeof key === 'string' || typeof key === 'number') &&
-         enumType[key] !== undefined;
-}
-
-/**
- * For integral enums, is the `value` an integral value.
- * @param enumType The `enum` type
- * @param key The key to check validity of
- * @returns True if `value` is a valid integral key of `enumType`, false otherwise
- */
-export function isEnumValue<
-T extends EnumLike
->(
-  enumType: T,
-  key: unknown
-): key is EnumValue<T> {
-  return Number.isInteger(key) &&
-         enumType[key as number] !== undefined;
+function isReverseMappingArtifactKey(key: string): boolean {
+  return key.length > 0 && !Number.isNaN(Number(key));
 }
 
 /**
  * For integral enums, is the `value` a string name.
  * @param enumType The `enum` type
- * @param key The key to check validity of
- * @returns True if `value` is a valid string key of `enumType`, false otherwise
+ * @param name The name to check validity of
+ * @returns True if `name` is a valid string name of `enumType`, false otherwise
  */
 export function isEnumName<
   T extends EnumLike
 >(
   enumType: T,
-  key: unknown
-): key is EnumName<T> {
-  return typeof key === 'string' &&
-         enumType[key] !== undefined &&
-         Number.isInteger(enumType[key]);
-}
-
-/**
- * For integral enums, iterate over integral keys.
- * @param enumType The `enum` type
- * @returns Itereator over the integral keys
- */
-export function enumValues<
-  T extends EnumLike
->(
-  enumType: T
-): Iterable<EnumValue<T>> {
-  return {
-      *[Symbol.iterator]() {
-      for (const value of Object.values(enumType)) {
-        if (isEnumValue(enumType, value)) {
-          yield value;
-        }
-      }
-    }
-  };
+  name: unknown
+): name is EnumName<T> {
+  return typeof name === 'string' &&
+         !isReverseMappingArtifactKey(name) &&
+         Object.prototype.hasOwnProperty.call(enumType, name);
 }
 
 /**
@@ -113,13 +69,32 @@ export function enumNames<
 ): Iterable<EnumName<T>> {
   return {
     *[Symbol.iterator]() {
-      for (const value of Object.values(enumType)) {
-        if (isEnumName(enumType, value)) {
-          yield value;
+      for (const name of Object.keys(enumType)) {
+        if (isEnumName(enumType, name)) {
+          yield name;
         }
       }
     }
   }
+}
+
+/**
+ * For integral enums, iterate over integral keys.
+ * @param enumType The `enum` type
+ * @returns Itereator over the integral keys
+ */
+export function enumValues<
+  T extends EnumLike
+>(
+  enumType: T
+): Iterable<EnumValue<T>> {
+  return {
+      *[Symbol.iterator]() {
+      for (const name of enumNames(enumType)) {
+        yield enumType[name] as EnumValue<T>;
+      }
+    }
+  };
 }
 
 /**
@@ -133,11 +108,8 @@ export function enumNameValueEntries<
   enumType: T
 ): EnumNameValueEntry<T>[] {
   const result: EnumNameValueEntry<T>[] = [];
-  for (const keyName of enumNames(enumType)) {
-    result.push([
-      keyName,
-      enumType[keyName],
-    ]);
+  for (const name of enumNames(enumType)) {
+    result.push([name, enumType[name]] as EnumNameValueEntry<T>);
   }
   return result;
 }
@@ -153,11 +125,8 @@ export function enumValueNameEntries<
   enumType: T
 ): EnumValueNameEntry<T>[] {
   const result: EnumValueNameEntry<T>[] = [];
-  for (const value of enumValues(enumType)) {
-    result.push([
-      value,
-      enumType[value],
-    ]);
+  for (const name of enumNames(enumType)) {
+    result.push([enumType[name], name] as EnumValueNameEntry<T>);
   }
   return result;
 }
@@ -174,12 +143,17 @@ export function reduceEnum<
   U
 >(
   enumType: T,
-  callbackfn: EnumReduceValueNameCallback<T, U>,
+  callbackfn: EnumReduceCallback<T, U>,
   initialValue: U
 ): U {
   let result = initialValue;
-  for (const value of enumValues(enumType)) {
-    result = callbackfn(result, value, enumType[value]);
+  for (const name of enumNames(enumType)) {
+    result = callbackfn(
+      result,
+      enumType[name] as EnumValue<T>,
+      name as EnumName<T>,
+      enumType,
+    );
   }
   return result;
 }
