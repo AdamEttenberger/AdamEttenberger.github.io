@@ -37,11 +37,11 @@ type EnumReduceCallback<
  * @returns Returns true if the string is an integral value, false otherwise.
  */
 function isReverseMappingArtifactKey(key: string): boolean {
-  return key.length > 0 && !Number.isNaN(Number(key));
+  return /^-?\d+$/.test(key) && Number.isSafeInteger(Number(key));
 }
 
 /**
- * For integral enums, is the `value` a string name.
+ * Filter for enum string keys, to normalize iteration over integral enums.
  * @param enumType The `enum` type
  * @param name The name to check validity of
  * @returns True if `name` is a valid string name of `enumType`, false otherwise
@@ -58,9 +58,9 @@ export function isEnumName<
 }
 
 /**
- * For integral enums, iterate over string keys.
+ * Iterate over enum string keys.
  * @param enumType The `enum` type
- * @returns Itereator over the string keys
+ * @returns Itereator over enum keys.
  */
 export function enumNames<
   T extends EnumLike
@@ -79,9 +79,9 @@ export function enumNames<
 }
 
 /**
- * For integral enums, iterate over integral keys.
+ * Iterate over enum values.
  * @param enumType The `enum` type
- * @returns Itereator over the integral keys
+ * @returns Itereator over enum values.
  */
 export function enumValues<
   T extends EnumLike
@@ -98,9 +98,9 @@ export function enumValues<
 }
 
 /**
- * For integral enums, returns an "entries" array with string primary keys.
+ * Returns an "entries" array with [key, value] elements.
  * @param enumType The `enum` type
- * @returns List of enum entries with string primary keys.
+ * @returns List of enum entries in key, value order.
  */
 export function enumNameValueEntries<
   T extends EnumLike
@@ -115,9 +115,9 @@ export function enumNameValueEntries<
 }
 
 /**
- * For integral enums, returns an "entries" array with integral primary keys.
+ * Returns a reversed "entries" array with [value, key] elements.
  * @param enumType The `enum` type
- * @returns List of enum entries with integral primary keys.
+ * @returns List of enum entries in value, key order.
  */
 export function enumValueNameEntries<
   T extends EnumLike
@@ -132,7 +132,7 @@ export function enumValueNameEntries<
 }
 
 /**
- * For integral enums, performs the "reduce" transformation for mapping between types.
+ * Performs the "reduce" transformation for mapping or aggregating with enum entries.
  * @param enumType The `enum` type
  * @param callbackfn Callback used to aggregate values into the `initialValue`.
  * @param initialValue The container to aggregate values into.
