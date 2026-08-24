@@ -16,6 +16,10 @@ defineProps<IThemeProps & {
   title: Array<string>;
   role: Array<string>;
 }>();
+
+function onYouTubeConsentGiven() {
+  allow_embedded_youtube_videos.value = true;
+}
 </script>
 
 <template>
@@ -32,12 +36,20 @@ defineProps<IThemeProps & {
                 allowfullscreen>
         </iframe>
         <div v-if="!allow_embedded_youtube_videos" class="player">
-          <Button class="play-button"
-                  :to="`https://www.youtube.com/watch/?v=${youtubeId}`"
-                  :icon="['fas', 'up-right-from-square']"
-                  :color="ThemeColor.Secondary"
-                  alt="Watch on YouTube" />
-          <div class="play-description">Watch on YouTube</div>
+          <Layer class="consent-overlay" :color="ThemeColor.Secondary">
+            <div class="message">
+              <font-awesome-icon class="yt-icon" :icon="['fab', 'youtube']" />
+              <p class="message-title">Content Blocked Due to Privacy Settings</p>
+              <p class="message-subtitle">Allow embedded YouTube videos?</p>
+            </div>
+            <div class="buttons">
+              <Button class="button" text="Accept" @click="onYouTubeConsentGiven" :color="ThemeColor.Accent" />
+              <Button class="button" text="Watch on YouTube" :to="`https://www.youtube.com/watch/?v=${youtubeId}`" :color="ThemeColor.Secondary">
+                Watch on YouTube&nbsp;<font-awesome-icon class="ext-icon" :icon="['fas', 'up-right-from-square']" />
+              </Button>
+              <Button class="button" text="Settings" to="/settings" :color="ThemeColor.Primary" />
+            </div>
+          </Layer>
         </div>
       </div>
       <Layer class="info">
@@ -78,12 +90,38 @@ defineProps<IThemeProps & {
           font-size: 4rem;
         }
 
-        & > .play-description {
+        & > .consent-overlay {
           grid-area: 1 / 1 / 2 / 2;
-          font-size: 2rem;
-          pointer-events: none;
-          align-self: start;
-          justify-self: center;
+          width: 100%;
+          height: 100%;
+          border-radius: 0;
+          justify-content: space-around;
+          align-items: center;
+          gap: var(--padding-small);
+
+          & > .message {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+
+            & > .yt-icon {
+              font-size: 4rem;
+            }
+            & > .message-title {
+              font-size: larger;
+              font-weight: bold;
+            }
+            & > .message-subtitle {
+              font-size: larger;
+            }
+          }
+
+          & > .buttons {
+            display: flex;
+            flex-direction: row;
+            gap: var(--padding-normal);
+          }
         }
       }
     }

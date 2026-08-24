@@ -30,6 +30,7 @@ import {
 import {
   faGithub,
   faLinkedinIn,
+  faYoutube,
 } from '@fortawesome/free-brands-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
@@ -59,6 +60,7 @@ library.add(
 library.add(
   faGithub,
   faLinkedinIn,
+  faYoutube,
 );
 app.component('font-awesome-icon', FontAwesomeIcon);
 // Routing Config
