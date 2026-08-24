@@ -39,15 +39,11 @@ function onUserConsentGiven() {
   <div class="dialog-container">
   <Layer v-if="dialog_state == ConsentDialogState.Default" class="dialog">
     <p>
-      This website does not intentionally use cookies for analytics, advertising, behavioral profiling, or cross-site tracking.
-      Some features may store preferences or other feature data in your browser's local storage.
-      Games on this website may also use local storage to save game data, such as high scores or save files.
+      This website does not use cookies for analytics, advertising, behavioral profiling, or cross-site tracking.
+      Some features may use local storage for preferences or game data.
+      Embedded <b>YouTube</b> videos may also use cookies or local storage controlled by <b>Google</b> and <b>YouTube</b> and are subject to their privacy practices.
     </p>
-    <p>
-      Embedded <b>YouTube</b> videos may also cause <b>Google</b> and <b>YouTube</b> to access or store information on your device, including through cookies, local storage, and other storage technologies.
-      This behavior is controlled by <b>Google</b> and <b>YouTube</b> and is subject to their privacy practices.
-    </p>
-    <p>See the Privacy Policy for more information about how this website handles information.</p>
+    <p>See the Privacy Policy for more information.</p>
     <div class="button-list columns gap">
       <Button class="button" text="Learn More" to="/privacy" />
       <Button class="button" text="Required Only" @click="dialog_state = ConsentDialogState.ShowAskToRememberChoice" :color="ThemeColor.Error" />
