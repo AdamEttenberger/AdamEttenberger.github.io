@@ -12,8 +12,8 @@ import { SocialButtonList } from '@/content/socials'
         <SocialButton v-for="item of SocialButtonList" :key="item.type" v-bind="item" />
       </div>
       <div class="links">
-        <Link to="/privacy">Privacy</Link>
-        <Link to="/licenses">Licenses</Link>
+        <span><Link to="/privacy">Privacy</Link></span>
+        <span><Link to="/licenses">Licenses</Link></span>
       </div>
       <div class="copyright">&copy;&nbsp;{{ new Date().getFullYear() }} Adam Ettenberger</div>
     </Layer>
