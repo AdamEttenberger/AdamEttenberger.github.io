@@ -19,7 +19,7 @@ const tabindex = computed(() => unref(props.disabled) ? -1 : undefined);
 </script>
 
 <template>
-  <Layer :class="['button-background-layer', unref(disabled)?'disabled':'']" :color :depth :absolute :transparent :disabled show_hover>
+  <Layer :class="['button-background-layer', unref(disabled)?'disabled':'']" :color :depth :absolute :transparent :disabled show-hover>
     <Link class="button-link" :to :icon :alt :disabled hide_ext button :tabindex @click="$emit('click', $event)">
       <template v-if="$slots.default || text" #default>
         <slot>{{ text }}</slot>

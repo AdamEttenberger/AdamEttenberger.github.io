@@ -3,8 +3,8 @@ import { computed, type MaybeRef, unref } from 'vue'
 import useTheme, { type IThemeProps, type ThemeOptions } from '@/composables/theme'
 
 const props = defineProps<IThemeProps & {
-  show_hover?: MaybeRef<boolean>;
-  disabled?: MaybeRef<boolean>;
+  showHover?: boolean;
+  disabled?: boolean;
 }>();
 
 const { theme } = useTheme(() => ({
@@ -18,7 +18,7 @@ const class_names = computed(() => {
   if (unref(props.transparent)) {
     result.push('transparent');
   } else {
-    if (unref(props.show_hover)) {
+    if (unref(props.showHover)) {
       result.push('show_hover');
     }
     if (unref(props.disabled)) {

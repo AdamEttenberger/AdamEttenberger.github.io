@@ -9,7 +9,7 @@ const model = defineModel<string|number>({
 </script>
 
 <template>
-  <Layer class="property-editor-combo-box" show_hover>
+  <Layer class="property-editor-combo-box" show-hover>
     <select :name :disable="toValue(disabled)" v-model="model">
       <option v-for="([property_name, label]) in options.values" :key="property_name"
               :value="property_name">

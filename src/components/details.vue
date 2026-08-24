@@ -15,7 +15,7 @@ const open = defineModel({
 </script>
 
 <template>
-  <Layer class="details-layer" :color :transparent :show_hover="!open">
+  <Layer class="details-layer" :color :transparent :show-hover="!open">
     <details :open="open">
       <summary :class="{ thin }" @click.prevent="open = !open">
         <slot v-if="!summary" name="summary"></slot>
