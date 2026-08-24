@@ -8,12 +8,12 @@ Personal portfolio website containing projects and demos.
 
 ## Recommended IDE
 
-- Visual Studio Code 
+- Visual Studio Code
 
 ## Project Setup
 
 ```
-npm install
+npm install --no-save
 ```
 
 ### Compile and Hot-Reload for Development
