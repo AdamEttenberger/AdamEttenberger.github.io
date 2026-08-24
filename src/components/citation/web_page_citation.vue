@@ -7,10 +7,10 @@ const props = defineProps<{
   url: string,
   firstname: string,
   lastname: string,
-  website_title: string,
-  webpage_title: string,
+  websiteTitle: string,
+  webpageTitle: string,
   publisher?: string,
-  date_published?: DateLike,
+  datePublished?: DateLike,
 }>();
 
 const display_url = computed<undefined|string>(() => {
@@ -21,13 +21,13 @@ const display_url = computed<undefined|string>(() => {
 
 <template>
   <cite>
-    <Link class="cite-link" :to="url" :alt="`link to webpage: ${webpage_title}`" transparent>
+    <Link class="cite-link" :to="url" :alt="`link to webpage: ${webpageTitle}`" transparent>
       <span class="author-last-name">{{ lastname }}</span>,
       <span class="author-first-name">{{ firstname }}</span>.
-      "<span class="webpage-title">{{ webpage_title  }}</span>."
-      <i class="website-title">{{  website_title }}</i>,
+      "<span class="webpage-title">{{ webpageTitle  }}</span>."
+      <i class="website-title">{{  websiteTitle }}</i>,
       <span v-if="publisher"><span class="publisher">{{ publisher }}</span>,</span>
-      <span v-if="date_published"><span class="date-published">{{ date_formatMLA(date_published) }}</span>,</span>
+      <span v-if="datePublished"><span class="date-published">{{ date_formatMLA(datePublished) }}</span>,</span>
       <span class="link">{{ display_url }}</span>.
     </Link>
   </cite>

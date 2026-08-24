@@ -142,11 +142,11 @@ function onPlayerLoaded(target_frame: HTMLIFrameElement, frame_key: string, ref_
             </Details>
           </li>
         </ul>
-        <Figure src_light="/images/projects/proto_engine/architecture_light.png"
-                src_dark="/images/projects/proto_engine/architecture_dark.png"
+        <Figure src-light="/images/projects/proto_engine/architecture_light.png"
+                src-dark="/images/projects/proto_engine/architecture_dark.png"
                 alt="UML-like class relationship diagram." />
-        <Figure src_light="/images/projects/proto_engine/scene_light.png"
-                src_dark="/images/projects/proto_engine/scene_dark.png"
+        <Figure src-light="/images/projects/proto_engine/scene_light.png"
+                src-dark="/images/projects/proto_engine/scene_dark.png"
                 alt="Scene hierarchy, the Game has 2 children, a triangular prism model and invisible pivot. The invisible pivot has 3 children, the colored, skinned, and colored + skinned cube models. All GameObject instances have a Transform and RotateComponent." />
       </Section>
 
@@ -173,22 +173,22 @@ function onPlayerLoaded(target_frame: HTMLIFrameElement, frame_key: string, ref_
           With rotation the "rule of thumb" is to point your thumb (based on the coordinate system "handed-ness") along a positive-axis and positive-rotation turns the direction your fingers curl when making a fist.
           Since the z-axis is inverted, rotation around the positive z-axis is the same direction for both systems.
         </p>
-        <Figure src_light="/images/projects/proto_engine/coordinate_system_light.png"
-                src_dark="/images/projects/proto_engine/coordinate_system_dark.png"
+        <Figure src-light="/images/projects/proto_engine/coordinate_system_light.png"
+                src-dark="/images/projects/proto_engine/coordinate_system_dark.png"
                 alt="Illustration of the default coordinate system in OpenGL (left) and DirectX (right)." />
         <p>
           Texture coordinates are also inverted along the y-axis.
           In OpenGL the UV origin is the bottom-left corner while in DirectX the UV origin is the top-left corner.
         </p>
-        <Figure src_light="/images/projects/proto_engine/uv_coordinate_system_light.png"
-                src_dark="/images/projects/proto_engine/uv_coordinate_system_dark.png"
+        <Figure src-light="/images/projects/proto_engine/uv_coordinate_system_light.png"
+                src-dark="/images/projects/proto_engine/uv_coordinate_system_dark.png"
                 alt="Illustration of the default UV coordinate system in OpenGL (left) and DirectX (right)." />
         <p>
           When considering <Link to="https://en.wikipedia.org/wiki/Back-face_culling">back-face culling</Link> the windings are opposite as well.
           By default OpenGL uses a counter-clockwise front-face winding while DirectX uses a clockwise front-face winding.
         </p>
-        <Figure src_light="/images/projects/proto_engine/winding_order_light.png"
-                src_dark="/images/projects/proto_engine/winding_order_dark.png"
+        <Figure src-light="/images/projects/proto_engine/winding_order_light.png"
+                src-dark="/images/projects/proto_engine/winding_order_dark.png"
                 alt="Illustration of the default winding order in OpenGL (left) and DirectX (right)." />
         <p>
           Keep in mind this is just the tip of the iceberg; a few important high-level differences that can be confusing when first getting started with rendering.

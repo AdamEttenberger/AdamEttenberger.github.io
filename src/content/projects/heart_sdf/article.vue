@@ -1101,8 +1101,8 @@ const property_editors: Record<DemosWithPropertyEditor, IUsePropertyEditorModel>
       <p>
         The shape can be broken down as illustrated by the following diagram and key components:
       </p>
-      <Figure src_light="/images/projects/sdf/heart_geometry_light.png"
-              src_dark="/images/projects/sdf/heart_geometry_dark.png"
+      <Figure src-light="/images/projects/sdf/heart_geometry_light.png"
+              src-dark="/images/projects/sdf/heart_geometry_dark.png"
               alt="Illustration of the geometry composing the heart shape used for this demo." />
       <TermList class="heart-terms" heading="Components">
         <Term term="A: Vertex">Where the tangent lines meet forming a triangular point, lowest point in the shape.</Term>
@@ -1346,11 +1346,11 @@ const property_editors: Record<DemosWithPropertyEditor, IUsePropertyEditorModel>
       <p>
         The drawing regions and the cutting planes can roughly be described as follows:
       </p>
-      <Figure src_light="/images/projects/sdf/heart_draw_regions_light.png"
-              src_dark="/images/projects/sdf/heart_draw_regions_dark.png"
+      <Figure src-light="/images/projects/sdf/heart_draw_regions_light.png"
+              src-dark="/images/projects/sdf/heart_draw_regions_dark.png"
               alt="Illustration of the 3 draw region mask slices are made." />
-      <Figure src_light="/images/projects/sdf/heart_cut_planes_light.png"
-              src_dark="/images/projects/sdf/heart_cut_planes_dark.png"
+      <Figure src-light="/images/projects/sdf/heart_cut_planes_light.png"
+              src-dark="/images/projects/sdf/heart_cut_planes_dark.png"
               alt="Illustration of cut edges CB and CT, showing the angle from vertices A, C, and B can be acute or obtuse." />
       <TermList heading="Drawing Regions">
         <Term term="Planes">Mostly the slope connecting vertex <b>A</b> and vertex <b>T</b>, and a triangle region cut out of circle <b>C</b> with vertex <b>B</b>.</Term>
@@ -1465,8 +1465,8 @@ const property_editors: Record<DemosWithPropertyEditor, IUsePropertyEditorModel>
             With <b>negative</b> values extend infinitely to the left of <b>P</b> where <b>Q&lt;P</b> and <b>positive</b> values extend infinitely to the right of <b>P</b> where <b>Q&gt;P</b>.
           </p>
           <br/>
-          <Figure src_light="/images/projects/sdf/foundation_sdf_edge_light.png"
-                  src_dark="/images/projects/sdf/foundation_sdf_edge_dark.png"
+          <Figure src-light="/images/projects/sdf/foundation_sdf_edge_light.png"
+                  src-dark="/images/projects/sdf/foundation_sdf_edge_dark.png"
                   alt="Abstract (1-D) number line illustrating the signed-distance function 'Q-P'." />
         </li>
         <li>
@@ -1475,8 +1475,8 @@ const property_editors: Record<DemosWithPropertyEditor, IUsePropertyEditorModel>
             This creates the signed distance function of a <b>1-D</b> point.
           </p>
           <br/>
-          <Figure src_light="/images/projects/sdf/foundation_sdf_point_light.png"
-                  src_dark="/images/projects/sdf/foundation_sdf_point_dark.png"
+          <Figure src-light="/images/projects/sdf/foundation_sdf_point_light.png"
+                  src-dark="/images/projects/sdf/foundation_sdf_point_dark.png"
                   alt="Abstract (1-D) number line illustrating the signed-distance function 'abs(Q-P)'." />
         </li>
         <li>
@@ -1486,8 +1486,8 @@ const property_editors: Record<DemosWithPropertyEditor, IUsePropertyEditorModel>
             The distance is zero at both endpoints of the line segment, falling negative inside the region, and growing positive outside the region.
           </p>
           <br/>
-          <Figure src_light="/images/projects/sdf/foundation_sdf_segment_light.png"
-                  src_dark="/images/projects/sdf/foundation_sdf_segment_dark.png"
+          <Figure src-light="/images/projects/sdf/foundation_sdf_segment_light.png"
+                  src-dark="/images/projects/sdf/foundation_sdf_segment_dark.png"
                   alt="Abstract (1-D) number line illustrating the signed-distance function 'abs(Q-P) - R'." />
         </li>
         <li>
@@ -1496,11 +1496,11 @@ const property_editors: Record<DemosWithPropertyEditor, IUsePropertyEditorModel>
             Taking the absolute value of the distance field then subtracting another <b>radius</b> amount <b>L</b> inflates both endpoints of the line segment into new line segments that are each <b>2L</b> wide.
           </p>
           <br/>
-          <Figure src_light="/images/projects/sdf/foundation_sdf_segment_abs_light.png"
-                  src_dark="/images/projects/sdf/foundation_sdf_segment_abs_dark.png"
+          <Figure src-light="/images/projects/sdf/foundation_sdf_segment_abs_light.png"
+                  src-dark="/images/projects/sdf/foundation_sdf_segment_abs_dark.png"
                   alt="Abstract (1-D) number line illustrating the signed-distance function 'abs(abs(Q-P) - R)'." />
-          <Figure src_light="/images/projects/sdf/foundation_sdf_segment_abs_inflated_light.png"
-                  src_dark="/images/projects/sdf/foundation_sdf_segment_abs_inflated_dark.png"
+          <Figure src-light="/images/projects/sdf/foundation_sdf_segment_abs_inflated_light.png"
+                  src-dark="/images/projects/sdf/foundation_sdf_segment_abs_inflated_dark.png"
                   alt="Abstract (1-D) number line illustrating the signed-distance function 'abs(abs(Q-P) - R) - L'." />
         </li>
       </ol>
@@ -1794,19 +1794,19 @@ const property_editors: Record<DemosWithPropertyEditor, IUsePropertyEditorModel>
 
     <Section heading="References">
       <WebPageCitation firstname='Inigo' lastname='Quilez'
-                       website_title='Inigo Quilez' webpage_title='Inigo Quilez'
+                       website-title='Inigo Quilez' webpage-title='Inigo Quilez'
                        url='https://iquilezles.org/' />
       <WebPageCitation firstname='Inigo' lastname='Quilez'
-                       website_title='Inigo Quilez' webpage_title='2D Distance Functions'
+                       website-title='Inigo Quilez' webpage-title='2D Distance Functions'
                        url='https://iquilezles.org/articles/distfunctions2d/' />
       <WebPageCitation firstname='Inigo' lastname='Quilez'
-                       website_title='Inigo Quilez' webpage_title='2D Distance and Gradient Functions'
+                       website-title='Inigo Quilez' webpage-title='2D Distance and Gradient Functions'
                        url='https://iquilezles.org/articles/distgradfunctions2d/' />
       <WebPageCitation firstname='Inigo' lastname='Quilez'
-                       website_title='Inigo Quilez' webpage_title='3D Distance Functions'
+                       website-title='Inigo Quilez' webpage-title='3D Distance Functions'
                        url='https://iquilezles.org/articles/distfunctions/' />
       <WebPageCitation firstname='Inigo' lastname='Quilez'
-                       website_title='Inigo Quilez' webpage_title='smooth minimum - 2013'
+                       website-title='Inigo Quilez' webpage-title='smooth minimum - 2013'
                        url='https://iquilezles.org/articles/smin/' />
     </Section>
   </article>

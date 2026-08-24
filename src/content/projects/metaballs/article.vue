@@ -194,16 +194,16 @@ function onPresetChanged() {
         Afterwards the base texture is used as input for the remaining 3 quadrants, each applying a slightly different pixel shader.
       </p>
 
-      <Figure src_light="/images/projects/metaballs/viewport_explanation_light.png"
-              src_dark="/images/projects/metaballs/viewport_explanation_dark.png"
+      <Figure src-light="/images/projects/metaballs/viewport_explanation_light.png"
+              src-dark="/images/projects/metaballs/viewport_explanation_dark.png"
               alt="Image describing the quadrants in the live demo at the top of the page.
                   (1) upper-left: base texture,
                   (2) upper-right: diffuse metaball,
                   (3) lower-left: diffuse metaball + outline,
                   (4) lower-right: hue + outline." />
 
-      <Figure src_light="/images/projects/metaballs/hierarchy_light.png"
-              src_dark="/images/projects/metaballs/hierarchy_dark.png"
+      <Figure src-light="/images/projects/metaballs/hierarchy_light.png"
+              src-dark="/images/projects/metaballs/hierarchy_dark.png"
               alt="Image describing the the scene hierarchy.
                   (1) VertexPositionColor[] data,
                   (2) Base Texture,

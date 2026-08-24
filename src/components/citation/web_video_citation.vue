@@ -5,11 +5,11 @@ import { date_formatMLA, type DateLike } from '@/util/date'
 
 const props = defineProps<{
   url: string,
-  account_name: string,
-  video_title: string,
-  website_title: string,
+  accountName: string,
+  videoTitle: string,
+  websiteTitle: string,
   publisher?: string,
-  date_published: DateLike,
+  datePublished: DateLike,
 }>();
 
 const display_url = computed(() => {
@@ -20,13 +20,13 @@ const display_url = computed(() => {
 
 <template>
   <cite>
-    <Link :to="url" :alt="`link to video: ${video_title}`" transparent>
-      "<span class="video-title">{{ video_title  }}</span>."
-      <i class="website-title">{{  website_title }}</i>,
+    <Link :to="url" :alt="`link to video: ${videoTitle}`" transparent>
+      "<span class="video-title">{{ videoTitle  }}</span>."
+      <i class="website-title">{{  websiteTitle }}</i>,
       uploaded by
-      <span class="author-account-name">{{ account_name }}</span>,
+      <span class="author-account-name">{{ accountName }}</span>,
       <span v-if="publisher"><span class="publisher">{{ publisher }}</span>,</span>
-      <span class="date-published">{{ date_formatMLA(date_published) }}</span>,
+      <span class="date-published">{{ date_formatMLA(datePublished) }}</span>,
       <span class="url">{{ display_url }}</span>.
     </Link>
   </cite>

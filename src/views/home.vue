@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import Button from '@/components/buttons/button.vue'
-import Divider from '@/components/divider.vue'
 import Link from '@/components/link.vue'
 import Section from '@/components/section.vue'
 import { EmailHiring } from '@/content/socials'
@@ -75,10 +74,10 @@ const current_job_title = "Senior Software Engineer";
       </ul>
       <YouTubeItem :title="['Call of Duty', 'WWII']"
                     :role="['Tools Engineer', 'UI Engineer']"
-                    youtube_id="D4Q_XYVescc" />
+                    youtube-id="D4Q_XYVescc" />
       <YouTubeItem :title="['Call of Duty', 'Advanced Warfare']"
                     :role="['Tools Engineer', 'UI Engineer']"
-                    youtube_id="sFu5qXMuaJU" />
+                    youtube-id="sFu5qXMuaJU" />
       <p>
         Outside of professional work, I use this site to explore technologies and ideas that interest me, including game development, graphics, rendering, and procedural systems.
       </p>

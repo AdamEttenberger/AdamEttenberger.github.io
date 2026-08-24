@@ -1,17 +1,17 @@
 <script setup lang="ts">
 defineProps<{
   name: string;
-  cite_url?: string;
-  cite_title?: string;
+  citeUrl?: string;
+  citeTitle?: string;
 }>();
 </script>
 
 <template>
   <div class="quote">
-    <blockquote :cite="cite_url">
+    <blockquote :cite="citeUrl">
       <p>&#x275D;<slot></slot>&#x275E;</p>
     </blockquote>
-    <p class="name">&mdash;{{ name }}<cite v-if="cite_title">{{ cite_title }}</cite></p>
+    <p class="name">&mdash;{{ name }}<cite v-if="citeTitle">{{ citeTitle }}</cite></p>
   </div>
 </template>
 

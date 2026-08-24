@@ -261,8 +261,8 @@ onUnmounted(() => {
         This project represents the game board as 1D array in <Link to="https://en.wikipedia.org/wiki/Row-_and_column-major_order">column-major order</Link> using the GDScript <Link to="https://docs.godotengine.org/en/stable/classes/class_packedint32array.html">PackedInt32Array</Link> class.
         The origin is the lower-left corner of the grid, incrementing first along the y-axis until wrapping at height and incrementing along the x-axis.
       </p>
-      <Figure src_light="/images/projects/match_three/column_vs_row_major_light.png"
-              src_dark="/images/projects/match_three/column_vs_row_major_dark.png"
+      <Figure src-light="/images/projects/match_three/column_vs_row_major_light.png"
+              src-dark="/images/projects/match_three/column_vs_row_major_dark.png"
               alt="Illustrating the difference between a column-major (left) and row-major (right) matrix indexed as a 1D array." />
       <Details summary="Index transformation methods">
         <CodeMirror lang="gdscript"
@@ -347,8 +347,8 @@ onUnmounted(() => {
         With coroutines, all logic can be cleanly organized and scheduled from one function.
         An FSM introduces all the complexity of managing states and state transitions; requiring more code to create, modify, or route new states and state transitions.
       </p>
-      <Figure src_light="/images/projects/match_three/core_loop_light.png"
-              src_dark="/images/projects/match_three/core_loop_dark.png"
+      <Figure src-light="/images/projects/match_three/core_loop_light.png"
+              src-dark="/images/projects/match_three/core_loop_dark.png"
               alt="Illustration of the core game loop." />
       <Details summary="Core game loop logic">
         <CodeMirror lang="gdscript"
@@ -395,8 +395,8 @@ onUnmounted(() => {
       <p>
         The algorithmic complexity of this step is <b>O(N)</b> where <b>N</b> is the total number of tiles in the board. Each cell is visited twice, once for its column and once for its row, however <Link to="https://en.wikipedia.org/wiki/Big_O_notation">Big O notation</Link> ignores constants and reduces from <b>O(2N)</b> to <b>O(N)</b>.
       </p>
-      <Figure src_light="/images/projects/match_three/matching_light.png"
-              src_dark="/images/projects/match_three/matching_dark.png"
+      <Figure src-light="/images/projects/match_three/matching_light.png"
+              src-dark="/images/projects/match_three/matching_dark.png"
               alt="Illustrating a row or column containing values 'A A B B B A B B', highlighting a single match including indices 2, 3, and 4; the index range 2 (inclusive) through 5 (exclusive)." />
       <Details summary="Matching logic">
         <CodeMirror lang="gdscript"
@@ -456,8 +456,8 @@ onUnmounted(() => {
         <li>What is the lowest row invalidated within the column? This is useful during falling.</li>
         <li>How many tiles were invalidated within the column? This is useful during randomization.</li>
       </ul>
-      <Figure src_light="/images/projects/match_three/invalidation_light.png"
-              src_dark="/images/projects/match_three/invalidation_dark.png"
+      <Figure src-light="/images/projects/match_three/invalidation_light.png"
+              src-dark="/images/projects/match_three/invalidation_dark.png"
               alt="Illustration of a board before (left) and after (right) invalidation." />
       <Details summary="Invalidation logic">
         <CodeMirror lang="gdscript"
@@ -568,8 +568,8 @@ onUnmounted(() => {
         <li>Since columns are contiguous and processed independently, columns without invalidations can easily be skipped as the default lowest invalidated row is mapped to the column end iterator.</li>
         <li>Indicates how many tiles in a row are below invalidation and may be ignored, since only invalidated tiles and those above need to be updated during the falling step.</li>
       </ul>
-      <Figure src_light="/images/projects/match_three/falling_light.png"
-              src_dark="/images/projects/match_three/falling_dark.png"
+      <Figure src-light="/images/projects/match_three/falling_light.png"
+              src-dark="/images/projects/match_three/falling_dark.png"
               alt="Illustration of a board before (left) and after (right) falling is applied, lowering populated and raising invalidated tiles within each column." />
       <Details summary="Falling logic">
         <CodeMirror lang="gdscript"
@@ -602,8 +602,8 @@ onUnmounted(() => {
       <p>
         Adding these constraints improves the initial board setup time and helps balance the game.
       </p>
-      <Figure src_light="/images/projects/match_three/randomization_light.png"
-              src_dark="/images/projects/match_three/randomization_dark.png"
+      <Figure src-light="/images/projects/match_three/randomization_light.png"
+              src-dark="/images/projects/match_three/randomization_dark.png"
               alt="Illustration of a board before (left) and after (right) randomization is applied, repopulating any invalidated tiles." />
       <Details summary="PossibleValues">
         <CodeMirror lang="gdscript"
@@ -774,8 +774,8 @@ onUnmounted(() => {
         In this scene each tile is 1x1 world unit and the shader assumes the grid is aligned to a world unit.
         Tile color is determined by whether its <Link to="https://en.wikipedia.org/wiki/Taxicab_geometry">Manhattan distance</Link> is odd or even.
       </p>
-      <Figure src_light="/images/projects/match_three/manhattan_distance_light.png"
-              src_dark="/images/projects/match_three/manhattan_distance_dark.png"
+      <Figure src-light="/images/projects/match_three/manhattan_distance_light.png"
+              src-dark="/images/projects/match_three/manhattan_distance_dark.png"
               alt="Composition of the reticle with two step functions." />
 
       <Player :ref="player.ref(DemoKey.CheckerBoard)"
@@ -818,8 +818,8 @@ onUnmounted(() => {
       <p>
         A focus reticle is drawn by applying a shader to a simple quad geometry which is placed over the focused tile.
       </p>
-      <Figure src_light="/images/projects/match_three/reticle_composition_light.png"
-              src_dark="/images/projects/match_three/reticle_composition_dark.png"
+      <Figure src-light="/images/projects/match_three/reticle_composition_light.png"
+              src-dark="/images/projects/match_three/reticle_composition_dark.png"
               alt="Composition of the reticle with two step functions." />
 
       <Player :ref="player.ref(DemoKey.FocusReticle)"

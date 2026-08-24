@@ -6,15 +6,15 @@ const preferences = useUserPreferencesStore();
 
 const props = defineProps<{
   src?: string;
-  src_light?: string;
-  src_dark?: string;
+  srcLight?: string;
+  srcDark?: string;
   alt?: string;
   caption?: string;
 }>();
 
 const image_source = computed<undefined|string>(() => {
-  if (props.src_light && props.src_dark) {
-    return preferences.useDarkMode ? props.src_dark : props.src_light;
+  if (props.srcLight && props.srcDark) {
+    return preferences.useDarkMode ? props.srcDark : props.srcLight;
   } else if (props.src) {
     return props.src;
   }

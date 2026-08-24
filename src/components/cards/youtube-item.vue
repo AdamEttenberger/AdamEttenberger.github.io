@@ -12,7 +12,7 @@ const {
 } = storeToRefs(consent);
 
 defineProps<IThemeProps & {
-  youtube_id: string;
+  youtubeId: string;
   title: Array<string>;
   role: Array<string>;
 }>();
@@ -24,7 +24,7 @@ defineProps<IThemeProps & {
       <div class="player-wrapper">
         <iframe v-if="allow_embedded_youtube_videos"
                 class="player"
-                :src="`https://www.youtube-nocookie.com/embed/${youtube_id}`"
+                :src="`https://www.youtube-nocookie.com/embed/${youtubeId}`"
                 title="YouTube video player"
                 frameborder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -33,7 +33,7 @@ defineProps<IThemeProps & {
         </iframe>
         <div v-if="!allow_embedded_youtube_videos" class="player">
           <Button class="play-button"
-                  :to="`https://www.youtube.com/watch/?v=${youtube_id}`"
+                  :to="`https://www.youtube.com/watch/?v=${youtubeId}`"
                   :icon="['fas', 'up-right-from-square']"
                   :color="ThemeColor.Secondary"
                   alt="Watch on YouTube" />
