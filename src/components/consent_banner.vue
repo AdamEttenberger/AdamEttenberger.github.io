@@ -75,7 +75,7 @@ function onUserConsentGiven() {
 .dialog {
   font-size: small;
   gap: var(--padding-normal);
-  width: var(--app-column-max-width);
+  max-width: var(--app-column-max-width);
 }
 
 .button-list {
