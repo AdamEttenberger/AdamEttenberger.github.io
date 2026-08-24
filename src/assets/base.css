@@ -15,6 +15,7 @@
 
   --size-border-radius: 0.5rem;
   --size-header-footer-border: 0.25rem;
+  --size-icon-button: 1.25rem;
 
   --app-column-max-width: 55rem;
   --component-project-item-size: calc((var(--app-column-max-width) / 3.0) - (2.0 * var(--padding-xxlarge)));
@@ -26,6 +27,11 @@
 @media only screen and (max-width: 35rem) {
   :root {
     --component-layer-padding: var(--padding-normal);
+  }
+  @media (min-resolution: 192dpi) {
+    :root {
+      --size-icon-button: 2rem;
+    }
   }
 }
 

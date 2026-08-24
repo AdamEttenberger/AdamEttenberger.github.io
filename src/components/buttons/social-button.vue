@@ -5,7 +5,8 @@ defineProps<ISocialButton>();
 </script>
 
 <template>
-  <Button :title
+  <Button class="social-button"
+          :title
           :alt="title"
           :to
           :icon />

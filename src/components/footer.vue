@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Layer from '@/components/layer.vue'
 import Link from '@/components/link.vue'
-import SocialLink from '@/components/buttons/social_link.vue'
+import SocialButton from '@/components/buttons/social-button.vue'
 import { SocialButtonList } from '@/content/socials'
 </script>
 
@@ -9,7 +9,7 @@ import { SocialButtonList } from '@/content/socials'
   <footer class="rows">
     <Layer class="responsive-row" :depth="0" absolute>
       <div class="socials columns gap-s">
-        <SocialLink v-for="item of SocialButtonList" :key="item.type" v-bind="item" />
+        <SocialButton v-for="item of SocialButtonList" :key="item.type" v-bind="item" />
       </div>
       <div class="links">
         <Link to="/privacy">Privacy</Link>

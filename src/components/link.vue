@@ -72,7 +72,7 @@ const { theme } = useTheme(() => ({
     <slot>
       <font-awesome-icon v-if="fontawesome_src" class="fa-icon" :icon="fontawesome_src" />
       <img v-else-if="image_src" :src="image_src" :alt />
-      <span v-else-if="kind === LinkType.Email"><font-awesome-icon class="fa-icon ext-icon" :icon="['fas', 'envelope']" />&nbsp;{{ (to as EmailTemplate).address }}</span>
+      <span v-else-if="kind === LinkType.Email" class="inline-icon-text"><font-awesome-icon class="fa-icon ext-icon" :icon="['fas', 'envelope']" />&nbsp;{{ (to as EmailTemplate).address }}</span>
       <span v-else>{{ to }}</span>
     </slot>
     <span v-if="kind === LinkType.External && !hideExt">&nbsp;<font-awesome-icon class="ext-icon" :icon="['fas', 'up-right-from-square']" /></span>
@@ -99,10 +99,16 @@ img {
 }
 
 .fa-icon {
-  aspect-ratio: 1;
+  width: var(--size-icon-button);
+  height: var(--size-icon-button);
 }
 
 .link.disabled {
   pointer-events: none;
+}
+
+.inline-icon-text {
+  display: inline-flex;
+  align-items: center;
 }
 </style>
