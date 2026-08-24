@@ -61,9 +61,14 @@ footer {
   @container (max-width: 40rem) {
     flex-direction: column;
     justify-content: center;
+    gap: var(--padding-normal);
 
     & > :is(.copyright, .links, .socials) {
       justify-self: center;
+    }
+
+    @media only screen and (min-resolution: 192dpi) {
+      font-size: 1.5rem;
     }
   }
 }
