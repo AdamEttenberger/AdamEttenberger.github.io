@@ -6,6 +6,8 @@ import ocean_simulation_material_code from '@/assets/shaders/hero-section/ocean_
 import ocean_simulation_flipbook_normal_height_map_src from '@/assets/textures/hero-section/normal_height_map_256_64f.webp'
 import { WebGPUStruct } from '@/util/webgpu/webgpu_struct'
 import { useUserPreferencesStore } from '@/stores/user_preferences'
+import Viewport from '@/wgpu/core/viewport'
+import TextureRegistry, { getTextureGroupSize, TextureGroup } from '@/wgpu/resource/texture'
 const user_preferences = useUserPreferencesStore();
 
 const kAnimationGridSize = vec2.fromValues(8, 8); // Number of animation frame [columns, rows]
@@ -24,12 +26,6 @@ function toRadian(degrees: number) {
   return degrees * kToRadianScalar;
 }
 
-enum ViewportState {
-  Idle,
-  Playing,
-  Stopping,
-};
-
 enum BindGroupIndex {
   Global,
   Material,
@@ -44,138 +40,6 @@ enum TextureLayerKey {
   OceanSimulation,
 };
 const TextureLayerKey_Count = Object.keys(TextureLayerKey).length / 2;
-
-/**
- * Helper which manages the Viewport state tied to a Canvas.
- * Automatically responds to display size and resolution changes.
- * Automatically starts/stops rendering depending on whether the Canvas is visible.
- */
-class Viewport {
-  private _device: GPUDevice;
-  private _container: WeakRef<Element>;
-  private _canvas: WeakRef<HTMLCanvasElement>;
-  private _onResizeEvent: ((viewport: Viewport) => void)|null;
-  private _onAnimationFrame: ((timestamp: number) => void)|null;
-
-  private _intersectionObserver: IntersectionObserver|null;
-  private _resizeObserver: ResizeObserver|null = null;
-  private _resolutionMediaQuery: MediaQueryList|null = null;
-
-  private _logicalWidth: number = 0;
-  private _logicalHeight: number = 0;
-  private _physicalWidth: number = 0;
-  private _physicalHeight: number = 0;
-  private _aspect: number = 0;
-  private _devicePixelRatio: number = 0;
-  private _state: ViewportState = ViewportState.Idle;
-
-  private _depth_stencil_texture: GPUTexture|null = null;
-  private _depth_stencil_texture_view: GPUTextureView|null = null;
-
-  /**
-   * @param container The container around the canvas element which the canvas is intended to fill.
-   * @param canvas The canvas element used for rendering the scene.
-   * @param onAnimationFrame Callback executed to render a new frame.
-   */
-  constructor(device: GPUDevice, container: Element, canvas: HTMLCanvasElement, onResizeEvent: ((viewport: Viewport) => void)|null, onAnimationFrame: ((timestamp: number) => void)|null) {
-    this._device = device;
-    this._container = new WeakRef(container);
-    this._canvas = new WeakRef(canvas);
-    this._onResizeEvent = onResizeEvent;
-    this._onAnimationFrame = onAnimationFrame;
-    this._intersectionObserver = new IntersectionObserver(this.onIntersectionObserver);
-    this._resizeObserver = new ResizeObserver(this.onDisplayChanged);
-    this._resizeObserver.observe(container);
-    this._intersectionObserver.observe(canvas);
-    this.onDisplayChanged();
-  }
-
-  public get logicalWidth(): number { return this._logicalWidth; }
-  public get logicalHeight(): number { return this._logicalHeight; }
-  public get physicalWidth(): number { return this._physicalWidth; }
-  public get physicalHeight(): number { return this._physicalHeight; }
-  public get aspect(): number { return this._aspect; }
-  public get devicePixelRatio(): number { return this._devicePixelRatio; }
-  public get state(): ViewportState { return this._state; }
-
-  public get depthStencilTextureView(): GPUTextureView|null { return this._depth_stencil_texture_view; }
-
-  public destroy() {
-    if (this._resizeObserver) {
-      this._resizeObserver?.disconnect();
-      this._resizeObserver = null;
-    }
-    if (this._resolutionMediaQuery) {
-      this._resolutionMediaQuery?.removeEventListener('change', this.onDisplayChanged);
-      this._resolutionMediaQuery = null;
-    }
-    if (this._intersectionObserver) {
-      this._intersectionObserver.disconnect();
-      this._intersectionObserver = null;
-    }
-    if (this._depth_stencil_texture) {
-      this._depth_stencil_texture.destroy();
-      this._depth_stencil_texture = null;
-    }
-    this._onResizeEvent = null;
-    this._onAnimationFrame = null;
-  }
-
-  private onDisplayChanged = () => {
-    const currentDevicePixelRatio = Math.min(window.devicePixelRatio || 1, 2);
-    if (this.devicePixelRatio != currentDevicePixelRatio) {
-      this._resolutionMediaQuery?.removeEventListener('change', this.onDisplayChanged);
-      this._devicePixelRatio = currentDevicePixelRatio;
-      this._resolutionMediaQuery = window.matchMedia(`(resolution: ${currentDevicePixelRatio}dppx)`),
-      this._resolutionMediaQuery.addEventListener('change', this.onDisplayChanged);
-    }
-    const box = this._container.deref()?.getBoundingClientRect();
-    this._logicalWidth = box?.width ?? 0;
-    this._logicalHeight = box?.height ?? 0;
-    this._physicalWidth = Math.max(1, Math.round(this.logicalWidth * this.devicePixelRatio));
-    this._physicalHeight = Math.max(1, Math.round(this.logicalHeight * this.devicePixelRatio));
-    this._aspect = this.physicalWidth / this.physicalHeight;
-
-    let canvas = this._canvas.deref();
-    if (canvas) {
-      canvas.style.width = `${this.logicalWidth}px`;
-      canvas.style.height = `${this.logicalHeight}px`;
-      canvas.width = Math.floor(this.physicalWidth);
-      canvas.height = Math.floor(this.physicalHeight);
-    }
-
-    this._depth_stencil_texture?.destroy();
-    this._depth_stencil_texture = this._device.createTexture({
-      size: [this.physicalWidth, this.physicalHeight],
-      format: 'depth24plus-stencil8',
-      usage: GPUTextureUsage.RENDER_ATTACHMENT,
-    });
-    this._depth_stencil_texture_view = this._depth_stencil_texture.createView();
-
-    this._onResizeEvent?.(this);
-  }
-
-  private onIntersectionObserver = (entries: IntersectionObserverEntry[], observer: IntersectionObserver) => {
-    const isVisible: boolean = entries[0]?.isIntersecting ?? false;
-    if (this.state === ViewportState.Idle && isVisible) {
-      this._state = ViewportState.Playing;
-      requestAnimationFrame(this.onRequestAnimationFrame);
-    } else if (this.state === ViewportState.Playing && !isVisible) {
-      this._state = ViewportState.Stopping;
-    }
-  }
-
-  private onRequestAnimationFrame = (timestamp: number) => {
-    if (this.state !== ViewportState.Playing) {
-      this._state = ViewportState.Idle;
-      return;
-    }
-    this._onAnimationFrame?.(timestamp);
-    if (this.state === ViewportState.Playing) {
-      requestAnimationFrame(this.onRequestAnimationFrame);
-    }
-  }
-}
 
 interface IGlobalUniforms {
   vMatrix:          Float32Array<ArrayBuffer>;
@@ -387,24 +251,31 @@ async function setup() {
     alphaMode: 'opaque',
   });
 
+  const texture_registry = new TextureRegistry(device, new Map<TextureGroup, number>([
+    [TextureGroup._2k, 1]
+  ]));
+
   const global_uniforms = new GlobalUniforms(device);
   const materials = new MaterialData(device, 1);
-  
-  const ocean_simulation_datamap = await loadTexture(ocean_simulation_flipbook_normal_height_map_src);
-  materials.value[0].normal_height_texture[0] = TextureLayerKey.OceanSimulation;
+
+  const ocean_simulation_datamap = await texture_registry.get(ocean_simulation_flipbook_normal_height_map_src);
+  if (ocean_simulation_datamap === undefined) {
+    throw new Error(`Cannot locate texture: ${ocean_simulation_flipbook_normal_height_map_src}`);
+  }
+
+  materials.value[0].normal_height_texture[0] = ocean_simulation_datamap.layer;
   vec3.copy(materials.value[0].albedo, kOceanAlbedo)
   vec2.copy(materials.value[0].grid_size, kAnimationGridSize);
   vec2.set(materials.value[0].cell_size,
-    ocean_simulation_datamap.width / kAnimationGridSize.x,
-    ocean_simulation_datamap.height / kAnimationGridSize.y
+    getTextureGroupSize(ocean_simulation_datamap.group) / kAnimationGridSize.x,
+    getTextureGroupSize(ocean_simulation_datamap.group) / kAnimationGridSize.y
   );
   materials.submit();
 
-  const global_texture_bucket = device.createTexture({
-    size: { width: ocean_simulation_datamap.width, height: ocean_simulation_datamap.height, depthOrArrayLayers: TextureLayerKey_Count },
-    format: 'rgba8unorm',
-    usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
-  });
+  const global_texture_view: GPUTextureView|undefined = texture_registry.get_group(ocean_simulation_datamap.group);
+  if (global_texture_view === undefined) {
+    throw new Error(`Cannot find texture group: ${ocean_simulation_datamap.group}`);
+  }
 
   const global_sampler = device.createSampler({
     magFilter: 'linear',
@@ -412,12 +283,6 @@ async function setup() {
     addressModeU: 'repeat',
     addressModeV: 'repeat',
   });
-
-  device.queue.copyExternalImageToTexture(
-    { source: await loadTexture(ocean_simulation_flipbook_normal_height_map_src) },
-    { texture: global_texture_bucket, origin: { x: 0, y: 0, z: TextureLayerKey.OceanSimulation }, premultipliedAlpha: false, colorSpace: 'srgb' },
-    { width: ocean_simulation_datamap.width, height: ocean_simulation_datamap.height }
-  );
 
   const shaderModule = device.createShaderModule({ code: ocean_simulation_material_code });
 
@@ -478,11 +343,7 @@ async function setup() {
         { binding: 0, resource: { buffer: global_uniforms.gpuBuffer } },
         {
           binding: 1,
-          resource: global_texture_bucket.createView({
-            dimension: '2d-array',
-            baseArrayLayer: 0,
-            arrayLayerCount: TextureLayerKey_Count,
-          })
+          resource: global_texture_view,
         },
         { binding: 2, resource: global_sampler },
       ],
@@ -576,15 +437,6 @@ async function setup() {
 
 function shutdown() {
   state?.viewport.destroy();
-}
-
-async function loadTexture(src: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const image = new Image();
-    image.src =  src;
-    image.onerror = (err) => reject(err);
-    image.onload = () => resolve(image);
-  });
 }
 
 function updateCameraMatrix() {
