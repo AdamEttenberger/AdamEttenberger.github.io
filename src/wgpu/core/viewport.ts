@@ -1,3 +1,5 @@
+import OnViewportDisplayChanged from '@/wgpu/event/viewport/on-viewport-display-changed'
+import OnViewportRender from '@/wgpu/event/viewport/on-viewport-render'
 
 enum ViewportState {
   Idle,
@@ -11,10 +13,11 @@ enum ViewportState {
  * Automatically starts/stops rendering depending on whether the Canvas is visible.
  */
 export default class Viewport {
+  public readonly on_display_changed = new OnViewportDisplayChanged();
+  public readonly on_render = new OnViewportRender();
+
   private _device: GPUDevice;
   private _canvas: WeakRef<HTMLCanvasElement>;
-  private _onResizeEvent: ((viewport: Viewport) => void)|null;
-  private _onAnimationFrame: ((timestamp: number) => void)|null;
 
   private _intersectionObserver: IntersectionObserver|null;
   private _resizeObserver: ResizeObserver|null = null;
@@ -39,13 +42,9 @@ export default class Viewport {
   constructor(
     device: GPUDevice,
     canvas: HTMLCanvasElement,
-    onResizeEvent: ((viewport: Viewport) => void)|null,
-    onAnimationFrame: ((timestamp: number) => void)|null
   ) {
     this._device = device;
     this._canvas = new WeakRef(canvas);
-    this._onResizeEvent = onResizeEvent;
-    this._onAnimationFrame = onAnimationFrame;
     this._intersectionObserver = new IntersectionObserver(this.onIntersectionObserver);
     this._resizeObserver = new ResizeObserver(this.onDisplayChanged);
     this._resizeObserver.observe(canvas);
@@ -79,11 +78,11 @@ export default class Viewport {
       this._depth_stencil_texture.destroy();
       this._depth_stencil_texture = null;
     }
-    this._onResizeEvent = null;
-    this._onAnimationFrame = null;
+    this.on_display_changed.disconnect();
+    this.on_render.disconnect();
   }
 
-  private onDisplayChanged = () => {
+  private readonly onDisplayChanged = () => {
     const canvas: HTMLCanvasElement|undefined = this._canvas.deref();
     if (canvas === undefined) {
       return;
@@ -115,10 +114,10 @@ export default class Viewport {
     });
     this._depth_stencil_texture_view = this._depth_stencil_texture.createView();
 
-    this._onResizeEvent?.(this);
+    this.on_display_changed.emit(this);
   }
 
-  private onIntersectionObserver = (entries: IntersectionObserverEntry[], observer: IntersectionObserver) => {
+  private readonly onIntersectionObserver = (entries: IntersectionObserverEntry[], observer: IntersectionObserver) => {
     const isVisible: boolean = entries[0]?.isIntersecting ?? false;
     if (this._state === ViewportState.Idle && isVisible) {
       this._state = ViewportState.Playing;
@@ -128,12 +127,12 @@ export default class Viewport {
     }
   }
 
-  private onRequestAnimationFrame = (timestamp: number) => {
+  private readonly onRequestAnimationFrame = (timestamp: number) => {
     if (this._state !== ViewportState.Playing) {
       this._state = ViewportState.Idle;
       return;
     }
-    this._onAnimationFrame?.(timestamp);
+    this.on_render.emit(this, timestamp);
     if (this._state === ViewportState.Playing) {
       requestAnimationFrame(this.onRequestAnimationFrame);
     }

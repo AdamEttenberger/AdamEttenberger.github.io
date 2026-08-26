@@ -408,8 +408,12 @@ async function setup() {
     }
   });
 
+  const viewport = new Viewport(device, canvas.value);
+  viewport.on_display_changed.subscribe(resize);
+  viewport.on_render.subscribe(render);
+
   state = {
-    viewport: new Viewport(device, canvas.value, resize, render),
+    viewport,
     context,
     adapter,
     device,
@@ -439,7 +443,7 @@ function shutdown() {
   state?.viewport.destroy();
 }
 
-function updateCameraMatrix() {
+function updateCameraMatrix(viewport: Viewport) {
   if (!state) {
     return;
   }
@@ -448,7 +452,7 @@ function updateCameraMatrix() {
 
   switch (state.camera.projection.type) {
     case 'perspective':
-      mat4.perspectiveZO(state.global_uniforms.value[0].pMatrix, state.camera.projection.fovy, state.viewport.aspect, state.camera.projection.near, state.camera.projection.far);
+      mat4.perspectiveZO(state.global_uniforms.value[0].pMatrix, state.camera.projection.fovy, viewport.aspect, state.camera.projection.near, state.camera.projection.far);
       break;
     case 'orthogonal':
       mat4.orthoZO(state.global_uniforms.value[0].pMatrix, state.camera.projection.left, state.camera.projection.right, state.camera.projection.bottom, state.camera.projection.top, state.camera.projection.near, state.camera.projection.far);
@@ -468,8 +472,8 @@ function resize(viewport: Viewport) {
       viewport.aspect);
 }
 
-function render(timestamp: number) {
-  if (!state || !state.viewport.depthStencilTextureView) {
+function render(viewport: Viewport, timestamp: number) {
+  if (!state || !viewport.depthStencilTextureView) {
     return;
   }
   const useDarkMode = user_preferences.useDarkMode;
@@ -477,7 +481,7 @@ function render(timestamp: number) {
     ? vec3.fromValues(0.016, 0.102, 0.251)
     : vec3.fromValues(0.529, 0.808, 0.922);
 
-  updateCameraMatrix();
+  updateCameraMatrix(viewport);
 
   vec3.copy(state.global_uniforms.value[0].iLightDirection, kLightDirection);
   vec3.copy(state.global_uniforms.value[0].iLightColor, sky_color);
@@ -495,7 +499,7 @@ function render(timestamp: number) {
       },
     ],
     depthStencilAttachment: {
-      view: state.viewport.depthStencilTextureView,
+      view: viewport.depthStencilTextureView,
       depthClearValue: 1,
       stencilClearValue: 0,
       depthLoadOp: 'clear',
