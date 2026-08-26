@@ -225,8 +225,8 @@ interface MainState {
 };
 
 async function setup() {
-  if (!container.value || !canvas.value) {
-    throw new Error('Cannot find canvas containers.')
+  if (!canvas.value) {
+    throw new Error('Cannot find canvas element.')
   }
   if (!navigator.gpu) {
     throw new Error('WebGPU is not supported by this browser.');
@@ -409,7 +409,7 @@ async function setup() {
   });
 
   state = {
-    viewport: new Viewport(device, container.value, canvas.value, resize, render),
+    viewport: new Viewport(device, canvas.value, resize, render),
     context,
     adapter,
     device,
@@ -533,7 +533,6 @@ function onContextMenu(evt: PointerEvent) {
   evt.preventDefault();
 }
 
-const container = useTemplateRef<Element>('container');
 const canvas = useTemplateRef<HTMLCanvasElement>('canvas');
 let state: MainState|null;
 
@@ -545,7 +544,7 @@ defineExpose({
 </script>
 
 <template>
-  <div class="hero-section-viewport-container" ref="container">
+  <div class="hero-section-viewport-container">
     <canvas ref="canvas" @contextmenu="onContextMenu">
       <div class='error'><img src='/images/html5_white.png' width='128' height='128' /><h2>This page requires support for HTML5 Canvas and WebGPU</h2></div>
     </canvas>

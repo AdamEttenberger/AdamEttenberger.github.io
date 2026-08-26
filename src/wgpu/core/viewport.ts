@@ -12,7 +12,6 @@ enum ViewportState {
  */
 export default class Viewport {
   private _device: GPUDevice;
-  private _container: WeakRef<Element>;
   private _canvas: WeakRef<HTMLCanvasElement>;
   private _onResizeEvent: ((viewport: Viewport) => void)|null;
   private _onAnimationFrame: ((timestamp: number) => void)|null;
@@ -33,26 +32,23 @@ export default class Viewport {
   private _depth_stencil_texture_view: GPUTextureView|null = null;
 
   /**
-   * @param container The container around the canvas element which the canvas is intended to fill.
    * @param canvas The canvas element used for rendering the scene.
    * @param onResizeEvent Callback executed when the viewport changes size.
    * @param onAnimationFrame Callback executed to render a new frame.
    */
   constructor(
     device: GPUDevice,
-    container: Element,
     canvas: HTMLCanvasElement,
     onResizeEvent: ((viewport: Viewport) => void)|null,
     onAnimationFrame: ((timestamp: number) => void)|null
   ) {
     this._device = device;
-    this._container = new WeakRef(container);
     this._canvas = new WeakRef(canvas);
     this._onResizeEvent = onResizeEvent;
     this._onAnimationFrame = onAnimationFrame;
     this._intersectionObserver = new IntersectionObserver(this.onIntersectionObserver);
     this._resizeObserver = new ResizeObserver(this.onDisplayChanged);
-    this._resizeObserver.observe(container);
+    this._resizeObserver.observe(canvas);
     this._intersectionObserver.observe(canvas);
     this.onDisplayChanged();
   }
@@ -88,6 +84,11 @@ export default class Viewport {
   }
 
   private onDisplayChanged = () => {
+    const canvas: HTMLCanvasElement|undefined = this._canvas.deref();
+    if (canvas === undefined) {
+      return;
+    }
+
     const currentDevicePixelRatio = Math.min(window.devicePixelRatio || 1, 2);
     if (this.devicePixelRatio != currentDevicePixelRatio) {
       this._resolutionMediaQuery?.removeEventListener('change', this.onDisplayChanged);
@@ -95,20 +96,16 @@ export default class Viewport {
       this._resolutionMediaQuery = window.matchMedia(`(resolution: ${currentDevicePixelRatio}dppx)`),
       this._resolutionMediaQuery.addEventListener('change', this.onDisplayChanged);
     }
-    const box = this._container.deref()?.getBoundingClientRect();
+    const box = canvas.getBoundingClientRect();
     this._logicalWidth = box?.width ?? 0;
     this._logicalHeight = box?.height ?? 0;
     this._physicalWidth = Math.max(1, Math.round(this.logicalWidth * this.devicePixelRatio));
     this._physicalHeight = Math.max(1, Math.round(this.logicalHeight * this.devicePixelRatio));
     this._aspect = this.physicalWidth / this.physicalHeight;
 
-    let canvas = this._canvas.deref();
-    if (canvas) {
-      canvas.style.width = `${this.logicalWidth}px`;
-      canvas.style.height = `${this.logicalHeight}px`;
-      canvas.width = Math.floor(this.physicalWidth);
-      canvas.height = Math.floor(this.physicalHeight);
-    }
+    // Assumes canvas is dynamically sized with CSS, skip setting canvas.style.{width|height}.
+    canvas.width = Math.floor(this.physicalWidth);
+    canvas.height = Math.floor(this.physicalHeight);
 
     this._depth_stencil_texture?.destroy();
     this._depth_stencil_texture = this._device.createTexture({
