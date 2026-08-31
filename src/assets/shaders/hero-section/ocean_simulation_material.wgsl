@@ -1,6 +1,6 @@
 const kFrameCount: vec2f = vec2f(8.0, 8.0);
 const kFrameRate: f32 = 8.0;
-const kMipMapSafeTexelInset: f32 = 4.0;
+const kMipMapSafeTexelInset: f32 = 4.0; // mipLevelCount: 3
 const PI: f32 = 3.14159265359;
 
 struct GlobalUniforms {
@@ -16,7 +16,7 @@ struct GlobalUniforms {
 
 struct MaterialData {
   normal_height_texture: u32,
-  albedo: vec3f,
+  albedo_color: vec3f,
   grid_size: vec2f,
   cell_size: vec2f,
 };
@@ -28,7 +28,11 @@ struct InstanceData {
 
 @group(0) @binding(0) var<uniform> global: GlobalUniforms;
 @group(0) @binding(1) var global_texture_bucket: texture_2d_array<f32>;
-@group(0) @binding(2) var global_sampler: sampler;
+@group(0) @binding(2) var s_linear_repeat: sampler;
+@group(0) @binding(3) var s_linear_clamp: sampler;
+@group(0) @binding(4) var s_nearest_repeat: sampler;
+@group(0) @binding(5) var s_nearest_clamp: sampler;
+@group(0) @binding(6) var s_shadow_compare: sampler_comparison;
 
 @group(1) @binding(0) var<storage, read> materials: array<MaterialData>;
 @group(2) @binding(0) var<storage, read> instances: array<InstanceData>;
@@ -134,15 +138,15 @@ fn fs_get_direction_derivative(uv: vec2f) -> DirectionDerivative {
 }
 
 fn fs_get_world_normal(material: MaterialData, frame_coords: FlipbookFrameCoords, derivative: DirectionDerivative) -> vec3f {
-  let n1: vec3f = textureSampleGrad(global_texture_bucket, global_sampler, frame_coords.uv1, material.normal_height_texture, derivative.dx, derivative.dy).rgb * 2.0 - 1.0;
-  let n2: vec3f = textureSampleGrad(global_texture_bucket, global_sampler, frame_coords.uv2, material.normal_height_texture, derivative.dx, derivative.dy).rgb * 2.0 - 1.0;
+  let n1: vec3f = textureSampleGrad(global_texture_bucket, s_linear_repeat, frame_coords.uv1, material.normal_height_texture, derivative.dx, derivative.dy).rgb * 2.0 - 1.0;
+  let n2: vec3f = textureSampleGrad(global_texture_bucket, s_linear_repeat, frame_coords.uv2, material.normal_height_texture, derivative.dx, derivative.dy).rgb * 2.0 - 1.0;
   let value = mix(n1, n2, fract(global.iTime * kFrameRate));
   return normalize(value);
 }
 
 fn get_surface_height(material: MaterialData, frame_coords: FlipbookFrameCoords) -> f32 {
-  let h1: f32 = textureSampleLevel(global_texture_bucket, global_sampler, frame_coords.uv1, material.normal_height_texture, 0.0).a * 2.0 - 1.0;
-  let h2: f32 = textureSampleLevel(global_texture_bucket, global_sampler, frame_coords.uv2, material.normal_height_texture, 0.0).a * 2.0 - 1.0;
+  let h1: f32 = textureSampleLevel(global_texture_bucket, s_linear_repeat, frame_coords.uv1, material.normal_height_texture, 0.0).a * 2.0 - 1.0;
+  let h2: f32 = textureSampleLevel(global_texture_bucket, s_linear_repeat, frame_coords.uv2, material.normal_height_texture, 0.0).a * 2.0 - 1.0;
   let value: f32 = mix(h1, h2, fract(global.iTime * kFrameRate));
   return value;
 }
@@ -177,8 +181,13 @@ fn reinhard_tonemap(color: vec3f) -> vec3f {
   return color / (color + vec3f(1.0));
 }
 
-fn gamma_correction(color: vec3f) -> vec3f {
-  return pow(color, vec3f(1.0 / 2.2));
+/**
+ * Linear to sRGB color space gamma correction.
+ * @param linear_color The linear RGB color space value to correct.
+ * @return The gamma corrected color in sRGB color space.
+ */
+fn linearToSRGB(linear_color: vec3f) -> vec3f {
+  return pow(linear_color, vec3f(1.0 / 2.2));
 }
 
 @vertex
@@ -190,7 +199,7 @@ fn vs_main(input: VertexInput) -> VertexOutput {
 
   let frame_coords: FlipbookFrameCoords = get_flipbook_coords(material, input.uv);
   let sample_blend: f32 = fract(global.iTime * kFrameRate);
-  
+
   var displacedPosition: vec4f = vec4f(input.position, 1.0);
   displacedPosition.y += get_surface_height(material, frame_coords);
 
@@ -212,7 +221,7 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {
 
   // PBR material properties; bidirectional reflectance distribution function.
   let reflectance: CookTorranceReflectance = cook_torrance_reflectance(world_normal, view_direction, light_direction);
-  let BRDF: vec3f = reflectance.diffuse_ratio * (material.albedo / PI) + reflectance.specular;
+  let BRDF: vec3f = reflectance.diffuse_ratio * (material.albedo_color / PI) + reflectance.specular;
 
   // light intensity / attenuated light, incoming light energy arriving at the surface,
   // before scattering or reflection towards the camera.
@@ -221,8 +230,8 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {
   // total light leaving the surface towards the camera.
   let outgoing_radiance: vec3f = BRDF * irradiance;
 
-  let ambient: vec3f = vec3f(0.1) * material.albedo;
+  let ambient: vec3f = vec3f(0.1) * material.albedo_color;
 
   var color: vec3f = ambient + outgoing_radiance;
-  return vec4f(gamma_correction(aces_tonemap(color)), 1.0);
+  return vec4f(linearToSRGB(aces_tonemap(color)), 1.0);
 }
