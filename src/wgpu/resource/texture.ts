@@ -127,6 +127,7 @@ class TexturePool {
     return this._device.createTexture({
       size: { width: size, height: size, depthOrArrayLayers: this.layers },
       format: 'rgba8unorm',
+      mipLevelCount: 3, // TODO: Generalize this
       usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
     });
   }
