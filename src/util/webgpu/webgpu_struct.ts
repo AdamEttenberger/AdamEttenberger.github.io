@@ -27,6 +27,8 @@
 //   vec4.set(vertices.value[0].color, 1, 1, 1, 1);
 //
 
+import { alignUp } from '@/wgpu/util/memory'
+
 type F32Array = Float32Array<ArrayBuffer>;
 type U32Array = Uint32Array<ArrayBuffer>;
 
@@ -132,16 +134,6 @@ export interface WebGPUStructValue<T extends StructFields> {
   readonly value: {
     readonly [index: number]: StructView<T>;
   };
-}
-
-/**
- * Aligns `value` upwards to `alignment`.
- */
-function alignUp(
-  value: number,
-  alignment: number,
-): number {
-  return Math.ceil(value / alignment) * alignment;
 }
 
 /**
