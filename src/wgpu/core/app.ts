@@ -1,4 +1,4 @@
-import { WebGPUStruct } from '@/util/webgpu/webgpu_struct'
+import { WebGPUStruct } from '@/wgpu/resource/buffer'
 import type { ICamera } from '@/wgpu/core/camera';
 import Pipeline from '@/wgpu/core/pipeline';
 import Viewport from '@/wgpu/core/viewport'

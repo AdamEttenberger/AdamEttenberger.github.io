@@ -1,4 +1,4 @@
-import { WebGPUStruct } from '@/util/webgpu/webgpu_struct'
+import { WebGPUStruct } from '@/wgpu/resource/buffer'
 import Hash from '@/wgpu/util/hash'
 
 export interface IMaterial {

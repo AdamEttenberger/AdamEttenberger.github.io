@@ -1,4 +1,4 @@
-import { WebGPUStruct } from '@/util/webgpu/webgpu_struct'
+import { WebGPUStruct } from '@/wgpu/resource/buffer'
 import { Plane, VertexLayout, type IGeometry } from '@/wgpu/resource/geometry'
 import type { IMaterial } from '@/wgpu/resource/material';
 
