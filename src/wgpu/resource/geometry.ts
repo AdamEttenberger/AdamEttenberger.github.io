@@ -166,39 +166,39 @@ export class Plane extends GeometryBase {
 
     // Begin in the "top-left" corner, right-handed coordinate space,
     // (-Z) into screen, UV [0, 0]
-    let vert_index = 0;
+    let vert_offset = 0;
     for (let row = 0; row <= gridsize; ++row) {
       let dy = row * vert_distance;
       for (let col = 0; col <= gridsize; ++col) {
         let dx = col * vert_distance;
-        /*x=*/  vertices[vert_index]      = dx - 0.5;
-        /*y=*/  vertices[vert_index + 1]  = 0;
-        /*z=*/  vertices[vert_index + 2]  = dy - 0.5;
-        /*Nx=*/ vertices[vert_index + 3]  = 0;
-        /*Ny=*/ vertices[vert_index + 4]  = 1;
-        /*Nz=*/ vertices[vert_index + 5]  = 0;
-        /*Tx=*/ vertices[vert_index + 6]  = 1;
-        /*Ty=*/ vertices[vert_index + 7]  = 0;
-        /*Tz=*/ vertices[vert_index + 8]  = 0;
-        /*Tw=*/ vertices[vert_index + 9]  = 1;
-        /*u=*/  vertices[vert_index + 10] = dx;
-        /*v=*/  vertices[vert_index + 11] = dy;
-        vert_index += vert_stride;
+        /*x=*/  vertices[vert_offset]      = dx - 0.5;
+        /*y=*/  vertices[vert_offset + 1]  = 0;
+        /*z=*/  vertices[vert_offset + 2]  = dy - 0.5;
+        /*Nx=*/ vertices[vert_offset + 3]  = 0;
+        /*Ny=*/ vertices[vert_offset + 4]  = 1;
+        /*Nz=*/ vertices[vert_offset + 5]  = 0;
+        /*Tx=*/ vertices[vert_offset + 6]  = 1;
+        /*Ty=*/ vertices[vert_offset + 7]  = 0;
+        /*Tz=*/ vertices[vert_offset + 8]  = 0;
+        /*Tw=*/ vertices[vert_offset + 9]  = 1;
+        /*u=*/  vertices[vert_offset + 10] = dx;
+        /*v=*/  vertices[vert_offset + 11] = dy;
+        vert_offset += vert_stride;
       }
     }
 
-    let quad_index = 0;
+    let idx_offset = 0;
     for (let row = 0; row < gridsize; ++row) {
       let quad_tl = row * vert_width;
       for (let col = 0; col < gridsize; ++col) {
         let quad_br = quad_tl + vert_width + 1;
-        /*tl=*/ indices[quad_index]     = quad_tl;
-        /*bl=*/ indices[quad_index + 1] = quad_br - 1;
-        /*br=*/ indices[quad_index + 2] = quad_br;
-        /*tl=*/ indices[quad_index + 3] = quad_tl;
-        /*br=*/ indices[quad_index + 4] = quad_br;
-        /*tr=*/ indices[quad_index + 5] = quad_tl + 1;
-        quad_index += 6;
+        /*tl=*/ indices[idx_offset]     = quad_tl;
+        /*bl=*/ indices[idx_offset + 1] = quad_br - 1;
+        /*br=*/ indices[idx_offset + 2] = quad_br;
+        /*tl=*/ indices[idx_offset + 3] = quad_tl;
+        /*br=*/ indices[idx_offset + 4] = quad_br;
+        /*tr=*/ indices[idx_offset + 5] = quad_tl + 1;
+        idx_offset += 6;
         ++quad_tl;
       }
     }
