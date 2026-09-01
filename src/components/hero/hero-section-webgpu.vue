@@ -17,13 +17,14 @@ const kSkyDay = vec3.fromValues(0.529, 0.808, 0.922);
 
 const kAnimationGridSize = vec2.fromValues(8, 8); // Number of animation frame [columns, rows]
 
-const kInstanceTileScale = vec3.fromValues(300, 60, 300);
+const kOceanGridSize = 100;
+const kInstanceTileScale = vec3.fromValues(300, 40, 300);
 const kInstanceTileArea = vec4.fromValues(-5, -3, 5, 0);
 
-const kOceanAlbedo: Vec3 = vec3.fromValues(0.0, 0.467, 0.745);
+const kOceanAlbedo: Vec3 = vec3.fromValues(0.0, 0.425, 0.725);
 
 const kCameraPosition = vec3.fromValues(0, 150, 200);
-const kCameraRotation = quat.fromEuler(quat.create(), -15, 0, 0);
+const kCameraRotation = quat.fromEuler(quat.create(), -20, 0, 0);
 const kLightDirection = vec3.normalize(vec3.create(), vec3.transformQuat(vec3.create(), vec3.fromValues(0, 0, -1), quat.fromEuler(quat.create(), 220, 15, 0)));
 
 const kToRadianScalar = Math.PI / 180.0;
@@ -74,6 +75,7 @@ async function setup() {
     getTextureGroupSize(ocean_simulation_datamap.group) / kAnimationGridSize.x,
     getTextureGroupSize(ocean_simulation_datamap.group) / kAnimationGridSize.y
   );
+  vec2.div(ocean_simulation_material.uniforms.value[0].texel_size, vec2.fromValues(1, 1), ocean_simulation_material.uniforms.value[0].cell_size);
   ocean_simulation_material.uniforms.submit();
 
   const ocean_tiles = app.add(new OceanMeshes(
@@ -81,16 +83,18 @@ async function setup() {
     /*instance_count=*/(kInstanceTileArea.z - kInstanceTileArea.x + 1) * (kInstanceTileArea.w - kInstanceTileArea.y + 1),
     app.instance_bind_group_layout,
     ocean_simulation_material,
-    /*gridsize=*/100,
+    /*gridsize=*/kOceanGridSize,
   ));
   let row_stride = (kInstanceTileArea.z - kInstanceTileArea.x + 1);
   for (var y = kInstanceTileArea.y; y <= kInstanceTileArea.w; ++y) {
     for (var x = kInstanceTileArea.x; x <= kInstanceTileArea.z; ++x) {
       let instance_id = (x - kInstanceTileArea.x) + ((y - kInstanceTileArea.y) * row_stride);
       mat4.fromRotationTranslationScale(ocean_tiles.value[instance_id].mMatrix,
-       quat.create(),
-       vec3.fromValues(x * kInstanceTileScale.x, 0, y * kInstanceTileScale.z),
-       kInstanceTileScale);
+        quat.create(),
+        vec3.fromValues(x * kInstanceTileScale.x, 0, y * kInstanceTileScale.z),
+        kInstanceTileScale);
+      mat4.invert(ocean_tiles.value[instance_id].normalMatrix, ocean_tiles.value[instance_id].mMatrix)
+      mat4.transpose(ocean_tiles.value[instance_id].normalMatrix, ocean_tiles.value[instance_id].normalMatrix);
       ocean_tiles.value[instance_id].material_id[0] = 0;
     }
   }

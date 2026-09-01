@@ -5,7 +5,7 @@ import Viewport from '@/wgpu/core/viewport'
 import type { MeshInstance } from '@/wgpu/resource/mesh';
 import { TextureGroup } from '@/wgpu/resource/texture';
 import TextureRegistry from '@/wgpu/resource/texture';
-import { mat4, vec3, vec4, type Vec3Like } from 'ts-gl-matrix';
+import { vec3, vec4, type Vec3Like } from 'ts-gl-matrix';
 
 enum BindGroupIndex {
   Global,

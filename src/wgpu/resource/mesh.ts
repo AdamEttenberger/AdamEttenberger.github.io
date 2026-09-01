@@ -4,6 +4,7 @@ import type { IMaterial } from '@/wgpu/resource/material';
 
 export interface IMeshInstance {
   mMatrix: Float32Array<ArrayBuffer>;
+  normalMatrix: Float32Array<ArrayBuffer>;
   material_id: Uint32Array<ArrayBuffer>;
 }
 
@@ -42,6 +43,7 @@ export class MeshInstance extends WebGPUStruct<IMeshInstance> {
   ) {
     super(device, {
       mMatrix:      { type: 'mat4x4f' },
+      normalMatrix: { type: 'mat4x4f' },
       material_id:  { type: 'u32'     },
     }, instances, GPUBufferUsage.STORAGE);
     this.bindGroupLayout = bindGroupLayout;

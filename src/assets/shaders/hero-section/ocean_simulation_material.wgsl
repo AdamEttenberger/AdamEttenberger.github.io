@@ -19,10 +19,12 @@ struct MaterialData {
   albedo_color: vec3f,
   grid_size: vec2f,
   cell_size: vec2f,
+  texel_size: vec2f,
 };
 
 struct InstanceData {
   mMatrix: mat4x4f,
+  normalMatrix: mat4x4f,
   material_id: u32,
 };
 
@@ -40,14 +42,19 @@ struct InstanceData {
 struct VertexInput {
   @builtin(instance_index) instance_id: u32,
   @location(0) position: vec3f,
-  @location(1) uv: vec2f,
+  @location(1) normal: vec3f,
+  @location(2) tangent: vec4f,
+  @location(3) uv: vec2f,
 };
 
 struct VertexOutput {
   @builtin(position) clip_position: vec4f,
   @location(0) world_position: vec4f,
-  @location(1) uv: vec2f,
-  @location(2) @interpolate(flat) material_id: u32,
+  @location(1) world_normal: vec3f,
+  @location(2) world_tangent: vec3f,
+  @location(3) world_bitangent: vec3f,
+  @location(4) uv: vec2f,
+  @location(5) @interpolate(flat) material_id: u32,
 };
 
 struct FlipbookFrameCoords {
@@ -118,8 +125,8 @@ fn frame_to_uv(frame: f32, grid_size: vec2f) -> vec2f {
 }
 
 fn get_flipbook_coords(material: MaterialData, uv: vec2f) -> FlipbookFrameCoords {
-  let local_uv = clamp(fract(uv), vec2f(0.0001), vec2f(0.9999));
-  let pad_uv = kMipMapSafeTexelInset / material.cell_size;
+  let local_uv = fract(uv);
+  let pad_uv = kMipMapSafeTexelInset * material.texel_size;
   let cell_local_uv = (pad_uv + local_uv * (1.0 - 2.0 * pad_uv)) / material.grid_size;
 
   let frame: f32 = floor(global.iTime * kFrameRate);
@@ -132,23 +139,11 @@ fn get_flipbook_coords(material: MaterialData, uv: vec2f) -> FlipbookFrameCoords
   );
 }
 
-fn fs_get_direction_derivative(uv: vec2f) -> DirectionDerivative {
-  let tiled_frame: vec2f = uv / kFrameCount;
-  return DirectionDerivative(dpdx(tiled_frame), dpdy(tiled_frame));
-}
-
-fn fs_get_world_normal(material: MaterialData, frame_coords: FlipbookFrameCoords, derivative: DirectionDerivative) -> vec3f {
-  let n1: vec3f = textureSampleGrad(global_texture_bucket, s_linear_repeat, frame_coords.uv1, material.normal_height_texture, derivative.dx, derivative.dy).rgb * 2.0 - 1.0;
-  let n2: vec3f = textureSampleGrad(global_texture_bucket, s_linear_repeat, frame_coords.uv2, material.normal_height_texture, derivative.dx, derivative.dy).rgb * 2.0 - 1.0;
-  let value = mix(n1, n2, fract(global.iTime * kFrameRate));
-  return normalize(value);
-}
-
-fn get_surface_height(material: MaterialData, frame_coords: FlipbookFrameCoords) -> f32 {
-  let h1: f32 = textureSampleLevel(global_texture_bucket, s_linear_repeat, frame_coords.uv1, material.normal_height_texture, 0.0).a * 2.0 - 1.0;
-  let h2: f32 = textureSampleLevel(global_texture_bucket, s_linear_repeat, frame_coords.uv2, material.normal_height_texture, 0.0).a * 2.0 - 1.0;
-  let value: f32 = mix(h1, h2, fract(global.iTime * kFrameRate));
-  return value;
+fn get_surface_sample(material: MaterialData, frame_coords: FlipbookFrameCoords) -> vec4f {
+  let a: vec4f = textureSampleLevel(global_texture_bucket, s_linear_repeat, frame_coords.uv1, material.normal_height_texture, 0.0);
+  let b: vec4f = textureSampleLevel(global_texture_bucket, s_linear_repeat, frame_coords.uv2, material.normal_height_texture, 0.0);
+  let value = mix(a, b, fract(global.iTime * kFrameRate)) * 2.0 - 1.0;
+  return vec4f(normalize(value.rgb), value.a);
 }
 
 fn get_reflectivity() -> vec3f {
@@ -201,10 +196,24 @@ fn vs_main(input: VertexInput) -> VertexOutput {
   let sample_blend: f32 = fract(global.iTime * kFrameRate);
 
   var displacedPosition: vec4f = vec4f(input.position, 1.0);
-  displacedPosition.y += get_surface_height(material, frame_coords);
+  displacedPosition.y += get_surface_sample(material, frame_coords).w;
+
+  let normalMatrix3x3 = mat3x3f(
+    instance.normalMatrix[0].xyz,
+    instance.normalMatrix[1].xyz,
+    instance.normalMatrix[2].xyz,
+  );
+
+  let N = normalize(normalMatrix3x3 * input.normal);
+  let Traw = normalize((instance.mMatrix * vec4f(input.tangent.xyz, 0.0)).xyz);
+  let T = normalize(Traw - N * dot(N, Traw));
+  let B = cross(N, T) * input.tangent.w;
 
   out.world_position = instance.mMatrix * displacedPosition;
   out.clip_position = global.pMatrix * global.vMatrix * out.world_position;
+  out.world_normal = N;
+  out.world_tangent = T;
+  out.world_bitangent = B;
   out.uv = input.uv;
   out.material_id = instance.material_id;
   return out;
@@ -215,7 +224,13 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {
   let material = materials[input.material_id];
   let frame_coords: FlipbookFrameCoords = get_flipbook_coords(material, input.uv);
 
-  let world_normal: vec3f = fs_get_world_normal(material, frame_coords, fs_get_direction_derivative(input.uv));
+  let N = normalize(input.world_normal);
+  let T = normalize(input.world_tangent);
+  let B = normalize(input.world_bitangent);
+  let TBN = mat3x3f(T, B, N);
+
+  let local_normal_displacement: vec4f = get_surface_sample(material, frame_coords);
+  let world_normal: vec3f = normalize(TBN * local_normal_displacement.xyz);
   let view_direction: vec3f = normalize(global.iCameraPosition - input.world_position.xyz);
   let light_direction: vec3f = normalize(-global.iLightDirection);
 
@@ -230,8 +245,12 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {
   // total light leaving the surface towards the camera.
   let outgoing_radiance: vec3f = BRDF * irradiance;
 
-  let ambient: vec3f = vec3f(0.1) * material.albedo_color;
+  // Color grading so waves look "deeper" at their shallowest and closer to "foam" for peaking wave crests.
+  let scalar_displacement = smoothstep(-1.0, 1.0, local_normal_displacement.w);
+  var ambient: vec3f = material.albedo_color * 0.125;
+  ambient = mix(vec3f(0.0), ambient, smoothstep(0.125, 1.0, scalar_displacement));
+  ambient = mix(ambient, vec3f(0.125), smoothstep(0.75, 0.99, scalar_displacement));
 
-  var color: vec3f = ambient + outgoing_radiance;
+  let color: vec3f = ambient + outgoing_radiance;
   return vec4f(linearToSRGB(aces_tonemap(color)), 1.0);
 }

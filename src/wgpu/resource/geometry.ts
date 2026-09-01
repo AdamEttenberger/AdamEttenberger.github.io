@@ -148,6 +148,8 @@ export class Plane extends GeometryBase {
   ) {
     const vertexLayout = new VertexLayout(
       { attribute: VertexAttribute.Position,  format: 'float32x3' },
+      { attribute: VertexAttribute.Normal,    format: 'float32x3' },
+      { attribute: VertexAttribute.Tangent,   format: 'float32x4' },
       { attribute: VertexAttribute.UV,        format: 'float32x2' },
     );
 
@@ -169,11 +171,18 @@ export class Plane extends GeometryBase {
       let dy = row * vert_distance;
       for (let col = 0; col <= gridsize; ++col) {
         let dx = col * vert_distance;
-        /*x=*/ vertices[vert_index]     = dx - 0.5;
-        /*y=*/ vertices[vert_index + 1] = 0;
-        /*z=*/ vertices[vert_index + 2] = dy - 0.5;
-        /*u=*/ vertices[vert_index + 3] = dx;
-        /*v=*/ vertices[vert_index + 4] = dy;
+        /*x=*/  vertices[vert_index]      = dx - 0.5;
+        /*y=*/  vertices[vert_index + 1]  = 0;
+        /*z=*/  vertices[vert_index + 2]  = dy - 0.5;
+        /*Nx=*/ vertices[vert_index + 3]  = 0;
+        /*Ny=*/ vertices[vert_index + 4]  = 1;
+        /*Nz=*/ vertices[vert_index + 5]  = 0;
+        /*Tx=*/ vertices[vert_index + 6]  = 1;
+        /*Ty=*/ vertices[vert_index + 7]  = 0;
+        /*Tz=*/ vertices[vert_index + 8]  = 0;
+        /*Tw=*/ vertices[vert_index + 9]  = 1;
+        /*u=*/  vertices[vert_index + 10] = dx;
+        /*v=*/  vertices[vert_index + 11] = dy;
         vert_index += vert_stride;
       }
     }
