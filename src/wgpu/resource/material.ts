@@ -6,6 +6,8 @@ export interface IMaterial {
   readonly shader: GPUShaderModule;
   readonly bindLayout: GPUBindGroupLayout;
   readonly bindGroup: GPUBindGroup;
+
+  destroy(): void;
 }
 
 interface IOceanMaterialData {
@@ -64,4 +66,9 @@ export class OceanMaterial implements IMaterial {
       ],
     });
   }
+
+  public destroy() {
+    this.uniforms.destroy();
+  }
+
 }

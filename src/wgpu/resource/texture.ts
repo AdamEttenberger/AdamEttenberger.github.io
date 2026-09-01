@@ -122,6 +122,11 @@ class TexturePool {
     });
   }
 
+  public destroy() {
+    this._texture.destroy();
+    this._free = [];
+  }
+
   private makeTextureGroup(): GPUTexture {
     let size: number = getTextureGroupSize(this.group);
     return this._device.createTexture({
@@ -169,8 +174,8 @@ export default class TextureRegistry {
     if (pending === undefined) {
       const controller = new AbortController();
       pending = new PendingTexture(this.loadImageAsync(path, controller.signal).then<ITextureLocation|undefined>((image) => {
-        this._pending.delete(path);
-        if (controller.signal.aborted) {
+        const actively_pending = this._pending.delete(path);
+        if (controller.signal.aborted || !actively_pending) {
           return;
         }
         if (image === undefined || image.width !== image.height) {
@@ -203,6 +208,12 @@ export default class TextureRegistry {
       return this._pending.delete(path);
     }
     return false;
+  }
+
+  public destroy() {
+    this._pools.forEach(pool => pool.destroy());
+    this._pending.clear();
+    this._pools.clear();
   }
 
   private async loadImageAsync(path: string, signal: AbortSignal): Promise<ImageBitmap|undefined> {

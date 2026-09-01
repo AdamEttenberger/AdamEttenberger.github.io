@@ -222,6 +222,12 @@ export default class App {
       this._viewport.destroy();
       this._viewport = null;
     }
+    this._meshes.forEach(mesh => mesh.destroy());
+    this._meshes = [];
+    this.global_uniforms?.destroy();
+    this._pipeline?.destroy();
+    this.texture_registry?.destroy();
+    this.device?.destroy();
   }
 
   public add(instances: MeshInstance): MeshInstance {

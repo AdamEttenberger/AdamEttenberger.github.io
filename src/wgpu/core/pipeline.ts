@@ -53,4 +53,8 @@ export default class Pipeline {
     this.render_pipelines.set(hash, pipeline);
     return pipeline;
   }
+
+  public destroy() {
+    this.render_pipelines.clear();
+  }
 }

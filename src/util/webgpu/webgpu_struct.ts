@@ -437,6 +437,10 @@ export abstract class WebGPUStruct<
     );
   }
 
+  public destroy() {
+    this.gpuBuffer.destroy();
+  }
+
   /**
    * Returns the byte offset of a field within one instance.
    */

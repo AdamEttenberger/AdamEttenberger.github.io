@@ -56,6 +56,11 @@ export class MeshInstance extends WebGPUStruct<IMeshInstance> {
     this._geometry = geometry;
     this.material = material;
   }
+
+  public destroy() {
+    this._geometry.destroy();
+    this.material.destroy();
+  }
 }
 
 export class OceanMeshes extends MeshInstance {
