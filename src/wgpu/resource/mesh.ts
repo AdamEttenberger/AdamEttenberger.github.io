@@ -1,5 +1,5 @@
 import { WebGPUStruct } from '@/wgpu/resource/buffer'
-import { Plane, VertexLayout, type IGeometry } from '@/wgpu/resource/geometry'
+import { Cube, Plane, VertexLayout, type IGeometry } from '@/wgpu/resource/geometry'
 import type { IMaterial } from '@/wgpu/resource/material';
 
 export interface IMeshInstance {
@@ -75,6 +75,22 @@ export class OceanMeshes extends MeshInstance {
       instance_count,
       bindGroupLayout,
       new Plane(device, gridsize),
+      material,
+    );
+  }
+}
+
+export class CubeMeshes extends MeshInstance {
+  constructor(
+    device: GPUDevice,
+    instance_count: number,
+    bindGroupLayout: GPUBindGroupLayout,
+    material: IMaterial) {
+    super(
+      device,
+      instance_count,
+      bindGroupLayout,
+      new Cube(device),
       material,
     );
   }

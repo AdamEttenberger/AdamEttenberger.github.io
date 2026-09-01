@@ -1,6 +1,65 @@
 import { isF32Array, isGPUBuffer, isU16Array, isU32Array } from '@/wgpu/resource/buffer'
 import Hash from '@/wgpu/util/hash'
 import { alignUp } from '@/wgpu/util/memory'
+import { vec2, Vec3, vec3, type Vec2Like, type Vec3Like } from 'ts-gl-matrix'
+
+export enum AxisDirection {
+  X, Y, Z,
+  PositiveX = X,  Right = X,
+  PositiveY = Y,  Up = Y,
+  PositiveZ = Z,  Backward = Z,
+  NegativeX = 3, Left = NegativeX,
+  NegativeY = 4, Down = NegativeY,
+  NegativeZ = 5, Forward = NegativeZ,
+}
+type AxisDirectionArray = {
+  [K in AxisDirection]: Readonly<Vec3Like>;
+};
+
+export enum QuadCorner {
+  TL, BL, BR, TR,
+  TopLeft = TL,
+  BottomLeft = BL,
+  BottomRight = BR,
+  TopRight = TR,
+}
+type QuadCornerArray = {
+  [K in QuadCorner]: Readonly<Vec2Like>;
+}
+
+export const UNIT_AXIS: AxisDirectionArray = Object.freeze([
+  vec3.fromValues( 1,  0,  0), // T:-Z, B:-Y, N:+X
+  vec3.fromValues( 0,  1,  0), // T:+X, B:+Z, N:+Y
+  vec3.fromValues( 0,  0,  1), // T:+X, B:-Y, N:+Z
+  vec3.fromValues(-1,  0,  0), // T:+Z, B:-Y, N:-X
+  vec3.fromValues( 0, -1,  0), // T:+X, B:-Z, N:-Y
+  vec3.fromValues( 0,  0, -1), // T:-X, B:-Y, N:-Z
+]);
+
+export const AXIS_TANGENT: AxisDirectionArray = Object.freeze([
+  UNIT_AXIS[AxisDirection.NegativeZ],
+  UNIT_AXIS[AxisDirection.PositiveX],
+  UNIT_AXIS[AxisDirection.PositiveX],
+  UNIT_AXIS[AxisDirection.PositiveZ],
+  UNIT_AXIS[AxisDirection.PositiveX],
+  UNIT_AXIS[AxisDirection.NegativeX],
+]);
+
+export const AXIS_BITANGENT: AxisDirectionArray = Object.freeze([
+  UNIT_AXIS[AxisDirection.NegativeY],
+  UNIT_AXIS[AxisDirection.PositiveZ],
+  UNIT_AXIS[AxisDirection.NegativeY],
+  UNIT_AXIS[AxisDirection.NegativeY],
+  UNIT_AXIS[AxisDirection.NegativeZ],
+  UNIT_AXIS[AxisDirection.NegativeY],
+]);
+
+export const UV_CORNERS: QuadCornerArray = Object.freeze([
+  vec2.fromValues(0, 0),
+  vec2.fromValues(0, 1),
+  vec2.fromValues(1, 1),
+  vec2.fromValues(1, 0),
+]);
 
 const VERTEX_ATTRIBUTE_ALIGNMENT: number = 4;
 
@@ -243,6 +302,70 @@ export class Plane extends GeometryBase {
         idx_offset += 6;
         ++quad_tl;
       }
+    }
+
+    super(
+      device,
+      vertexLayout,
+      indexFormat,
+      vertices,
+      indices,
+    );
+  }
+}
+
+export class Cube extends GeometryBase {
+  constructor(
+    device: GPUDevice,
+    size: number = 1.0,
+  ) {
+    const vertexLayout = new VertexLayout(
+      { attribute: VertexAttribute.Position,  format: 'float32x3' },
+      { attribute: VertexAttribute.Normal,    format: 'float32x3' },
+      { attribute: VertexAttribute.Tangent,   format: 'float32x4' },
+      { attribute: VertexAttribute.UV,        format: 'float32x2' },
+    );
+
+    const vert_stride = vertexLayout.gpuLayout.arrayStride / Float32Array.BYTES_PER_ELEMENT;
+    const vert_count = 24;
+    const index_count = 36;
+    const indexFormat = 'uint16';
+
+    const vertices = new Float32Array(vert_count * vert_stride);
+    const indices = new Uint16Array(index_count);
+
+    const extent = size * 0.5;
+
+    const tb_signs: QuadCornerArray = [[-1, -1], [-1, 1], [1, 1], [1, -1]]; // [TL, BL, BR, TR]
+
+    for (let face_index: AxisDirection = 0; face_index < 6; ++face_index) {
+      const T: Readonly<Vec3Like> = AXIS_TANGENT[face_index];    // [X]: (+U) world direction
+      const B: Readonly<Vec3Like> = AXIS_BITANGENT[face_index];  // [Y]: (+V) world direction
+      const N: Readonly<Vec3Like> = UNIT_AXIS[face_index];       // [Z]: object/world normal
+
+      const first_vert_index: number = face_index * 4;
+      let vert_offset: number = first_vert_index * vert_stride;
+      for (let quad_vert_index: QuadCorner = 0; quad_vert_index < 4; ++quad_vert_index) {
+        const P: Vec3Like = vertices.subarray(vert_offset, vert_offset + 3);
+        vec3.copy(P, N);
+        vec3.scaleAndAdd(P, P, T, tb_signs[quad_vert_index][0]);
+        vec3.scaleAndAdd(P, P, B, tb_signs[quad_vert_index][1]);
+        vec3.scale(P, P, extent);
+
+        vertices.set(N, vert_offset + 3);
+        vertices.set(T, vert_offset + 6);
+        /*Tw=*/ vertices[vert_offset + 9] = 1;
+        vertices.set(UV_CORNERS[quad_vert_index], vert_offset + 10);
+        vert_offset += vert_stride;
+      }
+
+      const idx_offset = face_index * 6;
+      /*tl=*/ indices[idx_offset]     = first_vert_index;
+      /*bl=*/ indices[idx_offset + 1] = first_vert_index + 1;
+      /*br=*/ indices[idx_offset + 2] = first_vert_index + 2;
+      /*tl=*/ indices[idx_offset + 3] = first_vert_index;
+      /*br=*/ indices[idx_offset + 4] = first_vert_index + 2;
+      /*tr=*/ indices[idx_offset + 5] = first_vert_index + 3;
     }
 
     super(
