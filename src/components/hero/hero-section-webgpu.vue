@@ -17,13 +17,13 @@ const kSkyDay = vec3.fromValues(0.529, 0.808, 0.922);
 
 const kAnimationGridSize = vec2.fromValues(8, 8); // Number of animation frame [columns, rows]
 
-const kOceanGridSize = 100;
-const kInstanceTileScale = vec3.fromValues(300, 40, 300);
-const kInstanceTileArea = vec4.fromValues(-5, -3, 5, 0);
+const kOceanGridSize = 50;
+const kInstanceTileScale = vec3.fromValues(600, 150, 600);
+const kInstanceTileArea = vec4.fromValues(-1, -1, 1, 0);
 
 const kOceanAlbedo: Vec3 = vec3.fromValues(0.0, 0.425, 0.725);
 
-const kCameraPosition = vec3.fromValues(0, 150, 200);
+const kCameraPosition = vec3.fromValues(0, 200, 350);
 const kCameraRotation = quat.fromEuler(quat.create(), -20, 0, 0);
 const kLightDirection = vec3.normalize(vec3.create(), vec3.transformQuat(vec3.create(), vec3.fromValues(0, 0, -1), quat.fromEuler(quat.create(), 220, 15, 0)));
 
