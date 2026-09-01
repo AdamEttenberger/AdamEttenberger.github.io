@@ -35,21 +35,39 @@ class OceanMaterialData extends WebGPUStruct<IOceanMaterialData> {
   }
 }
 
-export class OceanMaterial implements IMaterial {
+export class MaterialBase<TUniformStruct extends WebGPUStruct<any>> implements IMaterial {
   public readonly hash: number;
   public readonly shader: GPUShaderModule;
-  public readonly uniforms: OceanMaterialData;
+  public readonly uniforms: TUniformStruct;
   public readonly bindLayout: GPUBindGroupLayout;
   public readonly bindGroup: GPUBindGroup;
 
   constructor(
     device: GPUDevice,
     shader_code: string,
+    uniforms: TUniformStruct,
+    bindLayout: GPUBindGroupLayout,
+    bindGroup: GPUBindGroup,
   ) {
-    this.hash = Hash.cyrb53(['OceanMaterialData', Hash.cyrb53(shader_code)].join(','));
+    this.hash = Hash.cyrb53([this.constructor.name, Hash.cyrb53(shader_code)].join(','));
     this.shader = device.createShaderModule({ code: shader_code });
-    this.uniforms = new OceanMaterialData(device, 1)
-    this.bindLayout = device.createBindGroupLayout({
+    this.uniforms = uniforms;
+    this.bindLayout = bindLayout;
+    this.bindGroup  = bindGroup;
+  }
+
+  public destroy(): void {
+    this.uniforms.destroy();
+  }
+}
+
+export class OceanMaterial extends MaterialBase<OceanMaterialData> {
+  constructor(
+    device: GPUDevice,
+    shader_code: string,
+  ) {
+    const uniforms = new OceanMaterialData(device, 1);
+    const bindLayout = device.createBindGroupLayout({
       entries: [
         {
           binding: 0,
@@ -61,16 +79,19 @@ export class OceanMaterial implements IMaterial {
         },
       ],
     });
-    this.bindGroup = device.createBindGroup({
-      layout: this.bindLayout,
+    const bindGroup = device.createBindGroup({
+      layout: bindLayout,
       entries: [
-        { binding: 0, resource: { buffer: this.uniforms.gpuBuffer } },
+        { binding: 0, resource: { buffer: uniforms.gpuBuffer } },
       ],
     });
-  }
 
-  public destroy() {
-    this.uniforms.destroy();
+    super(
+      device,
+      shader_code,
+      uniforms,
+      bindLayout,
+      bindGroup,
+    );
   }
-
 }
