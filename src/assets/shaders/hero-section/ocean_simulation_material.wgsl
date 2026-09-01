@@ -1,5 +1,5 @@
 const kFrameCount: vec2f = vec2f(8.0, 8.0);
-const kFrameRate: f32 = 8.0;
+const kFrameRate: f32 = 7.0;
 const kMipMapSafeTexelInset: f32 = 4.0; // mipLevelCount: 3
 const PI: f32 = 3.14159265359;
 
