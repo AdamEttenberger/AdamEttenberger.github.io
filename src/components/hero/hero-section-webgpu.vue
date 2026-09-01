@@ -76,6 +76,7 @@ async function setup() {
     getTextureGroupSize(ocean_simulation_datamap.group) / kAnimationGridSize.y
   );
   vec2.div(ocean_simulation_material.uniforms.value[0].texel_size, vec2.fromValues(1, 1), ocean_simulation_material.uniforms.value[0].cell_size);
+  ocean_simulation_material.uniforms.value[0].texel_margin[0] = 4.0;
   ocean_simulation_material.uniforms.submit();
 
   const ocean_tiles = app.add(new OceanMeshes(

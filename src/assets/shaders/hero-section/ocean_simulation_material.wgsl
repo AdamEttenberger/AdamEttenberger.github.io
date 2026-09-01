@@ -1,6 +1,4 @@
-const kFrameCount: vec2f = vec2f(8.0, 8.0);
 const kFrameRate: f32 = 7.0;
-const kMipMapSafeTexelInset: f32 = 4.0; // mipLevelCount: 3
 const PI: f32 = 3.14159265359;
 
 struct GlobalUniforms {
@@ -20,6 +18,7 @@ struct MaterialData {
   grid_size: vec2f,
   cell_size: vec2f,
   texel_size: vec2f,
+  texel_margin: f32,
 };
 
 struct InstanceData {
@@ -126,7 +125,7 @@ fn frame_to_uv(frame: f32, grid_size: vec2f) -> vec2f {
 
 fn get_flipbook_coords(material: MaterialData, uv: vec2f) -> FlipbookFrameCoords {
   let local_uv = fract(uv);
-  let pad_uv = kMipMapSafeTexelInset * material.texel_size;
+  let pad_uv = material.texel_margin * material.texel_size;
   let cell_local_uv = (pad_uv + local_uv * (1.0 - 2.0 * pad_uv)) / material.grid_size;
 
   let frame: f32 = floor(global.iTime * kFrameRate);

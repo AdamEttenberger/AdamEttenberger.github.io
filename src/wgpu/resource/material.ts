@@ -16,6 +16,7 @@ interface IOceanMaterialData {
   grid_size: Float32Array<ArrayBuffer>;
   cell_size: Float32Array<ArrayBuffer>;
   texel_size: Float32Array<ArrayBuffer>;
+  texel_margin: Float32Array<ArrayBuffer>;
 }
 
 class OceanMaterialData extends WebGPUStruct<IOceanMaterialData> {
@@ -29,6 +30,7 @@ class OceanMaterialData extends WebGPUStruct<IOceanMaterialData> {
       grid_size:              { type: 'vec2f' },
       cell_size:              { type: 'vec2f' },
       texel_size:             { type: 'vec2f' },
+      texel_margin:           { type: 'f32' },
     }, instances, GPUBufferUsage.STORAGE);
   }
 }
