@@ -236,8 +236,8 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {
 
   var albedo_color: vec3f = material.albedo_color;
   let scalar_displacement = smoothstep(-0.5, 0.5, local_normal_displacement.w);
-  albedo_color = mix(vec3f(0.0), albedo_color, smoothstep(0.125, 1.0, scalar_displacement));
-  albedo_color = mix(albedo_color, vec3f(0.8), smoothstep(0.75, 0.99, scalar_displacement));
+  albedo_color = mix(vec3f(0.0), albedo_color, smoothstep(0.25, 1.0, scalar_displacement));
+  albedo_color = mix(albedo_color, vec3f(0.8), smoothstep(0.75, 0.9, scalar_displacement));
 
   // PBR material properties; bidirectional reflectance distribution function.
   let reflectance: CookTorranceReflectance = cook_torrance_reflectance(world_normal, view_direction, light_direction);
