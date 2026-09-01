@@ -234,9 +234,14 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {
   let view_direction: vec3f = normalize(global.iCameraPosition - input.world_position.xyz);
   let light_direction: vec3f = normalize(-global.iLightDirection);
 
+  var albedo_color: vec3f = material.albedo_color;
+  let scalar_displacement = smoothstep(-0.5, 0.5, local_normal_displacement.w);
+  albedo_color = mix(vec3f(0.0), albedo_color, smoothstep(0.125, 1.0, scalar_displacement));
+  albedo_color = mix(albedo_color, vec3f(0.8), smoothstep(0.75, 0.99, scalar_displacement));
+
   // PBR material properties; bidirectional reflectance distribution function.
   let reflectance: CookTorranceReflectance = cook_torrance_reflectance(world_normal, view_direction, light_direction);
-  let BRDF: vec3f = reflectance.diffuse_ratio * (material.albedo_color / PI) + reflectance.specular;
+  let BRDF: vec3f = reflectance.diffuse_ratio * (albedo_color / PI) + reflectance.specular;
 
   // light intensity / attenuated light, incoming light energy arriving at the surface,
   // before scattering or reflection towards the camera.
@@ -246,11 +251,8 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {
   let outgoing_radiance: vec3f = BRDF * irradiance;
 
   // Color grading so waves look "deeper" at their shallowest and closer to "foam" for peaking wave crests.
-  let scalar_displacement = smoothstep(-0.5, 0.5, local_normal_displacement.w);
-  var ambient: vec3f = material.albedo_color * 0.125;
-  ambient = mix(vec3f(0.0), ambient, smoothstep(0.125, 1.0, scalar_displacement));
-  ambient = mix(ambient, vec3f(0.125), smoothstep(0.75, 0.99, scalar_displacement));
 
+  var ambient: vec3f = albedo_color * 0.125;
   let color: vec3f = ambient + outgoing_radiance;
   return vec4f(linearToSRGB(aces_tonemap(color)), 1.0);
 }
