@@ -29,6 +29,29 @@
 
 import { alignUp } from '@/wgpu/util/memory'
 
+export function isGPUBuffer(obj: any): obj is GPUBuffer               { return obj.constructor.name === GPUBuffer.name;         }
+export function isF64Array(obj: any): obj is Float64Array             { return obj.constructor.name === Float64Array.name;      }
+export function isF32Array(obj: any): obj is Float32Array             { return obj.constructor.name === Float32Array.name;      }
+export function isF16Array(obj: any): obj is Float16Array             { return obj.constructor.name === Float16Array.name;      }
+export function isI64Array(obj: any): obj is BigInt64Array            { return obj.constructor.name === BigInt64Array.name;     }
+export function isI32Array(obj: any): obj is Int32Array               { return obj.constructor.name === Int32Array.name;        }
+export function isI16Array(obj: any): obj is Int16Array               { return obj.constructor.name === Int16Array.name;        }
+export function isI8Array(obj: any): obj is Int8Array                 { return obj.constructor.name === Int8Array.name;         }
+export function isU64Array(obj: any): obj is BigUint64Array           { return obj.constructor.name === BigUint64Array.name;    }
+export function isU32Array(obj: any): obj is Uint32Array              { return obj.constructor.name === Uint32Array.name;       }
+export function isU16Array(obj: any): obj is Uint16Array              { return obj.constructor.name === Uint16Array.name;       }
+export function isU8Array(obj: any): obj is Uint8Array                { return obj.constructor.name === Uint8Array.name;        }
+export function isU8ClampedArray(obj: any): obj is Uint8ClampedArray  { return obj.constructor.name === Uint8ClampedArray.name; }
+
+export function isArrayBuffer(obj: any, strict: boolean = true): obj is ArrayBuffer {
+  return (obj.constructor.name === ArrayBuffer.name) || (!strict && (
+    isF32Array(obj) || isU32Array(obj) || isI32Array(obj)       ||
+    isF16Array(obj) || isU16Array(obj) || isI16Array(obj)       ||
+    isU8Array(obj)  || isI8Array(obj)  || isU8ClampedArray(obj) ||
+    isF64Array(obj) || isU64Array(obj) || isI64Array(obj)
+  ));
+}
+
 type F32Array = Float32Array<ArrayBuffer>;
 type U32Array = Uint32Array<ArrayBuffer>;
 

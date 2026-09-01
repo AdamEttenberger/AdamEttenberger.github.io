@@ -1,3 +1,4 @@
+import { isF32Array, isGPUBuffer, isU16Array, isU32Array } from '@/wgpu/resource/buffer'
 import Hash from '@/wgpu/util/hash'
 import { alignUp } from '@/wgpu/util/memory'
 
@@ -128,12 +129,53 @@ export interface IGeometry {
 }
 
 class GeometryBase implements IGeometry {
+  public readonly vertexLayout: VertexLayout;
+  public readonly indexFormat: GPUIndexFormat;
+  public readonly vertexBuffer: GPUBuffer;
+  public readonly indexBuffer: GPUBuffer;
+
+  /**
+   * Creates or takes ownership of GPUBuffer vertex and index buffers.
+   * @param device
+   * @param vertexLayout Vertex layout and format information
+   * @param indexFormat Index format information
+   * @param vertices Vertex buffer to take ownership of
+   * @param indices Vertex buffer to take ownership of
+   */
   constructor(
-    public readonly vertexLayout: VertexLayout,
-    public readonly indexFormat: GPUIndexFormat,
-    public readonly vertexBuffer: GPUBuffer,
-    public readonly indexBuffer: GPUBuffer,
-  ) { }
+    device: GPUDevice,
+    vertexLayout: VertexLayout,
+    indexFormat: GPUIndexFormat,
+    vertices: GPUBuffer|Float32Array,
+    indices: GPUBuffer|Uint32Array|Uint16Array,
+  ) {
+    this.vertexLayout = vertexLayout;
+    this.indexFormat = indexFormat;
+
+    if (isGPUBuffer(vertices)) {
+      this.vertexBuffer = vertices;
+    } else if (isF32Array(vertices)) {
+      this.vertexBuffer = device.createBuffer({
+        size: vertices.byteLength,
+        usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+      });
+      device.queue.writeBuffer(this.vertexBuffer, 0, vertices);
+    } else {
+      throw new TypeError(`Unhandled vertex buffer type: ${(vertices as any).constructor?.name ?? "unknown"}`);
+    }
+
+    if (isGPUBuffer(indices)) {
+      this.indexBuffer = indices;
+    } else if (isU32Array(indices) || isU16Array(indices)) {
+      this.indexBuffer = device.createBuffer({
+        size: indices.byteLength,
+        usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
+      });
+      device.queue.writeBuffer(this.indexBuffer, 0, indices);
+    } else {
+      throw new TypeError(`Unhandled index buffer type: ${(indices as any).constructor?.name ?? "unknown"}`);
+    }
+  }
 
   public destroy(): void {
     this.vertexBuffer.destroy();
@@ -203,22 +245,12 @@ export class Plane extends GeometryBase {
       }
     }
 
-    const vertexBuffer = device.createBuffer({
-      size: vertices.byteLength,
-      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-    });
-    const indexBuffer = device.createBuffer({
-      size: indices.byteLength,
-      usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
-    });
-    device.queue.writeBuffer(vertexBuffer, 0, vertices);
-    device.queue.writeBuffer(indexBuffer, 0, indices);
-
     super(
+      device,
       vertexLayout,
       indexFormat,
-      vertexBuffer,
-      indexBuffer
+      vertices,
+      indices,
     );
   }
 }
