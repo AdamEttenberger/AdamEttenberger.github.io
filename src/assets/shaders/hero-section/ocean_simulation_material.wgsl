@@ -143,7 +143,7 @@ fn get_surface_sample(material: MaterialData, frame_coords: FlipbookFrameCoords)
   let a: vec4f = textureSampleLevel(global_texture_bucket, s_linear_repeat, frame_coords.uv1, material.normal_height_texture, 0.0);
   let b: vec4f = textureSampleLevel(global_texture_bucket, s_linear_repeat, frame_coords.uv2, material.normal_height_texture, 0.0);
   let value = mix(a, b, fract(global.iTime * kFrameRate)) * 2.0 - 1.0;
-  return vec4f(normalize(value.rgb), value.a);
+  return vec4f(normalize(value.rgb), value.a * 0.5);
 }
 
 fn get_reflectivity() -> vec3f {
@@ -246,7 +246,7 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {
   let outgoing_radiance: vec3f = BRDF * irradiance;
 
   // Color grading so waves look "deeper" at their shallowest and closer to "foam" for peaking wave crests.
-  let scalar_displacement = smoothstep(-1.0, 1.0, local_normal_displacement.w);
+  let scalar_displacement = smoothstep(-0.5, 0.5, local_normal_displacement.w);
   var ambient: vec3f = material.albedo_color * 0.125;
   ambient = mix(vec3f(0.0), ambient, smoothstep(0.125, 1.0, scalar_displacement));
   ambient = mix(ambient, vec3f(0.125), smoothstep(0.75, 0.99, scalar_displacement));

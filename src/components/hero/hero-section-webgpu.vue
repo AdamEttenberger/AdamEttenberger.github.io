@@ -18,7 +18,7 @@ const kSkyDay = vec3.fromValues(0.529, 0.808, 0.922);
 const kAnimationGridSize = vec2.fromValues(8, 8); // Number of animation frame [columns, rows]
 
 const kOceanGridSize = 50;
-const kInstanceTileScale = vec3.fromValues(600, 150, 600);
+const kInstanceTileScale = vec3.fromValues(600, 200, 600);
 const kInstanceTileArea = vec4.fromValues(-1, -1, 1, 0);
 
 const kOceanAlbedo: Vec3 = vec3.fromValues(0.0, 0.425, 0.725);
