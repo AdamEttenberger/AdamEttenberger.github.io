@@ -1,5 +1,6 @@
+import type { IGlobalUniforms } from '@/wgpu/core/app';
 import type Viewport from '@/wgpu/core/viewport';
-import { mat4, vec3, type Mat4Like, type QuatLike, type Vec3Like, type Vec4Like } from 'ts-gl-matrix';
+import { mat4, vec3, type QuatLike, type Vec3Like, type Vec4Like } from 'ts-gl-matrix';
 
 export type PerspectiveProjectionOptions = {
   type: 'perspective',
@@ -28,7 +29,7 @@ export interface ICameraOptions {
 }
 
 export interface ICamera extends ICameraOptions {
-  apply(viewport: Viewport, view: Mat4Like, projection: Mat4Like): void;
+  apply(viewport: Viewport, uniforms: IGlobalUniforms): void;
 }
 
 export default class Camera implements ICamera {
@@ -73,17 +74,19 @@ export default class Camera implements ICamera {
     });
   }
 
-  public apply(viewport: Viewport, viewMatrix: Mat4Like, projectionMatrix: Mat4Like): void {
-    const cameraWorldMatrix = mat4.fromRotationTranslationScale(mat4.create(), this.rotation, this.position, vec3.fromValues(1, 1, 1));
-    mat4.invert(viewMatrix, cameraWorldMatrix);
+  public apply(viewport: Viewport, uniforms: IGlobalUniforms): void {
+    vec3.copy(uniforms.iCameraPosition, this.position);
+    mat4.fromRotationTranslationScale(uniforms.vMatrixInverse, this.rotation, this.position, vec3.fromValues(1, 1, 1));
+    mat4.invert(uniforms.vMatrix, uniforms.vMatrixInverse);
 
     switch (this.projection.type) {
       case 'perspective':
-        mat4.perspectiveZO(projectionMatrix, this.projection.fovy, viewport.aspect, this.projection.near, this.projection.far);
+        mat4.perspectiveZO(uniforms.pMatrix, this.projection.fovy, viewport.aspect, this.projection.near, this.projection.far);
         break;
       case 'orthogonal':
-        mat4.orthoZO(projectionMatrix, this.projection.left, this.projection.right, this.projection.bottom, this.projection.top, this.projection.near, this.projection.far);
+        mat4.orthoZO(uniforms.pMatrix, this.projection.left, this.projection.right, this.projection.bottom, this.projection.top, this.projection.near, this.projection.far);
         break;
     }
+    mat4.invert(uniforms.pMatrixInverse, uniforms.pMatrix);
   }
 }

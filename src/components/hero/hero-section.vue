@@ -101,8 +101,7 @@ function onMouseMove(evt: MouseEvent) {
       width: 24rem;
 
       & > .info-card {
-        gap: var(--padding-xlarge);
-        padding: var(--padding-xxlarge);
+        gap: var(--padding-large);
 
         background-color: rgb(from var(--theme-primary-50) r g b / 0.75);
         border: 3px solid var(--theme-border);
@@ -155,7 +154,7 @@ ul:is(.specialties, .preferred-languages) {
   padding-inline-start: 0;
   display: flex;
   flex-flow: row wrap;
-  gap: var(--padding-normal);
+  gap: var(--padding-small);
 }
 
 .yoe, li {

@@ -4,12 +4,14 @@ const PI: f32 = 3.14159265359;
 struct GlobalUniforms {
   vMatrix: mat4x4f,
   pMatrix: mat4x4f,
+  vMatrixInverse: mat4x4f,
+  pMatrixInverse: mat4x4f,
   iResolution: vec4f, // {physicalWidth, physicalHeight, devicePixelRatio, aspect}
   iCameraPosition: vec3f,
   iTime: f32, // (seconds)
   iMouse: vec2f, // normalized range: [0, 1]
-  iLightDirection: vec3f,
-  iLightColor: vec3f,
+  iSunDirection: vec3f,
+  iSunLightColor: vec3f,
 };
 
 struct MaterialData {
@@ -159,7 +161,7 @@ fn get_roughness() -> f32 {
 }
 
 fn calculate_irradiance(world_normal: vec3f, light_direction: vec3f) -> vec3f {
-  return global.iLightColor * max(dot(world_normal, light_direction), 0.0);
+  return global.iSunLightColor * max(dot(world_normal, light_direction), 0.0);
 }
 
 fn aces_tonemap(color: vec3f) -> vec3f {
@@ -231,7 +233,7 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {
   let local_normal_displacement: vec4f = get_surface_sample(material, frame_coords);
   let world_normal: vec3f = normalize(TBN * local_normal_displacement.xyz);
   let view_direction: vec3f = normalize(global.iCameraPosition - input.world_position.xyz);
-  let light_direction: vec3f = normalize(-global.iLightDirection);
+  let light_direction: vec3f = normalize(-global.iSunDirection);
 
   var albedo_color: vec3f = material.albedo_color;
   let scalar_displacement = smoothstep(-0.5, 0.5, local_normal_displacement.w);

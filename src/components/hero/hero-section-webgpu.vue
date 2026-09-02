@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useTemplateRef, onMounted, onUnmounted, watch } from 'vue'
+import { useTemplateRef, onMounted, onUnmounted } from 'vue'
 import WebGPULogo from '@/components/webgpu-logo.vue'
 import { vec2, vec3, mat4, quat, vec4, Vec3 } from 'ts-gl-matrix'
 import ocean_simulation_material_code from '@/assets/shaders/hero-section/ocean_simulation_material.wgsl?raw'
@@ -10,10 +10,10 @@ import App from '@/wgpu/core/app'
 import { OceanMaterial } from '@/wgpu/resource/material'
 import Camera from '@/wgpu/core/camera'
 import { OceanMeshes } from '@/wgpu/resource/mesh'
+import Skybox, { SkyboxMaterialSlot } from '@/wgpu/resource/skybox'
+import { MeshInstanceRenderNode, SkyboxRenderNode } from '@/wgpu/core/render-node'
+import type Viewport from '@/wgpu/core/viewport'
 const user_preferences = useUserPreferencesStore();
-
-const kSkyNight = vec3.fromValues(0.016, 0.102, 0.251);
-const kSkyDay = vec3.fromValues(0.529, 0.808, 0.922);
 
 const kAnimationGridSize = vec2.fromValues(8, 8); // Number of animation frame [columns, rows]
 
@@ -25,7 +25,6 @@ const kOceanAlbedo: Vec3 = vec3.fromValues(0.0, 0.425, 0.725);
 
 const kCameraPosition = vec3.fromValues(0, 200, 350);
 const kCameraRotation = quat.fromEuler(quat.create(), -20, 0, 0);
-const kLightDirection = vec3.normalize(vec3.create(), vec3.transformQuat(vec3.create(), vec3.fromValues(0, 0, -1), quat.fromEuler(quat.create(), 220, 15, 0)));
 
 const kToRadianScalar = Math.PI / 180.0;
 function toRadian(degrees: number) {
@@ -33,13 +32,6 @@ function toRadian(degrees: number) {
 }
 
 let app: App|null = null;
-
-watch(() => user_preferences.useDarkMode, (value: boolean) => {
-  if (!app) {
-    return;
-  }
-  app.sky_color = value ? kSkyNight : kSkyDay;
-});
 
 async function setup() {
   if (!canvas.value) {
@@ -56,8 +48,6 @@ async function setup() {
   }
 
   app.camera = Camera.makePerspectiveCamera(kCameraPosition, kCameraRotation, toRadian(60));
-  app.sky_color = user_preferences.useDarkMode ? kSkyNight : kSkyDay;
-  app.sun_direction = kLightDirection;
 
   const ocean_simulation_datamap = await app.texture_registry.get(ocean_simulation_flipbook_normal_height_map_src);
   if (ocean_simulation_datamap === undefined) {
@@ -79,13 +69,13 @@ async function setup() {
   ocean_simulation_material.uniforms.value[0].texel_margin[0] = 4.0;
   ocean_simulation_material.uniforms.submit();
 
-  const ocean_tiles = app.add(new OceanMeshes(
+  const ocean_tiles = new OceanMeshes(
     app.device,
     /*instance_count=*/(kInstanceTileArea.z - kInstanceTileArea.x + 1) * (kInstanceTileArea.w - kInstanceTileArea.y + 1),
     app.instance_bind_group_layout,
     ocean_simulation_material,
     /*gridsize=*/kOceanGridSize,
-  ));
+  )
   let row_stride = (kInstanceTileArea.z - kInstanceTileArea.x + 1);
   for (var y = kInstanceTileArea.y; y <= kInstanceTileArea.w; ++y) {
     for (var x = kInstanceTileArea.x; x <= kInstanceTileArea.z; ++x) {
@@ -100,6 +90,32 @@ async function setup() {
     }
   }
   ocean_tiles.submit();
+
+  const skybox = new Skybox(app.device);
+
+  app.add(new MeshInstanceRenderNode(ocean_tiles));
+  app.add(new SkyboxRenderNode(skybox));
+
+  app.on_update.subscribe((app: App, _viewport: Viewport, timestamp: number): void => {
+    if (!app.global_uniforms) {
+      return;
+    }
+    const r1 = 0.025;
+    const r2 = r1 * 5;
+    const d1 = 180 / r1;
+    const d2 = 180 / r2;
+    const t = timestamp % (d1 + d2);
+    let sun_yaw = (t < d1)
+      ? t * r1
+      : 180 + (t - d1) * r2;
+    sun_yaw -= 90;
+
+    const darkMode = user_preferences.useDarkMode;
+    vec3.normalize(app.global_uniforms.value[0].iSunDirection, vec3.transformQuat(vec3.create(), vec3.fromValues(0, 0, -1), quat.fromEuler(quat.create(), 190, sun_yaw, 0)));
+    vec3.copy(app.global_uniforms.value[0].iSunLightColor, skybox.material.uniforms.value[darkMode ? SkyboxMaterialSlot.DarkMode : SkyboxMaterialSlot.LightMode].skyColor);
+    skybox.uniforms.value[0].material_id[0] = (darkMode ? SkyboxMaterialSlot.DarkMode : SkyboxMaterialSlot.LightMode);
+    skybox.uniforms.submit();
+  });
 }
 
 async function shutdown() {

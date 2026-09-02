@@ -2,26 +2,29 @@ import { WebGPUStruct } from '@/wgpu/resource/buffer'
 import type { ICamera } from '@/wgpu/core/camera';
 import Pipeline from '@/wgpu/core/pipeline';
 import Viewport from '@/wgpu/core/viewport'
-import type { MeshInstance } from '@/wgpu/resource/mesh';
 import { TextureGroup } from '@/wgpu/resource/texture';
 import TextureRegistry from '@/wgpu/resource/texture';
-import { vec3, vec4, type Vec3Like } from 'ts-gl-matrix';
+import { vec4 } from 'ts-gl-matrix';
+import { type IRenderNode } from '@/wgpu/core/render-node';
+import OnAppUpdate from '@/wgpu/event/app/on-app-update';
 
-enum BindGroupIndex {
+export enum BindGroupIndex {
   Global,
   Material,
   Instance,
 }
 
-interface IGlobalUniforms {
+export interface IGlobalUniforms {
   vMatrix:          Float32Array<ArrayBuffer>;
   pMatrix:          Float32Array<ArrayBuffer>;
+  vMatrixInverse:   Float32Array<ArrayBuffer>;
+  pMatrixInverse:   Float32Array<ArrayBuffer>;
   iResolution:      Float32Array<ArrayBuffer>;
   iCameraPosition:  Float32Array<ArrayBuffer>;
   iTime:            Float32Array<ArrayBuffer>;
   iMouse:           Float32Array<ArrayBuffer>;
-  iLightDirection:  Float32Array<ArrayBuffer>;
-  iLightColor:      Float32Array<ArrayBuffer>;
+  iSunDirection:    Float32Array<ArrayBuffer>;
+  iSunLightColor:   Float32Array<ArrayBuffer>;
 }
 
 class GlobalUniforms extends WebGPUStruct<IGlobalUniforms>
@@ -32,17 +35,21 @@ class GlobalUniforms extends WebGPUStruct<IGlobalUniforms>
     super(device, {
       vMatrix:          { type: 'mat4x4f' },
       pMatrix:          { type: 'mat4x4f' },
+      vMatrixInverse:   { type: 'mat4x4f' },
+      pMatrixInverse:   { type: 'mat4x4f' },
       iResolution:      { type: 'vec4f'   },
       iCameraPosition:  { type: 'vec3f'   },
       iTime:            { type: 'f32'     },
       iMouse:           { type: 'vec2f'   },
-      iLightDirection:  { type: 'vec3f'   },
-      iLightColor:      { type: 'vec3f'   },
+      iSunDirection:    { type: 'vec3f'   },
+      iSunLightColor:   { type: 'vec3f'   },
     }, 1, GPUBufferUsage.UNIFORM);
   }
 }
 
 export default class App {
+  public readonly on_update = new OnAppUpdate();
+
   private _initializing: Promise<void>;
   private _context: GPUCanvasContext|null = null;
   private _adapter: GPUAdapter|null = null;
@@ -59,10 +66,8 @@ export default class App {
   public texture_registry: TextureRegistry|null = null;
 
   public camera: ICamera|null = null;
-  public sky_color: Vec3Like|null = null;
-  public sun_direction: Vec3Like|null = null;
 
-  private _meshes = new Array<MeshInstance>();
+  private _render_nodes = new Array<IRenderNode>();
   private _pipeline: Pipeline|null = null;
 
   constructor(
@@ -222,17 +227,18 @@ export default class App {
       this._viewport.destroy();
       this._viewport = null;
     }
-    this._meshes.forEach(mesh => mesh.destroy());
-    this._meshes = [];
+    this._render_nodes.forEach(node => node.destroy());
+    this._render_nodes = [];
     this.global_uniforms?.destroy();
     this._pipeline?.destroy();
     this.texture_registry?.destroy();
     this.device?.destroy();
+    this.on_update.disconnect();
   }
 
-  public add(instances: MeshInstance): MeshInstance {
-    this._meshes.push(instances);
-    return instances;
+  public add(node: IRenderNode): IRenderNode {
+    this._render_nodes.push(node);
+    return node;
   }
 
   private readonly onDisplayChanged = (viewport: Viewport) => {
@@ -251,18 +257,14 @@ export default class App {
         !this.deviceFormat ||
         !this._context ||
         !this.camera ||
-        !this.sky_color ||
-        !this.sun_direction ||
         !this.global_uniforms ||
         !this._pipeline ||
         !viewport.depthStencilTextureView) {
       return;
     }
-    this.camera.apply(viewport, this.global_uniforms.value[0].vMatrix, this.global_uniforms.value[0].pMatrix);
-    vec3.copy(this.global_uniforms.value[0].iCameraPosition, this.camera.position);
+    this.on_update.emit(this, viewport, timestamp);
 
-    vec3.copy(this.global_uniforms.value[0].iLightDirection, this.sun_direction);
-    vec3.copy(this.global_uniforms.value[0].iLightColor, this.sky_color);
+    this.camera.apply(viewport, this.global_uniforms.value[0]);
     this.global_uniforms.value[0].iTime[0] = timestamp * 0.001;
     this.global_uniforms.submit();
 
@@ -271,7 +273,7 @@ export default class App {
       colorAttachments: [
         {
           view: this._context.getCurrentTexture().createView(),
-          clearValue: { r: this.sky_color[0], g: this.sky_color[1], b: this.sky_color[2], a: 1 },
+          clearValue: { r: 0, g: 0, b: 0, a: 1},
           loadOp: 'clear',
           storeOp: 'store',
         },
@@ -287,14 +289,10 @@ export default class App {
       },
     });
 
-    for (const mesh of this._meshes) {
-      pass.setPipeline(this._pipeline.getRenderPipeline(this, this.deviceFormat, mesh));
+    for (const node of this._render_nodes) {
+      pass.setPipeline(this._pipeline.getRenderPipeline(this, this.deviceFormat, node));
       pass.setBindGroup(BindGroupIndex.Global, this.global_bind_group);
-      pass.setBindGroup(BindGroupIndex.Material, mesh.material.bindGroup);
-      pass.setBindGroup(BindGroupIndex.Instance, mesh.bindGroup);
-      pass.setVertexBuffer(0, mesh.gpuVertexBuffer);
-      pass.setIndexBuffer(mesh.gpuIndexBuffer, mesh.gpuIndexFormat);
-      pass.drawIndexed(mesh.gpuIndexBuffer.size / (mesh.gpuIndexFormat === 'uint16' ? 2 : 4), mesh.count);
+      node.draw(pass);
     }
     pass.end();
 
