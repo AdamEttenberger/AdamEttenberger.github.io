@@ -111,9 +111,11 @@ async function setup() {
     sun_yaw -= 90;
 
     const darkMode = user_preferences.useDarkMode;
+    const skyboxMaterialSlot = darkMode ? SkyboxMaterialSlot.DarkMode : SkyboxMaterialSlot.LightMode;
     vec3.normalize(app.global_uniforms.value[0].iSunDirection, vec3.transformQuat(vec3.create(), vec3.fromValues(0, 0, -1), quat.fromEuler(quat.create(), 190, sun_yaw, 0)));
-    vec3.copy(app.global_uniforms.value[0].iSunLightColor, skybox.material.uniforms.value[darkMode ? SkyboxMaterialSlot.DarkMode : SkyboxMaterialSlot.LightMode].skyColor);
-    skybox.uniforms.value[0].material_id[0] = (darkMode ? SkyboxMaterialSlot.DarkMode : SkyboxMaterialSlot.LightMode);
+    vec3.copy(app.global_uniforms.value[0].iSunLightColor, 
+              skybox.material.uniforms.value[skyboxMaterialSlot].sunColor);
+    skybox.uniforms.value[0].material_id[0] = skyboxMaterialSlot;
     skybox.uniforms.submit();
   });
 }
