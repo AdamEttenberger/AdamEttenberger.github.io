@@ -23,6 +23,7 @@ export interface IGlobalUniforms {
   iCameraPosition:  Float32Array<ArrayBuffer>;
   iTime:            Float32Array<ArrayBuffer>;
   iMouse:           Float32Array<ArrayBuffer>;
+  iDarkMode:        Float32Array<ArrayBuffer>;
   iSunDirection:    Float32Array<ArrayBuffer>;
   iSunLightColor:   Float32Array<ArrayBuffer>;
 }
@@ -41,6 +42,7 @@ class GlobalUniforms extends WebGPUStruct<IGlobalUniforms>
       iCameraPosition:  { type: 'vec3f'   },
       iTime:            { type: 'f32'     },
       iMouse:           { type: 'vec2f'   },
+      iDarkMode:        { type: 'u32'     },
       iSunDirection:    { type: 'vec3f'   },
       iSunLightColor:   { type: 'vec3f'   },
     }, 1, GPUBufferUsage.UNIFORM);
@@ -239,6 +241,13 @@ export default class App {
   public add(node: IRenderNode): IRenderNode {
     this._render_nodes.push(node);
     return node;
+  }
+
+  public setDarkMode(value: boolean) {
+    if (!this.global_uniforms) {
+      return;
+    }
+    this.global_uniforms.value[0].iDarkMode[0] = value ? 1 : 0;
   }
 
   private readonly onDisplayChanged = (viewport: Viewport) => {

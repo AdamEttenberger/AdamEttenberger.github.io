@@ -111,6 +111,7 @@ async function setup() {
     sun_yaw -= 90;
 
     const darkMode = user_preferences.useDarkMode;
+    app.setDarkMode(darkMode);
     const skyboxMaterialSlot = darkMode ? SkyboxMaterialSlot.DarkMode : SkyboxMaterialSlot.LightMode;
     vec3.normalize(app.global_uniforms.value[0].iSunDirection, vec3.transformQuat(vec3.create(), vec3.fromValues(0, 0, -1), quat.fromEuler(quat.create(), 190, sun_yaw, 0)));
     vec3.copy(app.global_uniforms.value[0].iSunLightColor, 

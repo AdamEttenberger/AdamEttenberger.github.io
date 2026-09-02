@@ -9,7 +9,6 @@ export enum SkyboxMaterialSlot {
 }
 
 interface ISkyboxMaterialData {
-  darkMode: Uint32Array<ArrayBuffer>;
   sunColor: Float32Array<ArrayBuffer>;
   skyColor: Float32Array<ArrayBuffer>;
 }
@@ -24,7 +23,6 @@ class SkyboxMaterialData extends WebGPUStruct<ISkyboxMaterialData> {
     instances: number,
   ) {
     super(device, {
-      darkMode: { type: "u32" },
       sunColor: { type: "vec3f" },
       skyColor: { type: "vec3f" },
     }, instances, GPUBufferUsage.STORAGE);
@@ -36,10 +34,8 @@ export class SkyboxMaterial extends MaterialBase<SkyboxMaterialData> {
     device: GPUDevice,
   ) {
     const uniforms = new SkyboxMaterialData(device, 2);
-    uniforms.value[SkyboxMaterialSlot.DarkMode].darkMode[0] = 1;
     vec3.set(uniforms.value[SkyboxMaterialSlot.DarkMode].sunColor, 0.5647, 0.5647, 0.5647);
     vec3.set(uniforms.value[SkyboxMaterialSlot.DarkMode].skyColor, 0.016, 0.102, 0.251);
-    uniforms.value[SkyboxMaterialSlot.LightMode].darkMode[0] = 0;
     vec3.set(uniforms.value[SkyboxMaterialSlot.LightMode].sunColor, 1.0, 0.875, 0.133);
     vec3.set(uniforms.value[SkyboxMaterialSlot.LightMode].skyColor, 0.42, 0.6, 0.718);
     uniforms.submit();
