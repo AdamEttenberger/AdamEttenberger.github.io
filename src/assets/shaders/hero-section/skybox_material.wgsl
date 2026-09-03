@@ -1,3 +1,7 @@
+const PI: f32 = 3.14159265359;
+const TAU: f32 = PI * 2.0;
+const PI9: f32 = PI * 100000000.0;
+const JITTER: f32 = 0.123456789;
 const kF32Max: f32 = 0x7F7FFFFF;
 const kSharpness: f32 = 20.0;
 const kStarColorCount: u32 = 5;
@@ -63,37 +67,37 @@ struct VertexOutput {
 };
 
 fn hash11(v: f32) -> f32 {
-  let a = bitcast<u32>((v + 0.123456789) * 314159265.0);
-  return fract(f32(a * a) / 314159265.0);
+  let a = bitcast<u32>((v + JITTER) * PI9);
+  return fract(f32(a * a) / PI9);
 }
 fn hash21(v: vec2f) -> f32 {
-  let a = bitcast<vec2u>((v + 0.123456789) * 314159265.0);
-  return fract(f32(a.x * a.y) / 314159265.0);
+  let a = bitcast<vec2u>((v + JITTER) * PI9);
+  return fract(f32(a.x * a.y) / PI9);
 }
 fn hash22(v: vec2f) -> vec2f {
-  let a = bitcast<vec2u>((v + 0.123456789) * 314159265.0);
+  let a = bitcast<vec2u>((v + JITTER) * PI9);
   return fract(vec2f(
-    f32(a.x * a.y * a.x) / 314159265.0,
-    f32(a.x * a.y * a.y) / 314159265.0
+    f32(a.x * a.y * a.x) / PI9,
+    f32(a.x * a.y * a.y) / PI9
   ));
 }
 fn hash31(v: vec3f) -> f32 {
-  let a = bitcast<vec3u>((v + 0.123456789) * 314159265.0);
-  return fract(f32(a.x * a.y * a.z) / 314159265.0);
+  let a = bitcast<vec3u>((v + JITTER) * PI9);
+  return fract(f32(a.x * a.y * a.z) / PI9);
 }
 fn hash32(v: vec3f) -> vec2f {
-  let a = bitcast<vec3u>((v + 0.123456789) * 314159265.0);
+  let a = bitcast<vec3u>((v + JITTER) * PI9);
   return fract(vec2f(
-    f32(a.x * a.y * a.z * a.x) / 314159265.0,
-    f32(a.x * a.y * a.z * a.y) / 314159265.0
+    f32(a.x * a.y * a.z * a.x) / PI9,
+    f32(a.x * a.y * a.z * a.y) / PI9
   ));
 }
 fn hash33(v: vec3f) -> vec3f {
-  let a = bitcast<vec3u>((v + 0.123456789) * 314159265.0);
+  let a = bitcast<vec3u>((v + JITTER) * PI9);
   return fract(vec3f(
-    f32(a.x * a.y * a.z * a.x) / 314159265.0,
-    f32(a.x * a.y * a.z * a.y) / 314159265.0,
-    f32(a.x * a.y * a.z * a.z) / 314159265.0
+    f32(a.x * a.y * a.z * a.x) / PI9,
+    f32(a.x * a.y * a.z * a.y) / PI9,
+    f32(a.x * a.y * a.z * a.z) / PI9
   ));
 }
 
@@ -118,7 +122,7 @@ fn voronoi2(v: vec2f, time: f32) -> Voronoi2Output {
       let neighbor = vec2f(f32(x), f32(y));
       let cell_id = base_cell + neighbor;
       let rand_offset = hash22(cell_id);
-      let animated_point = 0.5 + 0.5 * sin(time + rand_offset * 6.2831853);
+      let animated_point = 0.5 + 0.5 * sin(time + rand_offset * TAU);
       let diff = neighbor + animated_point - fractional_pos;
       let dist = length(diff);
 
@@ -162,7 +166,7 @@ fn voronoi3(p: vec3f, time: f32) -> Voronoi3Output {
           let neighbor = vec3f(f32(x), f32(y), f32(z));
           let cell_id = base_cell + neighbor;
           let rand_offset = hash33(cell_id);
-          let animated_point = 0.5 + 0.5 * sin(time + rand_offset * 6.2831853);
+          let animated_point = 0.5 + 0.5 * sin(time + rand_offset * TAU);
           let diff = neighbor + animated_point - fractional_pos;
           let dist = length(diff);
 
