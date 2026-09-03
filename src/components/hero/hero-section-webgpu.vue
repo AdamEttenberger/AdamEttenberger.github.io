@@ -21,7 +21,7 @@ const kOceanGridSize = 50;
 const kInstanceTileScale = vec3.fromValues(600, 200, 600);
 const kInstanceTileArea = vec4.fromValues(-2, -1, 2, 0);
 
-const kOceanAlbedo: Vec3 = vec3.fromValues(0.0, 0.425, 0.725);
+const kOceanAlbedo: Vec3 = vec3.fromValues(0.08, 0.18, 0.33);
 
 const kCameraPosition = vec3.fromValues(0, 200, 350);
 const kCameraRotation = quat.fromEuler(quat.create(), -20, 0, 0);
