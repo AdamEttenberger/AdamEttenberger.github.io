@@ -221,7 +221,7 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {
   if (global.iDarkMode == 1) {
     let s: f32 = 80.0;// * max(global.iResolution.w, 1.0 / global.iResolution.w);
     let noise = voronoi3(world_direction * s, 0.0);
-    if (noise.f1 < 0.125) {
+    if (noise.f1 - 0.125 < 0.0) {
       let star_color_rand: f32 = hash31(noise.closest_cell);
       var star_color_index: u32 = 0;
       for (var i: u32 = 0; i < kStarColorCount; i++) {
