@@ -37,7 +37,7 @@ export class SkyboxMaterial extends MaterialBase<SkyboxMaterialData> {
     vec3.set(uniforms.value[SkyboxMaterialSlot.DarkMode].sunColor, 0.5647, 0.5647, 0.5647);
     vec3.set(uniforms.value[SkyboxMaterialSlot.DarkMode].skyColor, 0.016, 0.075, 0.18);
     vec3.set(uniforms.value[SkyboxMaterialSlot.LightMode].sunColor, 1.0, 0.875, 0.133);
-    vec3.set(uniforms.value[SkyboxMaterialSlot.LightMode].skyColor, 0.42, 0.6, 0.718);
+    vec3.set(uniforms.value[SkyboxMaterialSlot.LightMode].skyColor, 0.45, 0.65, 0.85);
     uniforms.submit();
     const bindLayout = device.createBindGroupLayout({
       entries: [
