@@ -47,7 +47,7 @@ const { theme } = useTheme(() => root_theme.value);
   display: grid;
   grid-template-columns: minmax(0, auto) minmax(0, var(--app-column-max-width)) minmax(0, auto);
   grid-template-rows: min-content auto min-content;
-  min-height: 100dvh;
+  min-height: 100vh;
 
   & > :is(.header, .footer) {
     grid-column: 1 / 4;

@@ -61,7 +61,7 @@ body {
   flex-direction: column;
   place-items: start;
   align-items: stretch;
-  min-height: 100dvh;
+  min-height: 100vh;
   transition:
     color var(--anim-transition),
     background-color var(--anim-transition);

@@ -85,7 +85,7 @@ function onMouseMove(evt: MouseEvent) {
    * prevents overlapping with the header.
    */
   margin-top: calc(var(--padding-xxlarge) * -1);
-  height: calc(100dvh - var(--size-header-height));
+  height: calc(100vh - var(--size-header-height));
 
   /**
    * Overlay which fills the page.
