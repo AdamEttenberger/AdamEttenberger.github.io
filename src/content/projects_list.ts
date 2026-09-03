@@ -1,6 +1,12 @@
 import ProjectInfo from '@/types/project_types';
 
 export default [
+  new ProjectInfo('webgpu_ocean',
+                  () => import('@/content/projects/webgpu_ocean/article.vue'),
+                  'WebGPU Ocean Scene',
+                  '/images/projects/webgpu_ocean/icon.png',
+                  new Date('2026/09/03'),
+                  new Date('2026/09/03')),
   new ProjectInfo('heart_sdf',
                   () => import('@/content/projects/heart_sdf/article.vue'),
                   'Anatomy of a Heart (SDF)',
