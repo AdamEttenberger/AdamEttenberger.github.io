@@ -35,7 +35,7 @@ export class SkyboxMaterial extends MaterialBase<SkyboxMaterialData> {
   ) {
     const uniforms = new SkyboxMaterialData(device, 2);
     vec3.set(uniforms.value[SkyboxMaterialSlot.DarkMode].sunColor, 0.5647, 0.5647, 0.5647);
-    vec3.set(uniforms.value[SkyboxMaterialSlot.DarkMode].skyColor, 0.016, 0.102, 0.251);
+    vec3.set(uniforms.value[SkyboxMaterialSlot.DarkMode].skyColor, 0.016, 0.075, 0.18);
     vec3.set(uniforms.value[SkyboxMaterialSlot.LightMode].sunColor, 1.0, 0.875, 0.133);
     vec3.set(uniforms.value[SkyboxMaterialSlot.LightMode].skyColor, 0.42, 0.6, 0.718);
     uniforms.submit();
