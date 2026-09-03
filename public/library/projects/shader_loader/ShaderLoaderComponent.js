@@ -67,7 +67,7 @@ function ShaderLoaderComponent( )
     this.shader.setUniform3f(ShaderLoaderComponent.UniformType.resolution, g_game.canvas_width, g_game.canvas_height, g_game.aspect);
     this.shader.setUniform1f(ShaderLoaderComponent.UniformType.time, g_game.game_time);
 
-    gl.drawElements(gl.TRIANGLES, numItems, gl.UNSIGNED_BYTE, 0);
+    gl.drawElements(gl.TRIANGLES, numItems, gl.UNSIGNED_SHORT, 0);
 
     ShaderLoaderComponent.buffers.forEach(element => this.shader.unbindBuffer(element));
   }

@@ -15,6 +15,7 @@
 
   --size-border-radius: 0.5rem;
   --size-header-footer-border: 0.25rem;
+  --size-header-height: 4.5rem;
   --size-icon-button: 1.25rem;
 
   --app-column-max-width: 55rem;
@@ -26,6 +27,7 @@
 
 @media only screen and (max-width: 35rem) {
   :root {
+    --size-header-height: 7.45rem;
     --component-layer-padding: var(--padding-normal);
   }
   @media (min-resolution: 192dpi) {
@@ -64,7 +66,7 @@ body {
   flex-direction: column;
   place-items: start;
   align-items: stretch;
-  min-height: 100vh;
+  min-height: 100dvh;
   transition:
     color var(--anim-transition),
     background-color var(--anim-transition);
@@ -84,6 +86,10 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+hr {
+  border: 1px solid var(--theme-border);
 }
 
 ul, ol {

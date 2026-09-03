@@ -310,7 +310,7 @@ function MetaballComponent( run_mode )
       shader.setUniformMat4(MetaballComponent.UniformType.vMatrix, g_game.vMatrix);
       shader.setUniformMat4(MetaballComponent.UniformType.pMatrix, g_game.pMatrix);
 
-      gl.drawElements(gl.TRIANGLES, this.indexBuffer.numItems, gl.UNSIGNED_BYTE, 0);
+      gl.drawElements(gl.TRIANGLES, this.indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
 
       shader.unbindBuffers([
         this.vertexPositionBuffer,
@@ -364,7 +364,7 @@ function MetaballComponent( run_mode )
         MetaballComponent.MetaballPointsShader.setUniform4f(MetaballComponent.UniformType.lightColor, p.color[0], p.color[1], p.color[2], p.color[3]);
         MetaballComponent.MetaballPointsShader.setUniform1f(MetaballComponent.UniformType.lightRadius, this.g_radius);
 
-        gl.drawElements(gl.TRIANGLES, this.indexBuffer.numItems, gl.UNSIGNED_BYTE, 0);
+        gl.drawElements(gl.TRIANGLES, this.indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
       }
 
       MetaballComponent.MetaballPointsShader.unbindBuffers([

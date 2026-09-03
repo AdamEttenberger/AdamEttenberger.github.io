@@ -63,7 +63,7 @@ export default defineConfig([
         {
           argsIgnorePattern: '^_',
         }
-      ]
+      ],
       'no-restricted-syntax': [
         'error',
         {

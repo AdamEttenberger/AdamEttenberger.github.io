@@ -77,7 +77,7 @@ function ColorTextureModelComponent() {
     ColorTextureModelComponent.Shader.setUniformMat4(ColorTextureModelComponent.UniformType.vMatrix, g_game.vMatrix);
     ColorTextureModelComponent.Shader.setUniformMat4(ColorTextureModelComponent.UniformType.pMatrix, g_game.pMatrix);
 
-    gl.drawElements(gl.TRIANGLES, numItems, gl.UNSIGNED_BYTE, 0);
+    gl.drawElements(gl.TRIANGLES, numItems, gl.UNSIGNED_SHORT, 0);
 
     this.buffers.forEach(element => ColorTextureModelComponent.Shader.unbindBuffer(element));
     gl.bindTexture(gl.TEXTURE_2D, null);

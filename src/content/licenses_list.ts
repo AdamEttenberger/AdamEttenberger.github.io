@@ -26,4 +26,9 @@ export default [
                   'The STIX Fonts Project Authors',
                   new Date('2021/05/26'),
                   () => import('@/assets/fonts/stixfonts-2.13b171/LICENSE?raw')),
+  new LicenseInfo('webgpu-horizontal-responsive.svg',
+                  'WebGPU Logo',
+                  'World Wide Web Consortium (W3C)',
+                  new Date('2026/08/17'),
+                  () => import('@/assets/images/logos/webgpu/LICENSE?raw')),
 ];

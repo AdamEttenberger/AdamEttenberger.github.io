@@ -61,7 +61,7 @@ function ModelComponent() {
     ModelComponent.Shader.setUniformMat4(ModelComponent.UniformType.vMatrix, g_game.vMatrix);
     ModelComponent.Shader.setUniformMat4(ModelComponent.UniformType.pMatrix, g_game.pMatrix);
 
-    gl.drawElements(gl.TRIANGLES, numItems, gl.UNSIGNED_BYTE, 0);
+    gl.drawElements(gl.TRIANGLES, numItems, gl.UNSIGNED_SHORT, 0);
 
     this.buffers.forEach(element => ModelComponent.Shader.unbindBuffer(element));
   }

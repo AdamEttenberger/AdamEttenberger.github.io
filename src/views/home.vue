@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import { useTemplateRef } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import Button from '@/components/buttons/button.vue'
+import HeroSection from '@/components/hero/hero-section.vue'
 import Link from '@/components/link.vue'
 import Section from '@/components/section.vue'
 import { EmailHiring } from '@/content/socials'
@@ -7,19 +10,35 @@ import { type IProjectInfo } from '@/types/project_types'
 import { ThemeColor } from '@/composables/theme'
 import ProjectItem from '@/components/cards/project-item.vue'
 import YouTubeItem from '@/components/cards/youtube-item.vue'
+import Author from '@/content/author'
+
+const route = useRoute();
+const router = useRouter();
+const firstSection = useTemplateRef<Element>('first-section');
 
 defineProps<{
   projects: Array<IProjectInfo>;
 }>();
 
-const current_job_title = "Senior Software Engineer";
+function onScrollToContent() {
+  if (!firstSection.value) {
+    return;
+  }
+  router.push({
+    path: route.path,
+    query: route.query,
+    hash: `#${firstSection.value.id}`,
+  })
+}
 </script>
 
 <template>
   <article>
-    <Section heading="About">
+    <HeroSection :author="Author" @scroll-to-content="onScrollToContent" />
+
+    <Section heading="About" ref="first-section">
       <p>
-        I'm a <b>{{ current_job_title }}</b> specializing in <b>UI systems, rendering, tools development, systems design, optimization, and user-facing platform features</b>.
+        I'm a <b>{{ Author.job_title }}</b> specializing in <b>UI systems, rendering, tools development, systems design, optimization, and user-facing platform features</b>.
       </p>
       <p>
         My career bridges two demanding domains: AAA game development and large-scale browser engineering.
@@ -97,7 +116,7 @@ const current_job_title = "Senior Software Engineer";
 
     <Section heading="Hiring?">
       <p>
-        If your team needs an experienced and flexible <b>{{ current_job_title }}</b>, use the template below:
+        If your team needs an experienced and flexible <b>{{ Author.job_title }}</b>, use the template below:
       </p>
       <Button class="email" :to="EmailHiring" :color="ThemeColor.Accent" />
     </Section>

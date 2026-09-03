@@ -4,8 +4,8 @@ import { defineStore } from 'pinia'
 export const useUserPreferencesStore = defineStore('user-preferences', () => {
   const color_scheme = ref('normal');
 
-  const useDarkMode = computed(() => {
-    return (color_scheme.value === "normal" && window.matchMedia("(prefers-color-scheme: dark)")) ||
+  const useDarkMode = computed<boolean>(() => {
+    return (color_scheme.value === "normal" && window.matchMedia("(prefers-color-scheme: dark)").matches) ||
             color_scheme.value === "dark";
   });
 

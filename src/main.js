@@ -10,6 +10,7 @@ import { library } from '@fortawesome/fontawesome-svg-core'
 // import { far } from '@fortawesome/free-regular-svg-icons'
 // import { fab } from '@fortawesome/free-brands-svg-icons'
 import {
+  faChevronDown,
   faCircleExclamation,
   faCircleInfo,
   faCirclePlay,
@@ -40,6 +41,7 @@ app.use(pinia);
 
 // FontAwesome Config
 library.add(
+  faChevronDown,
   faCircleExclamation,
   faCircleInfo,
   faCirclePlay,
