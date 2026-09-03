@@ -3,6 +3,7 @@ import { useTemplateRef } from 'vue'
 import HeroSectionWebGPU from '@/components/hero/hero-section-webgpu.vue'
 import Layer from '@/components/layer.vue'
 import type { IAuthor } from '@/content/author'
+import MobileRotateIcon from '@/assets/images/svg/mobile-rotate.svg?raw'
 
 const renderer = useTemplateRef('renderer');
 
@@ -26,6 +27,7 @@ function onMouseMove(evt: MouseEvent) {
   <section class="hero-section">
     <div class="overlay" @mousemove="onMouseMove">
       <HeroSectionWebGPU ref="renderer" />
+      <div class="mobile-rotate" v-html="MobileRotateIcon"></div>
       <div class="scroll-indicators" @click="$emit('scrollToContent')">
         <div>
           <div>Scroll</div>
@@ -91,6 +93,20 @@ function onMouseMove(evt: MouseEvent) {
   & > .overlay {
     position: absolute;
     inset: var(--size-header-height) 0 0 0;
+
+    & > .mobile-rotate {
+      display: none;
+      position: absolute;
+      inset: var(--padding-normal) 0 0 var(--padding-normal);
+      height: 4rem;
+      pointer-events: none;
+
+      & :deep(svg) {
+        height: 100%;
+        color: light-dark(black, white);
+        fill: currentColor;
+      }
+    }
 
     & > .content {
       position: absolute;
@@ -167,5 +183,11 @@ ul:is(.specialties, .preferred-languages) {
 
 .yoe {
   font-weight: bold;
+}
+
+@media only screen and (max-width: 35rem) and (min-resolution: 192dpi) {
+  .mobile-rotate {
+    display: block !important;
+  }
 }
 </style>
