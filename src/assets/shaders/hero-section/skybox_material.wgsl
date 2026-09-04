@@ -4,6 +4,7 @@ const PI9: f32 = PI * 100000000.0;
 const JITTER: f32 = 0.123456789;
 const kF32Max: f32 = 0x7F7FFFFF;
 const kSharpness: f32 = 20.0;
+const kStarDensity: f32 = 140.0;
 const kStarColorCount: u32 = 5;
 const kStarColors = array<vec3f, kStarColorCount>(
   vec3f(1.0),
@@ -15,11 +16,11 @@ const kStarColors = array<vec3f, kStarColorCount>(
 // For a value V in range [0, 1], search the array in-order and
 // select the index where (V <= entry).
 const kStarColorCumulativeWeights = array<f32, kStarColorCount>(
-  0.84, // ~84%
-  0.88, // ~4%
-  0.92, // ~4%
-  0.96, // ~4%
-  1.00, // ~4%
+  0.96, // ~96%
+  0.97, // ~1%
+  0.98, // ~1%
+  0.99, // ~1%
+  1.00, // ~1%
 );
 
 struct GlobalUniforms {
@@ -219,9 +220,8 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {
 
   var background: vec3f = material.skyColor;
   if (global.iDarkMode == 1) {
-    let s: f32 = 80.0;// * max(global.iResolution.w, 1.0 / global.iResolution.w);
-    let noise = voronoi3(world_direction * s, 0.0);
-    if (noise.f1 - 0.125 < 0.0) {
+    let noise = voronoi3(world_direction * kStarDensity, 0.0);
+    if (noise.f1 - 0.1875 < 0.0) {
       let star_color_rand: f32 = hash31(noise.closest_cell);
       var star_color_index: u32 = 0;
       for (var i: u32 = 0; i < kStarColorCount; i++) {
