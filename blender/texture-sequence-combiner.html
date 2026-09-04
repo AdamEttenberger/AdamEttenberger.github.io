@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Texture Sequence Combiner</title>
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+
+    body {
+      margin: 0;
+      padding: 2rem;
+      font-family: system-ui, sans-serif;
+      background: #181818;
+      color: #eee;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .status-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: left;
+      gap: 1rem;
+      flex-wrap: wrap;
+      padding: 1.25rem 1.5rem;
+      border: 1px solid #333;
+      border-radius: 12px;
+      background: #1e1e1e;
+      margin-bottom: 1rem;
+    }
+
+    .status-panel h2 {
+      margin: 0 0 0.25rem;
+      font-size: 1rem;
+    }
+
+    .status-panel p {
+      margin: 0;
+      color: #999;
+      font-size: 0.9rem;
+    }
+
+    .status-panel button-row {
+      display: flex;
+      flex-direction: row;
+    }
+
+    #status {
+      margin: 1rem 0;
+      color: #aaa;
+    }
+
+    .preview-row {
+      display: flex;
+      gap: 1.25rem;
+      margin-top: 1rem;
+    }
+
+    .preview-col {
+      flex: 1 1 0;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .preview-col h3 {
+      margin: 0;
+      font-size: 0.95rem;
+      text-transform: capitalize;
+      color: #ccc;
+    }
+
+    .preview-col .count {
+      font-size: 0.8rem;
+      color: #999;
+      min-height: 1.2em;
+    }
+
+    .canvas-frame {
+      border: 1px solid #333;
+      border-radius: 8px;
+      background: #000;
+      overflow: hidden;
+      min-height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      aspect-ratio: 1;
+    }
+
+    canvas {
+      display: block;
+      max-width: 100%;
+      height: auto;
+    }
+
+    button {
+      display: inline-block;
+      box-sizing: border-box;
+      padding: 0.6rem 1rem;
+      border: 0;
+      border-radius: 6px;
+      cursor: pointer;
+      font: inherit;
+      background: #3a6ee0;
+      color: #fff;
+    }
+
+    #forget {
+      background: #841414;
+    }
+
+    button.secondary {
+      background: #333;
+      color: #eee;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+
+    @media (max-width: 700px) {
+      .preview-row {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Texture Sequence Combiner</h1>
+
+    <div class="status-panel">
+      <p id="status">
+        Grant access once and this page will remember it and auto-load next time.
+      </p>
+      <div class="button-row">
+        <button id="forget" type="button">Forget</button>
+        <button id="loadFolder" type="button">Load Images</button>
+        <button id="download" disabled>Download</button>
+      </div>
+    </div>
+
+    <div class="preview-row">
+      <div class="preview-col">
+        <h3>Normal (RGB) + Height (A)</h3>
+        <div class="canvas-frame"><canvas id="canvas-normal_height_map"></canvas></div>
+        <div class="count" id="count-normal_height_map"></div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const TYPES = ["normal_height_map"];
+
+    const status = document.getElementById("status");
+    const downloadButton = document.getElementById("download");
+    const forgetButton = document.getElementById("forget");
+
+    const loadFolderButton = document.getElementById("loadFolder");
+
+    const canvases = {};
+    const counts = {};
+    for (const type of TYPES) {
+      canvases[type] = document.getElementById(`canvas-${type}`);
+      counts[type] = document.getElementById(`count-${type}`);
+    }
+
+    const combinedReady = { normal_height_map: false };
+    const hasFileSystemAccess = "showDirectoryPicker" in window;
+
+    const DB_NAME = "image-sequence-combiner";
+    const STORE_NAME = "handles";
+    const INPUT_HANDLE_KEY = "readDir";
+    const OUTPUT_HANDLE_KEY = "writeDir"
+
+    function idbOpen() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, 1);
+        request.onupgradeneeded = () => {
+          request.result.createObjectStore(STORE_NAME);
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    function idbDelete() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.deleteDatabase(DB_NAME);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    async function idbGet(key) {
+      const db = await idbOpen();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, "readonly");
+        const request = tx.objectStore(STORE_NAME).get(key);
+        request.onsuccess = () => resolve(request.result || null);
+        request.onerror = () => reject(request.error);
+      }).finally(() => db.close());
+    }
+
+    async function idbSet(key, value) {
+      const db = await idbOpen();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, "readwrite");
+        tx.objectStore(STORE_NAME).put(value, key);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      }).finally(() => db.close());
+    }
+
+    async function filesFromDirectoryHandle(dirHandle) {
+      const files = [];
+      for await (const entry of dirHandle.values()) {
+        if (entry.kind === "file") {
+          files.push(await entry.getFile());
+        }
+      }
+      return files;
+    }
+
+    let storedInputHandle = null;
+
+    async function tryAutoLoad() {
+      if (!hasFileSystemAccess) {
+        status.textContent = "Your browser doesn't support remembered folder access, so this needs one click each time.";
+        return;
+      }
+
+      try {
+        storedInputHandle = await idbGet(INPUT_HANDLE_KEY);
+      } catch (err) {
+        console.warn("Could not read stored folder handle:", err);
+      }
+
+      if (!storedInputHandle) {
+        status.textContent = "Grant access once and this page will remember it and auto-load next time.";
+        return;
+      }
+
+      let permission;
+      try {
+        permission = await storedInputHandle.queryPermission({ mode: "read" });
+      } catch (err) {
+        console.warn("Could not query permission for stored folder:", err);
+        storedInputHandle = null;
+        return;
+      }
+
+      if (permission === "granted") {
+        try {
+          const files = await filesFromDirectoryHandle(storedInputHandle);
+          status.textContent = `Auto-loaded ${files.length} file(s) from remembered /gen folder.`;
+          handleFiles(files);
+        } catch (err) {
+          console.error(err);
+          status.textContent = "The remembered folder couldn't be read. Select it again.";
+        }
+        return;
+      }
+
+      status.textContent = "Access has expired — one click reconnects without re-browsing.";
+    }
+
+    async function onLoadFolder() {
+      try {
+        Object.values(counts).forEach(countEl => countEl.innerText = "");
+        Object.values(canvases).forEach(canvas => canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height));
+
+        let permission = storedInputHandle
+            ? await storedInputHandle.requestPermission({ mode: "read" })
+            : undefined;
+        if (permission !== "granted") {
+          const handle = await window.showDirectoryPicker({
+            id: "image-sequence-input-folder",
+            mode: "read"
+          });
+          storedInputHandle = handle;
+          await idbSet(INPUT_HANDLE_KEY, handle);
+	        permission = await storedInputHandle.queryPermission({ mode: "read" });
+	        if (permission !== "granted") {
+	          status.textContent = "Folder access was not granted.";
+            return;
+	        }
+	      }
+	
+        const files = await filesFromDirectoryHandle(storedInputHandle);
+        status.textContent = `Loaded ${files.length} file(s) from "${storedInputHandle.name}".`;
+        handleFiles(files);
+      } catch (err) {
+        console.error(err);
+        status.textContent = `Error: ${err.message}`;
+      }
+    }
+
+    async function onForgetLoadFolder() {
+      await idbDelete();
+      storedInputHandle = null;
+      downloadButton.disabled = true;
+      Object.values(counts).forEach(countEl => countEl.innerText = "");
+      Object.values(canvases).forEach(canvas => canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height));
+    }
+
+    loadFolderButton.addEventListener("click", () => onLoadFolder());
+
+    /**
+     * Filename parsing & grouping: normal_{index}.webp / height_{index}.webp
+     */
+    const FILENAME_PATTERN = /^(normal|height)_(\d+)\.webp$/i;
+
+    function parseFilename(name) {
+      const match = name.match(FILENAME_PATTERN);
+      if (!match) return null;
+      return { type: match[1].toLowerCase(), index: Number(match[2]) };
+    }
+
+    function groupFilesByType(files) {
+      const groups = { normal: [], height: [] };
+
+      for (const file of files) {
+        const parsed = parseFilename(file.name);
+        if (!parsed) continue; // ignore files that don't match the pattern
+        groups[parsed.type].push({ file, index: parsed.index });
+      }
+
+      for (const type of ["normal", "height"]) {
+        groups[type].sort((a, b) => {
+          if (a.index !== b.index) return a.index - b.index;
+          return a.file.name.localeCompare(b.file.name, undefined, {
+            numeric: true,
+            sensitivity: "base"
+          });
+        });
+      }
+
+      return groups;
+    }
+
+    async function loadImage(file) {
+      const url = URL.createObjectURL(file);
+
+      try {
+        const image = new Image();
+
+        await new Promise((resolve, reject) => {
+          image.onload = resolve;
+          image.onerror = () => reject(new Error(`Could not load ${file.name}`));
+          image.src = url;
+        });
+
+        return image;
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+    }
+
+    function getImageData(image) {
+      const canvas = document.createElement("canvas");
+      canvas.width = image.naturalWidth;
+      canvas.height = image.naturalHeight;
+
+      const ctx = canvas.getContext("2d", {
+        willReadFrequently: true
+      });
+
+      ctx.drawImage(image, 0, 0);
+
+      return ctx.getImageData(
+        0,
+        0,
+        image.naturalWidth,
+        image.naturalHeight
+      );
+    }
+
+    async function combineGroup(type, entries) {
+      const canvas = canvases[type];
+      const ctx = canvas.getContext("2d");
+      const countEl = counts[type];
+
+      const normalEntries = entries.normal;
+      const heightEntries = entries.height;
+
+      if (normalEntries.length === 0) {
+        countEl.textContent = "No normal files found.";
+        canvas.width = 0;
+        canvas.height = 0;
+        combinedReady[type] = false;
+        return;
+      }
+
+      if (heightEntries.length === 0) {
+        countEl.textContent = "No height files found.";
+        canvas.width = 0;
+        canvas.height = 0;
+        combinedReady[type] = false;
+        return;
+      }
+
+      const heightByIndex = new Map(
+        heightEntries.map(entry => [entry.index, entry])
+      );
+
+      const pairs = normalEntries.map(normalEntry => {
+        const heightEntry = heightByIndex.get(normalEntry.index);
+
+        if (!heightEntry) {
+          throw new Error(
+            `Missing height_${normalEntry.index}.webp for normal_${normalEntry.index}.webp.`
+          );
+        }
+
+        return {
+          normal: normalEntry.file,
+          height: heightEntry.file
+        };
+      });
+
+      countEl.textContent = `Loading ${pairs.length} image${pairs.length === 1 ? "" : "s"}...`;
+
+      const combinedFrames = await Promise.all(
+        pairs.map(async pair => {
+          const [normalImage, heightImage] = await Promise.all([
+            loadImage(pair.normal),
+            loadImage(pair.height)
+          ]);
+
+          if (
+            normalImage.naturalWidth !== heightImage.naturalWidth ||
+            normalImage.naturalHeight !== heightImage.naturalHeight
+          ) {
+            throw new Error(
+              `normal and height images have different dimensions for ${pair.normal.name}.`
+            );
+          }
+
+          const normalData = getImageData(normalImage);
+          const heightData = getImageData(heightImage);
+          const outputData = new ImageData(
+            normalData.width,
+            normalData.height
+          );
+
+          // Preserve the normal RGB values exactly as decoded.
+          // Only replace the alpha channel with height.A.
+          for (let i = 0; i < outputData.data.length; i += 4) {
+            outputData.data[i + 0] = normalData.data[i + 0];
+            outputData.data[i + 1] = normalData.data[i + 1];
+            outputData.data[i + 2] = normalData.data[i + 2];
+            outputData.data[i + 3] = heightData.data[i + 3];
+          }
+
+          return outputData;
+        })
+      );
+
+      const columns = Math.ceil(Math.sqrt(combinedFrames.length));
+      const rows = Math.ceil(combinedFrames.length / columns);
+
+      // All frames are expected to share dimensions.
+      const tileWidth = combinedFrames[0].width;
+      const tileHeight = combinedFrames[0].height;
+
+      if (!tileWidth || !tileHeight) {
+        throw new Error(`The ${type} images have invalid dimensions.`);
+      }
+
+      canvas.width = tileWidth * columns;
+      canvas.height = tileHeight * rows;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < combinedFrames.length; i++) {
+        const column = i % columns;
+        const row = Math.floor(i / columns);
+
+        // putImageData writes the supplied RGBA values directly rather
+        // than performing source-over alpha compositing.
+        ctx.putImageData(
+          combinedFrames[i],
+          column * tileWidth,
+          row * tileHeight
+        );
+      }
+
+      countEl.textContent =
+        `${combinedFrames.length} images → ${columns}×${rows} → ${canvas.width}×${canvas.height}px`;
+      combinedReady[type] = true;
+    }
+
+    async function combineAll(files) {
+      status.textContent = "Loading images...";
+      downloadButton.disabled = true;
+
+      const groups = groupFilesByType(files);
+
+      try {
+        await combineGroup("normal_height_map", groups);
+
+        const loadedTypes = TYPES.filter(type => combinedReady[type]);
+        if (loadedTypes.length === 0) {
+          status.textContent = 'No files matched the "normal_{index}.webp" / "height_{index}.webp" naming pattern.';
+        } else {
+          status.textContent = `Combined: ${loadedTypes.join(", ")}.`;
+          downloadButton.disabled = false;
+        }
+      } catch (err) {
+        console.error(err);
+        status.textContent = `Error: ${err.message}`;
+      }
+    }
+
+    function handleFiles(files) {
+      combineAll(files);
+    }
+
+    function canvasToBlob(canvas) {
+      return new Promise((resolve, reject) => {
+        canvas.toBlob(blob => {
+          if (blob) {
+            resolve(blob);
+          } else {
+            reject(new Error("Could not export canvas to an image."));
+          }
+        }, "image/webp", 1.0);
+      });
+    }
+
+    async function downloadCombinedImages() {
+      if (!hasFileSystemAccess) {
+        console.error("Your browser doesn't support remembered folder access.");
+        return;
+      }
+
+      const readyTypes = TYPES.filter(type => combinedReady[type]);
+      if (readyTypes.length === 0) return;
+
+      let handle;
+      try {
+        handle = await idbGet(OUTPUT_HANDLE_KEY);
+        let permission = handle
+            ? await handle.queryPermission({ mode: "readwrite" })
+            : undefined;
+        if (permission !== "granted") {
+          handle = await window.showDirectoryPicker({
+            id: "image-sequence-output-folder",
+            mode: "readwrite"
+          });
+          permission = await handle.queryPermission({ mode: "readwrite" });
+	        if (permission !== "granted") {
+	          status.textContent = "Folder access was not granted.";
+            return;
+	        }
+          await idbSet(OUTPUT_HANDLE_KEY, handle);
+        }
+      } catch (err) {
+        console.warn("Could not read stored folder handle:", err);
+      }
+      
+      status.textContent = "Writing files...";
+      try {
+        for (const type of readyTypes) {
+          const blob = await canvasToBlob(canvases[type]);
+          const fileHandle = await handle.getFileHandle(`${type}.webp`, { create: true });
+          const writable = await fileHandle.createWritable();
+          await writable.write(blob);
+          await writable.close();
+        }
+        status.textContent = `Wrote ${readyTypes.map(t => `${t}.webp`).join(", ")} to "${handle.name}".`;
+      } catch (err) {
+        console.error(err);
+        status.textContent = `Error writing files: ${err.message}`;
+      }
+    }
+
+    downloadButton.addEventListener("click", () => downloadCombinedImages());
+
+    forgetButton.addEventListener("click", () => onForgetLoadFolder());
+
+    // Attempt a silent auto-load on page open.
+    tryAutoLoad();
+  </script>
+</body>
+</html>
