@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { useTemplateRef } from 'vue'
+import HeroSectionInfoCard from '@/components/hero/hero-section-info-card.vue'
+import HeroSectionScrollIndicator from '@/components/hero/hero-section-scroll-indicator.vue'
 import HeroSectionWebGPU from '@/components/hero/hero-section-webgpu.vue'
-import Layer from '@/components/layer.vue'
 import type { IAuthor } from '@/content/author'
 import MobileRotateIcon from '@/assets/images/svg/mobile-rotate.svg?raw'
 
@@ -28,51 +29,9 @@ function onMouseMove(evt: MouseEvent) {
     <div class="overlay" @mousemove="onMouseMove">
       <HeroSectionWebGPU ref="renderer" />
       <div class="mobile-rotate" v-html="MobileRotateIcon"></div>
-      <div class="scroll-indicators" @click="$emit('scrollToContent')">
-        <div>
-          <div>Scroll</div>
-          <font-awesome-icon class="fa-icon" :icon="['fas', 'chevron-down']" />
-        </div>
-        <div>
-          <div>Scroll</div>
-          <font-awesome-icon class="fa-icon" :icon="['fas', 'chevron-down']" />
-        </div>
-        <div>
-          <div>Scroll</div>
-          <font-awesome-icon class="fa-icon" :icon="['fas', 'chevron-down']" />
-        </div>
-      </div>
+      <HeroSectionScrollIndicator class="scroll-indicators" @scroll-to-content="$emit('scrollToContent')" />
       <div class="content">
-        <Layer class="info-card">
-          <div class="headings">
-            <h1>{{ author.name }}</h1>
-            <br />
-            <h2>{{ author.job_title }}</h2>
-            <h3><span class="yoe theme-color-accent">{{ author.years_of_experience }}+</span> Years of experience</h3>
-          </div>
-          <hr>
-          <h4>
-            <ul class="specialties theme-color-secondary">
-              <li>Rendering</li>
-              <li>Layout</li>
-              <li>UI</li>
-              <li>UX</li>
-              <li>Systems</li>
-              <li>Tools</li>
-              <li>Browsers</li>
-              <li>Games</li>
-            </ul>
-          </h4>
-          <hr>
-          <h4>
-            <ul class="preferred-languages theme-color-secondary">
-              <li>C++</li>
-              <li>C#</li>
-              <li>JS &middot; TS</li>
-              <li>Lua</li>
-            </ul>
-          </h4>
-        </Layer>
+        <HeroSectionInfoCard :author />
       </div>
     </div>
   </section>
@@ -115,74 +74,13 @@ function onMouseMove(evt: MouseEvent) {
       justify-self: center;
       place-content: center;
       width: 24rem;
-
-      & > .info-card {
-        gap: var(--padding-large);
-
-        background-color: rgb(from var(--theme-primary-50) r g b / 0.75);
-        border: 3px solid var(--theme-border);
-        border-radius: 2rem;
-
-        backdrop-filter: blur(4px);
-        will-change: backdrop-filter;
-
-        & > .headings {
-          display: flex;
-          flex-direction: column;
-        }
-
-        & :is(h1, h2, h3) {
-          text-align: center;
-        }
-      }
     }
 
     & > .scroll-indicators {
       position: absolute;
       inset: auto 0 0 0;
-      display: flex;
-      flex-direction: row;
-      align-items: end;
-      font-size: 1.25rem;
-      padding: var(--padding-normal) 0;
-      color: var(--theme-accent-500);
-      backdrop-filter: blur(8px);
-      will-change: backdrop-filter;
-      cursor: pointer;
-
-      & > div {
-        display: flex;
-        flex-direction: column;
-        width: 100%;
-        align-items: center;
-        justify-content: space-evenly;
-
-        & > .fa-icon {
-          font-size: 2rem;
-        }
-      }
     }
   }
-}
-
-ul:is(.specialties, .preferred-languages) {
-  list-style: none;
-  padding-inline-start: 0;
-  display: flex;
-  flex-flow: row wrap;
-  gap: var(--padding-small);
-}
-
-.yoe, li {
-  color: var(--theme-text);
-  background-color: var(--theme-background);
-  border: 3px solid var(--theme-border);
-  border-radius: var(--size-border-radius);
-  padding: var(--padding-xxsmall) var(--padding-normal);
-}
-
-.yoe {
-  font-weight: bold;
 }
 
 @media only screen and (max-width: 35rem) and (min-resolution: 192dpi) {
