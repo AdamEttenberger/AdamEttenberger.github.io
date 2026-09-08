@@ -70,7 +70,7 @@ const { theme } = useTheme(() => ({ color: toValue(props.item.color) }));
   grid-column: 1 / 4;
   gap: var(--padding-normal);
 
-  & .label  { grid-column: 1 / 2; text-wrap: nowrap; }
+  & .label  { grid-column: 1 / 2; text-wrap: nowrap; align-self: center; }
   & .reset  { grid-column: 2 / 3; }
   & .editor { grid-column: 3 / 4; }
 
