@@ -98,11 +98,6 @@ img {
   aspect-ratio: 1;
 }
 
-.fa-icon {
-  width: var(--size-icon-button);
-  height: var(--size-icon-button);
-}
-
 .link.disabled {
   pointer-events: none;
 }
