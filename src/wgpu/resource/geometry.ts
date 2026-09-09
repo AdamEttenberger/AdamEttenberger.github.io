@@ -254,6 +254,7 @@ export class Plane extends GeometryBase {
       { attribute: VertexAttribute.UV,        format: 'float32x2' },
     );
 
+    gridsize = Math.max(1, gridsize);
     const vert_width = gridsize + 1;
     const vert_stride = vertexLayout.gpuLayout.arrayStride / Float32Array.BYTES_PER_ELEMENT;
     const vert_count = vert_width * vert_width;
