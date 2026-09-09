@@ -4,7 +4,11 @@
     "target": "es2024",
     "lib": ["ESNext", "DOM"],
     "module": "esnext",
-    "types": ["node", "@webgpu/types"],
+    "types": [
+      "node",
+      "vite/client",
+      "@webgpu/types"
+    ],
     "moduleResolution": "bundler",
     "strict": true,
     "allowJs": true,
