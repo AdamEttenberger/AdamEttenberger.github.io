@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useTemplateRef, onMounted, onUnmounted } from 'vue'
-import WebGPULogo from '@/components/webgpu-logo.vue'
+import WebGpuLogo from '@/components/web-gpu-logo.vue'
 import { vec2, vec3, mat4, quat, vec4, Vec3 } from 'ts-gl-matrix'
 import ocean_simulation_material_code from '@/assets/shaders/hero-section/ocean_simulation_material.wgsl?raw'
 import ocean_simulation_flipbook_normal_height_map_src from '@/assets/textures/hero-section/normal_height_map_256_64f.webp'
@@ -155,10 +155,10 @@ defineExpose({
 <template>
   <div class="hero-section-viewport-container">
     <canvas ref="canvas" @contextmenu="onContextMenu">
-      <div class='error'><img src='/images/html5_white.png' width='128' height='128' /><h2>This page requires support for HTML5 Canvas and WebGPU</h2></div>
+      <div class='error'><WebGpuLogo type="standard" :width='128' :height='128' /><h2>This page requires support for HTML5 Canvas and WebGPU</h2></div>
     </canvas>
     <div class="webgpu-container">
-      <WebGPULogo />
+      <WebGpuLogo type="horizontal" />
     </div>
   </div>
 </template>
