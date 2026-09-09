@@ -49,75 +49,92 @@ class GlobalUniforms extends WebGPUStruct<IGlobalUniforms>
   }
 }
 
+class AppState {
+  public readonly pipeline: Pipeline;
+  public readonly render_nodes = new Array<IRenderNode>();
+
+  constructor(
+    public readonly context: GPUCanvasContext,
+    public readonly adapter: GPUAdapter,
+    public readonly device: GPUDevice,
+    public readonly viewport: Viewport,
+    public readonly global_uniforms: GlobalUniforms,
+    public readonly global_bind_group_layout: GPUBindGroupLayout,
+    public readonly instance_bind_group_layout: GPUBindGroupLayout,
+    public readonly global_bind_group: GPUBindGroup,
+    public readonly texture_registry: TextureRegistry,
+  ) {
+    this.pipeline = new Pipeline(device);
+  }
+
+  public destroy() {
+    this.viewport.destroy();
+    this.render_nodes.forEach(node => node.destroy());
+    this.render_nodes.length = 0;
+    this.global_uniforms?.destroy();
+    this.pipeline?.destroy();
+    this.texture_registry?.destroy();
+    this.device?.destroy();
+  }
+}
+
 export default class App {
   public readonly on_update = new OnAppUpdate();
 
   private _initializing: Promise<void>;
-  private _context: GPUCanvasContext|null = null;
-  private _adapter: GPUAdapter|null = null;
-  public device: GPUDevice|null = null;
-  public deviceFormat: GPUTextureFormat|null = null;
-  private _viewport: Viewport|null = null;
-
-  public global_uniforms: GlobalUniforms|null = null;
-  public global_bind_group_layout: GPUBindGroupLayout|null = null;
-  public instance_bind_group_layout: GPUBindGroupLayout|null = null;
-
-  public global_bind_group: GPUBindGroup|null = null;
-
-  public texture_registry: TextureRegistry|null = null;
+  private _state: AppState|null = null;
 
   public camera: ICamera|null = null;
 
-  private _render_nodes = new Array<IRenderNode>();
-  private _pipeline: Pipeline|null = null;
+  // TODO: Remove escape hatches
+  public get isReady(): boolean { return this._state !== null; }
+  public get device(): GPUDevice|undefined { return this._state?.device; }
+  public get globalBindGroupLayout(): GPUBindGroupLayout|undefined { return this._state?.global_bind_group_layout; }
+  public get instanceBindGroupLayout(): GPUBindGroupLayout|undefined { return this._state?.instance_bind_group_layout; }
+  public get deviceFormat(): GPUTextureFormat|undefined { return this._state?.viewport.deviceFormat; }
+  public get textureRegistry(): TextureRegistry|undefined { return this._state?.texture_registry; }
+  public get globalUniforms(): GlobalUniforms|undefined { return this._state?.global_uniforms; }
 
   constructor(
     canvas: HTMLCanvasElement,
+    texture_group_budgets: Map<TextureGroup, number>,
   ) {
     if (!navigator.gpu) {
       throw new TypeError('WebGPU is not supported by this browser.');
     }
-    this._initializing = this.initAsync(canvas);
+    this._initializing = this.initAsync(canvas, texture_group_budgets);
   }
 
   public get ready(): Promise<void> {
     return this._initializing;
   }
 
-  private async initAsync(canvas: HTMLCanvasElement) {
-    this._context = canvas.getContext('webgpu') as GPUCanvasContext | null;
-    if (!this._context) {
+  private async initAsync(
+    canvas: HTMLCanvasElement,
+    texture_group_budgets: Map<TextureGroup, number>,
+  ) {
+    const context: GPUCanvasContext | null = canvas.getContext('webgpu');
+    if (!context) {
       throw new TypeError('WebGPU Context not available.');
     }
-    this._adapter = await navigator.gpu.requestAdapter();
-    if (!this._adapter) {
+    const adapter = await navigator.gpu.requestAdapter();
+    if (!adapter) {
       throw new TypeError('WebGPU Adapter not available.');
     }
-    this.device = await this._adapter.requestDevice();
-    if (!this.device) {
+    const device = await adapter.requestDevice();
+    if (!device) {
       throw new TypeError('WebGPU Device not available.');
     }
-    this.deviceFormat = navigator.gpu.getPreferredCanvasFormat();
-    this._context.configure({
-      device: this.device,
-      format: this.deviceFormat,
-      alphaMode: 'opaque',
-    });
-    this._viewport = new Viewport(this.device, canvas);
-    this._viewport.on_display_changed.subscribe(this.onDisplayChanged);
-    this._viewport.on_render.subscribe(this.onRender);
+    const viewport = new Viewport(device, canvas, context);
 
-    this.texture_registry = new TextureRegistry(this.device, new Map<TextureGroup, number>([
-      [TextureGroup._2k, 1]
-    ]));
-    const texture_group_2k: GPUTextureView|undefined = this.texture_registry.get_group(TextureGroup._2k);
+    const texture_registry = new TextureRegistry(device, texture_group_budgets);
+    const texture_group_2k: GPUTextureView|undefined = texture_registry.get_group(TextureGroup._2k);
     if (texture_group_2k === undefined) {
       throw new Error('WebGPU Texture group not available');
     }
 
-    this.global_uniforms = new GlobalUniforms(this.device);
-    this.global_bind_group_layout = this.device.createBindGroupLayout({
+    const global_uniforms = new GlobalUniforms(device);
+    const global_bind_group_layout = device.createBindGroupLayout({
       entries: [
         {
           binding: 0,
@@ -160,7 +177,7 @@ export default class App {
         },
       ]
     });
-    this.instance_bind_group_layout = this.device.createBindGroupLayout({
+    const instance_bind_group_layout = device.createBindGroupLayout({
       entries: [
         {
           binding: 0,
@@ -172,15 +189,15 @@ export default class App {
         },
       ],
     });
-    this.global_bind_group = this.device.createBindGroup({
-      layout: this.global_bind_group_layout,
+    const global_bind_group = device.createBindGroup({
+      layout: global_bind_group_layout,
       entries: [
-        { binding: 0, resource: { buffer: this.global_uniforms.gpuBuffer } },
+        { binding: 0, resource: { buffer: global_uniforms.gpuBuffer } },
         {
           binding: 1,
           resource: texture_group_2k,
         },
-        { binding: 2, resource: this.device.createSampler({
+        { binding: 2, resource: device.createSampler({
             magFilter: 'linear',
             minFilter: 'linear',
             mipmapFilter: 'linear',
@@ -188,7 +205,7 @@ export default class App {
             addressModeV: 'repeat',
           })
         },
-        { binding: 3, resource: this.device.createSampler({
+        { binding: 3, resource: device.createSampler({
             magFilter: 'linear',
             minFilter: 'linear',
             mipmapFilter: 'linear',
@@ -196,7 +213,7 @@ export default class App {
             addressModeV: 'clamp-to-edge',
           })
         },
-        { binding: 4, resource: this.device.createSampler({
+        { binding: 4, resource: device.createSampler({
             magFilter: 'nearest',
             minFilter: 'nearest',
             mipmapFilter: 'nearest',
@@ -204,7 +221,7 @@ export default class App {
             addressModeV: 'repeat',
           })
         },
-        { binding: 5, resource: this.device.createSampler({
+        { binding: 5, resource: device.createSampler({
             magFilter: 'nearest',
             minFilter: 'nearest',
             mipmapFilter: 'nearest',
@@ -212,7 +229,7 @@ export default class App {
             addressModeV: 'clamp-to-edge',
           })
         },
-        { binding: 6, resource: this.device.createSampler({
+        { binding: 6, resource: device.createSampler({
             magFilter: 'linear',
             minFilter: 'linear',
             addressModeU: 'clamp-to-edge',
@@ -221,53 +238,83 @@ export default class App {
         },
       ],
     })
-    this._pipeline = new Pipeline(this.device);
+    
+    this._state = new AppState(
+      context,
+      adapter,
+      device,
+      viewport,
+      global_uniforms,
+      global_bind_group_layout,
+      instance_bind_group_layout,
+      global_bind_group,
+      texture_registry,
+    );
+
+    this._state.viewport.on_display_changed.subscribe(this.onDisplayChanged);
+    this._state.viewport.on_render.subscribe(this.onRender);
   }
 
   public destroy() {
-    if (this._viewport) {
-      this._viewport.destroy();
-      this._viewport = null;
+    if (this._state) {
+      this._state.destroy();
+      this._state = null;
     }
-    this._render_nodes.forEach(node => node.destroy());
-    this._render_nodes = [];
-    this.global_uniforms?.destroy();
-    this._pipeline?.destroy();
-    this.texture_registry?.destroy();
-    this.device?.destroy();
     this.on_update.disconnect();
+    this.camera = null;
   }
 
-  public add(node: IRenderNode): IRenderNode {
-    this._render_nodes.push(node);
+  public add(node: IRenderNode): IRenderNode|undefined {
+    if (!this._state) {
+      return;
+    }
+    this._state.render_nodes.push(node);
     return node;
   }
 
   public setDarkMode(value: boolean) {
-    if (!this.global_uniforms) {
+    if (!this._state) {
       return;
     }
-    this.global_uniforms.value[0].iDarkMode[0] = value ? 1 : 0;
+    this._state.global_uniforms.value[0].iDarkMode[0] = value ? 1 : 0;
   }
 
-  public handleMouseMoveEvent(event: MouseEvent) {
-    if (!this.global_uniforms || !this._viewport) {
-      return;
+  public handleMouseMoveEvent(event: MouseEvent): boolean {
+    if (!this._state) {
+      return false;
     }
-    const box = this._viewport.boundingClientRect;
+    const box = this._state.viewport!.boundingClientRect;
     if (!box) {
-      return;
+      return false;
     }
     const x = (event.clientX - box.left) / box.width;
     const y = (event.clientY - box.top) / box.height;
-    vec2.set(this.global_uniforms.value[0].iMouse, x, y);
+    vec2.set(this._state.global_uniforms!.value[0].iMouse, x, y);
+    event.stopPropagation();
+    return true;
+  }
+
+  public handleMouseClickEvent(event: PointerEvent): boolean {
+    if (!this._state) {
+      return false;
+    }
+    event.stopPropagation();
+    return true;
+  }
+
+  public handleContextMenuEvent(event: PointerEvent): boolean {
+    if (!this._state) {
+      return false;
+    }
+    event.stopPropagation();
+    return true;
   }
 
   private readonly onDisplayChanged = (viewport: Viewport) => {
-    if (!this.global_uniforms) {
+    if (!this._state) {
       return;
     }
-    vec4.set(this.global_uniforms.value[0].iResolution,
+    vec4.set(this._state.global_uniforms.value[0].iResolution,
       viewport.physicalWidth,
       viewport.physicalHeight,
       viewport.devicePixelRatio,
@@ -275,33 +322,29 @@ export default class App {
   };
 
   private readonly onRender = (viewport: Viewport, timestamp: number) => {
-    if (!this.device ||
-        !this.deviceFormat ||
-        !this._context ||
-        !this.camera ||
-        !this.global_uniforms ||
-        !this._pipeline ||
-        !viewport.depthStencilTextureView) {
+    if (!this._state ||
+        !this._state.viewport.depthStencilTextureView ||
+        !this.camera) {
       return;
     }
     this.on_update.emit(this, viewport, timestamp);
 
-    this.camera.apply(viewport, this.global_uniforms.value[0]);
-    this.global_uniforms.value[0].iTime[0] = timestamp * 0.001;
-    this.global_uniforms.submit();
+    this.camera.apply(viewport, this._state.global_uniforms.value[0]);
+    this._state.global_uniforms.value[0].iTime[0] = timestamp * 0.001;
+    this._state.global_uniforms.submit();
 
-    const encoder = this.device.createCommandEncoder();
+    const encoder = this._state.device.createCommandEncoder();
     const pass = encoder.beginRenderPass({
       colorAttachments: [
         {
-          view: this._context.getCurrentTexture().createView(),
+          view: this._state.viewport.createTextureView(),
           clearValue: { r: 0, g: 0, b: 0, a: 1},
           loadOp: 'clear',
           storeOp: 'store',
         },
       ],
       depthStencilAttachment: {
-        view: viewport.depthStencilTextureView,
+        view: this._state.viewport.depthStencilTextureView,
         depthClearValue: 1,
         stencilClearValue: 0,
         depthLoadOp: 'clear',
@@ -311,13 +354,13 @@ export default class App {
       },
     });
 
-    for (const node of this._render_nodes) {
-      pass.setPipeline(this._pipeline.getRenderPipeline(this, this.deviceFormat, node));
-      pass.setBindGroup(BindGroupIndex.Global, this.global_bind_group);
+    for (const node of this._state.render_nodes) {
+      pass.setPipeline(this._state.pipeline.getRenderPipeline(this, this._state.viewport.deviceFormat, node));
+      pass.setBindGroup(BindGroupIndex.Global, this._state.global_bind_group);
       node.draw(pass);
     }
     pass.end();
 
-    this.device.queue.submit([encoder.finish()]);
+    this._state.device.queue.submit([encoder.finish()]);
   }
 }

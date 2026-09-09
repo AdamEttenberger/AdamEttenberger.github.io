@@ -5,7 +5,7 @@ import { vec2, vec3, mat4, quat, vec4, Vec3 } from 'ts-gl-matrix'
 import ocean_simulation_material_code from '@/assets/shaders/hero-section/ocean_simulation_material.wgsl?raw'
 import ocean_simulation_flipbook_normal_height_map_src from '@/assets/textures/hero-section/normal_height_map_256_64f.webp'
 import { useUserPreferencesStore } from '@/stores/user_preferences'
-import { getTextureGroupSize } from '@/wgpu/resource/texture'
+import { getTextureGroupSize, TextureGroup } from '@/wgpu/resource/texture'
 import App from '@/wgpu/core/app'
 import { OceanMaterial } from '@/wgpu/resource/material'
 import Camera from '@/wgpu/core/camera'
@@ -37,19 +37,21 @@ async function setup() {
   if (!canvas.value) {
     throw new Error('Cannot find canvas element.')
   }
-  app = new App(canvas.value);
+  app = new App(canvas.value, new Map<TextureGroup, number>([
+    [TextureGroup._2k, 1]
+  ]));
   await app.ready;
-  if (!app.device ||
-      !app.texture_registry ||
-      !app.global_bind_group_layout ||
-      !app.instance_bind_group_layout ||
+  if (!app.isReady ||
+      !app.device ||
+      !app.textureRegistry ||
+      !app.instanceBindGroupLayout ||
       !app.deviceFormat) {
     throw new Error('Failed to initialize WebGPU App.')
   }
 
   app.camera = Camera.makePerspectiveCamera(kCameraPosition, kCameraRotation, toRadian(60));
 
-  const ocean_simulation_datamap = await app.texture_registry.get(ocean_simulation_flipbook_normal_height_map_src);
+  const ocean_simulation_datamap = await app.textureRegistry.get(ocean_simulation_flipbook_normal_height_map_src);
   if (ocean_simulation_datamap === undefined) {
     throw new Error(`Cannot locate texture: ${ocean_simulation_flipbook_normal_height_map_src}`);
   }
@@ -72,7 +74,7 @@ async function setup() {
   const ocean_tiles = new OceanMeshes(
     app.device,
     /*instance_count=*/(kInstanceTileArea.z - kInstanceTileArea.x + 1) * (kInstanceTileArea.w - kInstanceTileArea.y + 1),
-    app.instance_bind_group_layout,
+    app.instanceBindGroupLayout,
     ocean_simulation_material,
     /*gridsize=*/kOceanGridSize,
   )
@@ -97,7 +99,7 @@ async function setup() {
   app.add(new SkyboxRenderNode(skybox));
 
   app.on_update.subscribe((app: App, _viewport: Viewport, timestamp: number): void => {
-    if (!app.global_uniforms) {
+    if (!app.globalUniforms) {
       return;
     }
     const r1 = 0.025;
@@ -113,8 +115,8 @@ async function setup() {
     const darkMode = user_preferences.useDarkMode;
     app.setDarkMode(darkMode);
     const skyboxMaterialSlot = darkMode ? SkyboxMaterialSlot.DarkMode : SkyboxMaterialSlot.LightMode;
-    vec3.normalize(app.global_uniforms.value[0].iSunDirection, vec3.transformQuat(vec3.create(), vec3.fromValues(0, 0, -1), quat.fromEuler(quat.create(), 190, sun_yaw, 0)));
-    vec3.copy(app.global_uniforms.value[0].iSunLightColor, 
+    vec3.normalize(app.globalUniforms.value[0].iSunDirection, vec3.transformQuat(vec3.create(), vec3.fromValues(0, 0, -1), quat.fromEuler(quat.create(), 190, sun_yaw, 0)));
+    vec3.copy(app.globalUniforms.value[0].iSunLightColor, 
               skybox.material.uniforms.value[skyboxMaterialSlot].sunColor);
     skybox.uniforms.value[0].material_id[0] = skyboxMaterialSlot;
     skybox.uniforms.submit();
@@ -130,11 +132,21 @@ async function shutdown() {
 }
 
 function handleMouseMoveEvent(event: MouseEvent) {
-  app?.handleMouseMoveEvent(event);
+  if (app?.handleMouseMoveEvent(event)) {
+    emits('mousemove', event);
+  }
 }
 
-function onContextMenu(evt: PointerEvent) {
-  evt.preventDefault();
+function handleMouseClickEvent(event: PointerEvent) {
+  if (app?.handleMouseClickEvent(event)) {
+    emits('click', event);
+  }
+}
+
+function handleContextMenuEvent(event: PointerEvent) {
+  if (app?.handleContextMenuEvent(event)) {
+    emits('contextmenu', event);
+  }
 }
 
 const canvas = useTemplateRef<HTMLCanvasElement>('canvas');
@@ -142,13 +154,23 @@ const canvas = useTemplateRef<HTMLCanvasElement>('canvas');
 onMounted(() => setup());
 onUnmounted(() => shutdown());
 defineExpose({
-  handleMouseMoveEvent
+  handleMouseMoveEvent,
+  handleMouseClickEvent,
+  handleContextMenuEvent,
 });
+const emits = defineEmits<{
+  click: [event: PointerEvent],
+  mousemove: [event: MouseEvent],
+  contextmenu: [event: PointerEvent],
+}>();
 </script>
 
 <template>
-  <div class="hero-section-viewport-container">
-    <canvas ref="canvas" @contextmenu="onContextMenu">
+  <div class="hero-section-viewport-container"
+       @mousemove.capture.prevent="handleMouseMoveEvent"
+       @click.capture.prevent="handleMouseClickEvent"
+       @contextmenu.capture.prevent="handleContextMenuEvent">
+    <canvas ref="canvas" @contextmenu.prevent>
       <div class='error'><WebGpuLogo type="standard" :width='128' :height='128' /><h2>This page requires support for HTML5 Canvas and WebGPU</h2></div>
     </canvas>
     <div class="webgpu-container">

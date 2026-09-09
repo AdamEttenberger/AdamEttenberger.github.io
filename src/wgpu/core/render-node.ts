@@ -27,7 +27,7 @@ export class MeshInstanceRenderNode implements IRenderNode {
   public createRenderPipeline(app: App, targetFormat: GPUTextureFormat): GPURenderPipeline {
     const pipelineLayout = app.device!.createPipelineLayout({
       bindGroupLayouts: [
-        app.global_bind_group_layout,
+        app.globalBindGroupLayout!,
         this.mesh.material.bindLayout,
         this.mesh.bindGroupLayout,
       ]
@@ -86,7 +86,7 @@ export class SkyboxRenderNode implements IRenderNode {
   public createRenderPipeline(app: App, targetFormat: GPUTextureFormat): GPURenderPipeline {
     const pipelineLayout = app.device!.createPipelineLayout({
       bindGroupLayouts: [
-        app.global_bind_group_layout,
+        app.globalBindGroupLayout!,
         this._skybox.material.bindLayout,
         this._skybox.bindGroupLayout,
       ]

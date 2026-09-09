@@ -16,8 +16,11 @@ export default class Viewport {
   public readonly on_display_changed = new OnViewportDisplayChanged();
   public readonly on_render = new OnViewportRender();
 
+  public readonly deviceFormat = navigator.gpu.getPreferredCanvasFormat();
+
   private _device: GPUDevice;
   private _canvas: WeakRef<HTMLCanvasElement>;
+  private _context: GPUCanvasContext;
 
   private _intersectionObserver: IntersectionObserver|null;
   private _resizeObserver: ResizeObserver|null = null;
@@ -42,9 +45,16 @@ export default class Viewport {
   constructor(
     device: GPUDevice,
     canvas: HTMLCanvasElement,
+    context: GPUCanvasContext,
   ) {
     this._device = device;
     this._canvas = new WeakRef(canvas);
+    this._context = context;
+    this._context.configure({
+      device: device,
+      format: this.deviceFormat,
+      alphaMode: 'opaque',
+    });
     this._intersectionObserver = new IntersectionObserver(this.onIntersectionObserver);
     this._resizeObserver = new ResizeObserver(this.onDisplayChanged);
     this._resizeObserver.observe(canvas);
@@ -62,6 +72,10 @@ export default class Viewport {
   public get depthStencilTextureView(): GPUTextureView|null { return this._depth_stencil_texture_view; }
 
   public get boundingClientRect(): DOMRect|undefined { return this._canvas.deref()?.getBoundingClientRect(); }
+
+  public createTextureView(): GPUTextureView {
+    return this._context.getCurrentTexture().createView();
+  }
 
   public destroy() {
     if (this._resizeObserver) {

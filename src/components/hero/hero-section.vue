@@ -16,17 +16,17 @@ defineEmits<{
   scrollToContent: [],
 }>();
 
-function onMouseMove(evt: MouseEvent) {
+function onPassthroughMouseMove(event: MouseEvent) {
   // Handle mouse move from outside the renderer, rather directly on the <canvas>.
   // This is to allow the renderer to see mouse movement that happens over the
   // content and scroll-indicators elements.
-  renderer.value?.handleMouseMoveEvent(evt);
+  renderer.value?.handleMouseMoveEvent(event);
 }
 </script>
 
 <template>
   <section class="hero-section">
-    <div class="overlay" @mousemove="onMouseMove">
+    <div class="overlay" @mousemove.capture="onPassthroughMouseMove">
       <HeroSectionWebGPU ref="renderer" />
       <div class="mobile-rotate" v-html="MobileRotateIcon"></div>
       <HeroSectionScrollIndicator class="scroll-indicators" @scroll-to-content="$emit('scrollToContent')" />
