@@ -31,12 +31,12 @@ struct InstanceData {
 };
 
 @group(0) @binding(0) var<uniform> global: GlobalUniforms;
-@group(0) @binding(1) var global_texture_bucket: texture_2d_array<f32>;
-@group(0) @binding(2) var s_linear_repeat: sampler;
-@group(0) @binding(3) var s_linear_clamp: sampler;
-@group(0) @binding(4) var s_nearest_repeat: sampler;
-@group(0) @binding(5) var s_nearest_clamp: sampler;
-@group(0) @binding(6) var s_shadow_compare: sampler_comparison;
+@group(0) @binding(1) var s_linear_repeat: sampler;
+@group(0) @binding(2) var s_linear_clamp: sampler;
+@group(0) @binding(3) var s_nearest_repeat: sampler;
+@group(0) @binding(4) var s_nearest_clamp: sampler;
+@group(0) @binding(5) var s_shadow_compare: sampler_comparison;
+@group(0) @binding(6) var global_texture_bucket: texture_2d_array<f32>;
 
 @group(1) @binding(0) var<storage, read> materials: array<MaterialData>;
 @group(2) @binding(0) var<storage, read> instances: array<InstanceData>;

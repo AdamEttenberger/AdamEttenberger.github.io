@@ -145,36 +145,36 @@ export default class App {
         {
           binding: 1,
           visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+          sampler: { type: 'filtering' },
+        },
+        {
+          binding: 2,
+          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+          sampler: { type: 'filtering' },
+        },
+        {
+          binding: 3,
+          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+          sampler: { type: 'non-filtering' },
+        },
+        {
+          binding: 4,
+          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+          sampler: { type: 'non-filtering' },
+        },
+        {
+          binding: 5,
+          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+          sampler: { type: 'comparison' },
+        },
+        {
+          binding: 6,
+          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
           texture: {
             sampleType: 'float',
             viewDimension: '2d-array',
             multisampled: false,
           },
-        },
-        {
-          binding: 2,
-          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
-          sampler: {},
-        },
-        {
-          binding: 3,
-          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
-          sampler: {},
-        },
-        {
-          binding: 4,
-          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
-          sampler: {},
-        },
-        {
-          binding: 5,
-          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
-          sampler: {},
-        },
-        {
-          binding: 6,
-          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
-          sampler: {},
         },
       ]
     });
@@ -195,11 +195,7 @@ export default class App {
       layout: global_bind_group_layout,
       entries: [
         { binding: 0, resource: { buffer: global_uniforms.gpuBuffer } },
-        {
-          binding: 1,
-          resource: texture_group_2k,
-        },
-        { binding: 2, resource: device.createSampler({
+        { binding: 1, resource: device.createSampler({
             magFilter: 'linear',
             minFilter: 'linear',
             mipmapFilter: 'linear',
@@ -207,36 +203,41 @@ export default class App {
             addressModeV: 'repeat',
           })
         },
-        { binding: 3, resource: device.createSampler({
+        { binding: 2, resource: device.createSampler({
             magFilter: 'linear',
             minFilter: 'linear',
             mipmapFilter: 'linear',
             addressModeU: 'clamp-to-edge',
             addressModeV: 'clamp-to-edge',
+          })
+        },
+        { binding: 3, resource: device.createSampler({
+            magFilter: 'nearest',
+            minFilter: 'nearest',
+            mipmapFilter: 'nearest',
+            addressModeU: 'repeat',
+            addressModeV: 'repeat',
           })
         },
         { binding: 4, resource: device.createSampler({
             magFilter: 'nearest',
             minFilter: 'nearest',
             mipmapFilter: 'nearest',
-            addressModeU: 'repeat',
-            addressModeV: 'repeat',
-          })
-        },
-        { binding: 5, resource: device.createSampler({
-            magFilter: 'nearest',
-            minFilter: 'nearest',
-            mipmapFilter: 'nearest',
             addressModeU: 'clamp-to-edge',
             addressModeV: 'clamp-to-edge',
           })
         },
-        { binding: 6, resource: device.createSampler({
+        { binding: 5, resource: device.createSampler({
             magFilter: 'linear',
             minFilter: 'linear',
             addressModeU: 'clamp-to-edge',
             addressModeV: 'clamp-to-edge',
+            compare: 'less-equal',
           })
+        },
+        {
+          binding: 6,
+          resource: texture_group_2k,
         },
       ],
     })
