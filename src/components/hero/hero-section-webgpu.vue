@@ -129,14 +129,8 @@ async function shutdown() {
   app?.destroy();
 }
 
-function handleMouseMoveEvent(evt: MouseEvent) {
-  if (!app?.global_uniforms) {
-    return;
-  }
-  const box = (evt.currentTarget as HTMLCanvasElement).getBoundingClientRect();
-  const x = (evt.clientX - box.left) / box.width;
-  const y = (evt.clientY - box.top) / box.height;
-  vec2.set(app.global_uniforms.value[0].iMouse, x, y);
+function handleMouseMoveEvent(event: MouseEvent) {
+  app?.handleMouseMoveEvent(event);
 }
 
 function onContextMenu(evt: PointerEvent) {

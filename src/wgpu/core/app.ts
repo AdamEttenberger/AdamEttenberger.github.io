@@ -4,7 +4,7 @@ import Pipeline from '@/wgpu/core/pipeline';
 import Viewport from '@/wgpu/core/viewport'
 import { TextureGroup } from '@/wgpu/resource/texture';
 import TextureRegistry from '@/wgpu/resource/texture';
-import { vec4 } from 'ts-gl-matrix';
+import { vec2, vec4 } from 'ts-gl-matrix';
 import { type IRenderNode } from '@/wgpu/core/render-node';
 import OnAppUpdate from '@/wgpu/event/app/on-app-update';
 
@@ -248,6 +248,19 @@ export default class App {
       return;
     }
     this.global_uniforms.value[0].iDarkMode[0] = value ? 1 : 0;
+  }
+
+  public handleMouseMoveEvent(event: MouseEvent) {
+    if (!this.global_uniforms || !this._viewport) {
+      return;
+    }
+    const box = this._viewport.boundingClientRect;
+    if (!box) {
+      return;
+    }
+    const x = (event.clientX - box.left) / box.width;
+    const y = (event.clientY - box.top) / box.height;
+    vec2.set(this.global_uniforms.value[0].iMouse, x, y);
   }
 
   private readonly onDisplayChanged = (viewport: Viewport) => {

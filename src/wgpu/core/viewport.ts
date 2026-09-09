@@ -61,6 +61,8 @@ export default class Viewport {
 
   public get depthStencilTextureView(): GPUTextureView|null { return this._depth_stencil_texture_view; }
 
+  public get boundingClientRect(): DOMRect|undefined { return this._canvas.deref()?.getBoundingClientRect(); }
+
   public destroy() {
     if (this._resizeObserver) {
       this._resizeObserver?.disconnect();
