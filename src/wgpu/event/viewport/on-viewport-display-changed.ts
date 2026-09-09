@@ -5,4 +5,4 @@ export type OnViewportDisplayChangedArgs = [
   viewport: Viewport,
 ];
 
-export default class OnViewportDisplayChanged extends EventHandler<OnViewportDisplayChangedArgs> { }
+export default class OnViewportDisplayChangedHandler extends EventHandler<OnViewportDisplayChangedArgs> { }

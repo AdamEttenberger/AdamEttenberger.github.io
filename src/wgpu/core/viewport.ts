@@ -1,11 +1,5 @@
-import OnViewportDisplayChanged from '@/wgpu/event/viewport/on-viewport-display-changed'
-import OnViewportRender from '@/wgpu/event/viewport/on-viewport-render'
-
-enum ViewportState {
-  Idle,
-  Playing,
-  Stopping,
-};
+import OnViewportDisplayChangedHandler from '@/wgpu/event/viewport/on-viewport-display-changed'
+import OnViewportRenderHandler from '@/wgpu/event/viewport/on-viewport-render'
 
 /**
  * Helper which manages the Viewport state tied to a Canvas.
@@ -13,8 +7,8 @@ enum ViewportState {
  * Automatically starts/stops rendering depending on whether the Canvas is visible.
  */
 export default class Viewport {
-  public readonly on_display_changed = new OnViewportDisplayChanged();
-  public readonly on_render = new OnViewportRender();
+  public readonly on_display_changed = new OnViewportDisplayChangedHandler();
+  public readonly on_render = new OnViewportRenderHandler();
 
   public readonly deviceFormat = navigator.gpu.getPreferredCanvasFormat();
 
@@ -32,7 +26,7 @@ export default class Viewport {
   private _physicalHeight: number = 0;
   private _aspect: number = 0;
   private _devicePixelRatio: number = 0;
-  private _state: ViewportState = ViewportState.Idle;
+  private _raf: number|undefined;
 
   private _depth_stencil_texture: GPUTexture|null = null;
   private _depth_stencil_texture_view: GPUTextureView|null = null;
@@ -73,17 +67,19 @@ export default class Viewport {
 
   public get boundingClientRect(): DOMRect|undefined { return this._canvas.deref()?.getBoundingClientRect(); }
 
+  public get running(): boolean { return this._raf !== undefined; }
+
   public createTextureView(): GPUTextureView {
     return this._context.getCurrentTexture().createView();
   }
 
   public destroy() {
     if (this._resizeObserver) {
-      this._resizeObserver?.disconnect();
+      this._resizeObserver.disconnect();
       this._resizeObserver = null;
     }
     if (this._resolutionMediaQuery) {
-      this._resolutionMediaQuery?.removeEventListener('change', this.onDisplayChanged);
+      this._resolutionMediaQuery.removeEventListener('change', this.onDisplayChanged);
       this._resolutionMediaQuery = null;
     }
     if (this._intersectionObserver) {
@@ -94,8 +90,24 @@ export default class Viewport {
       this._depth_stencil_texture.destroy();
       this._depth_stencil_texture = null;
     }
+    this.stop();
     this.on_display_changed.disconnect();
     this.on_render.disconnect();
+  }
+
+  private play() {
+    if (this._raf !== undefined) {
+      return;
+    }
+    this._raf = requestAnimationFrame(this.onRequestAnimationFrame);
+  }
+
+  private stop() {
+    if (this._raf === undefined) {
+      return;
+    }
+    cancelAnimationFrame(this._raf);
+    this._raf = undefined;
   }
 
   private readonly onDisplayChanged = () => {
@@ -133,24 +145,16 @@ export default class Viewport {
     this.on_display_changed.emit(this);
   }
 
-  private readonly onIntersectionObserver = (entries: IntersectionObserverEntry[], observer: IntersectionObserver) => {
+  private readonly onIntersectionObserver = (entries: IntersectionObserverEntry[], _observer: IntersectionObserver) => {
     const isVisible: boolean = entries[0]?.isIntersecting ?? false;
-    if (this._state === ViewportState.Idle && isVisible) {
-      this._state = ViewportState.Playing;
-      requestAnimationFrame(this.onRequestAnimationFrame);
-    } else if (this._state === ViewportState.Playing && !isVisible) {
-      this._state = ViewportState.Stopping;
+    if (this.running === isVisible) {
+      return;
     }
+    isVisible ? this.play() : this.stop();
   }
 
   private readonly onRequestAnimationFrame = (timestamp: number) => {
-    if (this._state !== ViewportState.Playing) {
-      this._state = ViewportState.Idle;
-      return;
-    }
     this.on_render.emit(this, timestamp);
-    if (this._state === ViewportState.Playing) {
-      requestAnimationFrame(this.onRequestAnimationFrame);
-    }
+    this._raf = requestAnimationFrame(this.onRequestAnimationFrame);
   }
 }

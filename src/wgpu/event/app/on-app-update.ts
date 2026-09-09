@@ -8,4 +8,4 @@ export type OnAppUpdateArgs = [
   timestamp: number,
 ];
 
-export default class OnAppUpdate extends EventHandler<OnAppUpdateArgs> { }
+export default class OnAppUpdateHandler extends EventHandler<OnAppUpdateArgs> { }

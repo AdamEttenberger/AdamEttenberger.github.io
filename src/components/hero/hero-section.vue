@@ -2,7 +2,7 @@
 import { useTemplateRef } from 'vue'
 import HeroSectionInfoCard from '@/components/hero/hero-section-info-card.vue'
 import HeroSectionScrollIndicator from '@/components/hero/hero-section-scroll-indicator.vue'
-import HeroSectionWebGPU from '@/components/hero/hero-section-webgpu.vue'
+import HeroSectionWebGpu from '@/components/hero/hero-section-web-gpu.vue'
 import type { IAuthor } from '@/content/author'
 import MobileRotateIcon from '@/assets/images/svg/mobile-rotate.svg?raw'
 
@@ -27,7 +27,7 @@ function onPassthroughMouseMove(event: MouseEvent) {
 <template>
   <section class="hero-section">
     <div class="overlay" @mousemove.capture="onPassthroughMouseMove">
-      <HeroSectionWebGPU ref="renderer" />
+      <HeroSectionWebGpu ref="renderer" />
       <div class="mobile-rotate" v-html="MobileRotateIcon"></div>
       <HeroSectionScrollIndicator class="scroll-indicators" @scroll-to-content="$emit('scrollToContent')" />
       <div class="content">

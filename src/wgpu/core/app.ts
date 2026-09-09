@@ -6,7 +6,7 @@ import { TextureGroup } from '@/wgpu/resource/texture';
 import TextureRegistry from '@/wgpu/resource/texture';
 import { vec2, vec4 } from 'ts-gl-matrix';
 import { type IRenderNode } from '@/wgpu/core/render-node';
-import OnAppUpdate from '@/wgpu/event/app/on-app-update';
+import OnAppUpdateHandler from '@/wgpu/event/app/on-app-update';
 
 export enum BindGroupIndex {
   Global,
@@ -79,7 +79,7 @@ class AppState {
 }
 
 export default class App {
-  public readonly on_update = new OnAppUpdate();
+  public readonly on_update = new OnAppUpdateHandler();
 
   private _initializing: Promise<void>;
   private _state: AppState|null = null;

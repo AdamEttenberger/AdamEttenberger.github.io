@@ -6,4 +6,4 @@ export type OnViewportRenderArgs = [
   timestamp: number,
 ];
 
-export default class OnViewportRender extends EventHandler<OnViewportRenderArgs> { }
+export default class OnViewportRenderHandler extends EventHandler<OnViewportRenderArgs> { }

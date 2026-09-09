@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import HeroSectionWebgpu from '@/components/hero/hero-section-webgpu.vue'
+import HeroSectionWebGpu from '@/components/hero/hero-section-web-gpu.vue'
 import Note from '@/components/note.vue'
 import TableOfContents from '@/components/table-of-contents.vue'
 import { ThemeColor } from '@/composables/theme'
@@ -11,7 +11,8 @@ const user_preferences = useUserPreferencesStore();
 
 <template>
   <article>
-    <HeroSectionWebgpu class="player" />
+    <HeroSectionWebGpu class="player" />
+
     <Note :color="ThemeColor.Info">
       Try switching to <b>{{user_preferences.oppositeColorScheme}} theme</b> using the lightbulb in the upper-right corner to change between day and night in the scene.
     </Note>
