@@ -135,6 +135,7 @@ export default class App {
 
     const global_uniforms = new GlobalUniforms(device);
     const global_bind_group_layout = device.createBindGroupLayout({
+      label: "Global",
       entries: [
         {
           binding: 0,
@@ -178,6 +179,7 @@ export default class App {
       ]
     });
     const instance_bind_group_layout = device.createBindGroupLayout({
+      label: "Instance",
       entries: [
         {
           binding: 0,

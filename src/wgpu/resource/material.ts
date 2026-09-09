@@ -68,6 +68,7 @@ export class OceanMaterial extends MaterialBase<OceanMaterialData> {
   ) {
     const uniforms = new OceanMaterialData(device, 1);
     const bindLayout = device.createBindGroupLayout({
+      label: "OceanMaterial",
       entries: [
         {
           binding: 0,

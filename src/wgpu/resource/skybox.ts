@@ -40,6 +40,7 @@ export class SkyboxMaterial extends MaterialBase<SkyboxMaterialData> {
     vec3.set(uniforms.value[SkyboxMaterialSlot.LightMode].skyColor, 0.45, 0.65, 0.85);
     uniforms.submit();
     const bindLayout = device.createBindGroupLayout({
+      label: "SkyboxMaterial",
       entries: [
         {
           binding: 0,
@@ -92,6 +93,7 @@ export default class Skybox {
     this.uniforms.value[0].material_id[0] = SkyboxMaterialSlot.DarkMode;
 
     this.bindGroupLayout = device.createBindGroupLayout({
+      label: "Skybox",
       entries: [
         {
           binding: 0,
