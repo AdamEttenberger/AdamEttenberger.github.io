@@ -286,10 +286,7 @@ export default class App {
     if (!this._state) {
       return false;
     }
-    const box = this._state.viewport!.boundingClientRect;
-    if (!box) {
-      return false;
-    }
+    const box = this._state.viewport.boundingClientRect;
     const x = (event.clientX - box.left) / box.width;
     const y = (event.clientY - box.top) / box.height;
     vec2.set(this._state.global_uniforms!.value[0].iMouse, x, y);

@@ -13,8 +13,10 @@ export default class Viewport {
   public readonly deviceFormat = navigator.gpu.getPreferredCanvasFormat();
 
   private _device: GPUDevice;
-  private _canvas: WeakRef<HTMLCanvasElement>;
+  private _canvas: HTMLCanvasElement;
   private _context: GPUCanvasContext;
+
+  private _raf: number|undefined;
 
   private _intersectionObserver: IntersectionObserver|null;
   private _resizeObserver: ResizeObserver|null = null;
@@ -26,7 +28,6 @@ export default class Viewport {
   private _physicalHeight: number = 0;
   private _aspect: number = 0;
   private _devicePixelRatio: number = 0;
-  private _raf: number|undefined;
 
   private _depth_stencil_texture: GPUTexture|null = null;
   private _depth_stencil_texture_view: GPUTextureView|null = null;
@@ -42,7 +43,7 @@ export default class Viewport {
     context: GPUCanvasContext,
   ) {
     this._device = device;
-    this._canvas = new WeakRef(canvas);
+    this._canvas = canvas;
     this._context = context;
     this._context.configure({
       device: device,
@@ -56,6 +57,9 @@ export default class Viewport {
     this.onDisplayChanged();
   }
 
+  public get running(): boolean { return this._raf !== undefined; }
+
+  public get boundingClientRect(): DOMRect { return this._canvas.getBoundingClientRect(); }
   public get logicalWidth(): number { return this._logicalWidth; }
   public get logicalHeight(): number { return this._logicalHeight; }
   public get physicalWidth(): number { return this._physicalWidth; }
@@ -64,10 +68,6 @@ export default class Viewport {
   public get devicePixelRatio(): number { return this._devicePixelRatio; }
 
   public get depthStencilTextureView(): GPUTextureView|null { return this._depth_stencil_texture_view; }
-
-  public get boundingClientRect(): DOMRect|undefined { return this._canvas.deref()?.getBoundingClientRect(); }
-
-  public get running(): boolean { return this._raf !== undefined; }
 
   public createTextureView(): GPUTextureView {
     return this._context.getCurrentTexture().createView();
@@ -111,11 +111,6 @@ export default class Viewport {
   }
 
   private readonly onDisplayChanged = () => {
-    const canvas: HTMLCanvasElement|undefined = this._canvas.deref();
-    if (canvas === undefined) {
-      return;
-    }
-
     const currentDevicePixelRatio = Math.min(window.devicePixelRatio || 1, 2);
     if (this.devicePixelRatio != currentDevicePixelRatio) {
       this._resolutionMediaQuery?.removeEventListener('change', this.onDisplayChanged);
@@ -123,16 +118,16 @@ export default class Viewport {
       this._resolutionMediaQuery = window.matchMedia(`(resolution: ${currentDevicePixelRatio}dppx)`),
       this._resolutionMediaQuery.addEventListener('change', this.onDisplayChanged);
     }
-    const box = canvas.getBoundingClientRect();
-    this._logicalWidth = box?.width ?? 0;
-    this._logicalHeight = box?.height ?? 0;
+    const box = this.boundingClientRect;
+    this._logicalWidth = box.width;
+    this._logicalHeight = box.height;
     this._physicalWidth = Math.max(1, Math.round(this.logicalWidth * this.devicePixelRatio));
     this._physicalHeight = Math.max(1, Math.round(this.logicalHeight * this.devicePixelRatio));
     this._aspect = this.physicalWidth / this.physicalHeight;
 
     // Assumes canvas is dynamically sized with CSS, skip setting canvas.style.{width|height}.
-    canvas.width = Math.floor(this.physicalWidth);
-    canvas.height = Math.floor(this.physicalHeight);
+    this._canvas.width = Math.floor(this.physicalWidth);
+    this._canvas.height = Math.floor(this.physicalHeight);
 
     this._depth_stencil_texture?.destroy();
     this._depth_stencil_texture = this._device.createTexture({
