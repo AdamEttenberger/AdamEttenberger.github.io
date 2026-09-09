@@ -2,26 +2,29 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 
 export const useUserPreferencesStore = defineStore('user-preferences', () => {
-  const color_scheme = ref('normal');
+  const colorScheme = ref('normal');
 
   const useDarkMode = computed<boolean>(() => {
-    return (color_scheme.value === "normal" && window.matchMedia("(prefers-color-scheme: dark)").matches) ||
-            color_scheme.value === "dark";
+    return (colorScheme.value === "normal" && window.matchMedia("(prefers-color-scheme: dark)").matches) ||
+            colorScheme.value === "dark";
   });
 
+  const oppositeColorScheme = computed<string>(() => useDarkMode.value ? "light" : "dark");
+
   function toggleColorScheme() {
-    color_scheme.value = useDarkMode.value ? "light" : "dark";
+    colorScheme.value = useDarkMode.value ? "light" : "dark";
   }
 
   function $reset() {
-    color_scheme.value = 'normal';
+    colorScheme.value = 'normal';
   }
 
   return {
     // State
-    color_scheme,
+    colorScheme,
     // Getters
     useDarkMode,
+    oppositeColorScheme,
     // Actions
     toggleColorScheme,
     $reset,

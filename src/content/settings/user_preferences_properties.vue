@@ -18,17 +18,17 @@ const {
 } = storeToRefs(consent);
 
 const {
-  color_scheme,
+  colorScheme,
 } = storeToRefs(user_preferences);
 
 const editor = usePropertyEditorModel(
   [
     new ToggleRow('consent.allow_saving_user_preferences', 'Save User Preferences', false).setModel(allow_saving_user_preferences),
-    new ComboBoxRow('user.color_scheme', 'Color Scheme', 'normal', [
+    new ComboBoxRow('user.colorScheme', 'Color Scheme', 'normal', [
       ['normal', 'System Default'],
       ['dark', 'Dark'],
       ['light', 'Light'],
-    ]).setModel(color_scheme),
+    ]).setModel(colorScheme),
   ]
 );
 </script>
