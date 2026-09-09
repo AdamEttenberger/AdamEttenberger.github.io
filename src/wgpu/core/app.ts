@@ -282,18 +282,6 @@ export default class App {
     this._state.global_uniforms.value[0].iDarkMode[0] = value ? 1 : 0;
   }
 
-  public handleMouseMoveEvent(event: MouseEvent): boolean {
-    if (!this._state) {
-      return false;
-    }
-    const box = this._state.viewport.boundingClientRect;
-    const x = (event.clientX - box.left) / box.width;
-    const y = (event.clientY - box.top) / box.height;
-    vec2.set(this._state.global_uniforms!.value[0].iMouse, x, y);
-    event.stopPropagation();
-    return true;
-  }
-
   public handleMouseClickEvent(event: PointerEvent): boolean {
     if (!this._state) {
       return false;
@@ -306,6 +294,34 @@ export default class App {
     if (!this._state) {
       return false;
     }
+    event.stopPropagation();
+    return true;
+  }
+
+  public handleMouseDownEvent(event: PointerEvent): boolean {
+    if (!this._state) {
+      return false;
+    }
+    event.stopPropagation();
+    return true;
+  }
+
+  public handleMouseUpEvent(event: PointerEvent): boolean {
+    if (!this._state) {
+      return false;
+    }
+    event.stopPropagation();
+    return true;
+  }
+
+  public handleMouseMoveEvent(event: MouseEvent): boolean {
+    if (!this._state) {
+      return false;
+    }
+    const box = this._state.viewport.boundingClientRect;
+    const x = (event.clientX - box.left) / box.width;
+    const y = (event.clientY - box.top) / box.height;
+    vec2.set(this._state.global_uniforms!.value[0].iMouse, x, y);
     event.stopPropagation();
     return true;
   }

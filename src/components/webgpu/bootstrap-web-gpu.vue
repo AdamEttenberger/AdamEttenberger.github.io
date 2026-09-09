@@ -13,12 +13,6 @@ const canvas = useTemplateRef<HTMLCanvasElement>('canvas');
 let startupError = ref(false);
 let exposedApp = shallowRef<App|null>(null);
 
-function handleMouseMoveEvent(event: MouseEvent) {
-  if (exposedApp.value?.handleMouseMoveEvent(event)) {
-    emits('mousemove', event);
-  }
-}
-
 function handleMouseClickEvent(event: PointerEvent) {
   if (exposedApp.value?.handleMouseClickEvent(event)) {
     emits('click', event);
@@ -28,6 +22,24 @@ function handleMouseClickEvent(event: PointerEvent) {
 function handleContextMenuEvent(event: PointerEvent) {
   if (exposedApp.value?.handleContextMenuEvent(event)) {
     emits('contextmenu', event);
+  }
+}
+
+function handleMouseDownEvent(event: MouseEvent) {
+  if (exposedApp.value?.handleMouseDownEvent(event)) {
+    emits('mousemove', event);
+  }
+}
+
+function handleMouseUpEvent(event: MouseEvent) {
+  if (exposedApp.value?.handleMouseUpEvent(event)) {
+    emits('mousemove', event);
+  }
+}
+
+function handleMouseMoveEvent(event: MouseEvent) {
+  if (exposedApp.value?.handleMouseMoveEvent(event)) {
+    emits('mousemove', event);
   }
 }
 
@@ -74,14 +86,18 @@ onUnmounted(async () => {
 
 defineExpose({
   app: exposedApp,
-  handleMouseMoveEvent,
   handleMouseClickEvent,
+  handleMouseDownEvent,
+  handleMouseUpEvent,
+  handleMouseMoveEvent,
   handleContextMenuEvent,
 });
 const emits = defineEmits<{
   click: [event: PointerEvent],
-  mousemove: [event: MouseEvent],
   contextmenu: [event: PointerEvent],
+  mousedown: [event: PointerEvent],
+  mouseup: [event: PointerEvent],
+  mousemove: [event: MouseEvent],
   update: [app: App, viewport: Viewport, timestamp: number],
   startup: [app: App],
   shutdown: [app: App],
@@ -91,9 +107,11 @@ const emits = defineEmits<{
 <template>
   <div class="webgpu-bootstrap">
     <canvas ref="canvas"
-            @mousemove.capture.prevent="handleMouseMoveEvent"
             @click.capture.prevent="handleMouseClickEvent"
-            @contextmenu.capture.prevent="handleContextMenuEvent">
+            @contextmenu.capture.prevent="handleContextMenuEvent"
+            @mousedown.capture.prevent="handleMouseDownEvent"
+            @mouseup.capture.prevent="handleMouseUpEvent"
+            @mousemove.capture.prevent="handleMouseMoveEvent">
     </canvas>
     <div v-if="startupError" class='error'>
       <WebGpuLogo type="standard" :width='128' :height='128' />
