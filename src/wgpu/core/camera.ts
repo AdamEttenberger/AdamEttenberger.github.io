@@ -1,6 +1,6 @@
 import type { IGlobalUniforms } from '@/wgpu/core/app';
 import type Viewport from '@/wgpu/core/viewport';
-import { mat4, vec3, type QuatLike, type Vec3Like, type Vec4Like } from 'ts-gl-matrix';
+import { mat4, quat, vec3, type QuatLike, type Vec3Like, type Vec4Like } from 'ts-gl-matrix';
 
 export type PerspectiveProjectionOptions = {
   type: 'perspective',
@@ -29,6 +29,7 @@ export interface ICameraOptions {
 }
 
 export interface ICamera extends ICameraOptions {
+  springArm(target: Vec3Like, view_direction: QuatLike, distance: number): void;
   apply(viewport: Viewport, uniforms: IGlobalUniforms): void;
 }
 
@@ -72,6 +73,12 @@ export default class Camera implements ICamera {
         far: 1000.0,
       }
     });
+  }
+
+  public springArm(target: Vec3Like, view_rotation: QuatLike, distance: number): void {
+    quat.copy(this.rotation, view_rotation);
+    vec3.transformQuat(this.position, vec3.fromValues(0, 0, Math.abs(distance)), view_rotation);
+    vec3.add(this.position, target, this.position);
   }
 
   public apply(viewport: Viewport, uniforms: IGlobalUniforms): void {
