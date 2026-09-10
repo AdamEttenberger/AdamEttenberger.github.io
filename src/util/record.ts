@@ -39,3 +39,41 @@ export function createInverseRecord<TKey extends number|string|symbol,
               <Record<TValue, TKey>>{}
             );
 }
+
+/**
+ * Helper to reduce Record<Key, Value> while preserving the Key type.
+ */
+export function reduceRecord<K extends keyof any, V, U>(
+  records: Record<K, V>,
+  callbackfn: (previousValue: U, value: V, key: K, source: Record<K, V>) => U,
+  initialValue: U
+): U {
+  let result = initialValue;
+  for (const key of Object.keys(records) as K[]) {
+    result = callbackfn(
+      result,
+      records[key],
+      key,
+      records,
+    );
+  }
+  return result;
+}
+
+/**
+ * Helper to await all results from a Record with Promise values.
+ */
+export async function promiseAllRecord<K extends keyof any, V>(
+  records: Record<K, Promise<V>>
+): Promise<Record<K, V>> {
+  const keys = Object.keys(records) as K[];
+  const promises = Object.values(records) as Promise<V>[];
+  const settled = await Promise.all(promises);
+  return keys.reduce(
+    (result, key, index) => {
+      result[key] = settled[index];
+      return result;
+    },
+    {} as Record<K, V>
+  );
+}
