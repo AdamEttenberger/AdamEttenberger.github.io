@@ -11,6 +11,7 @@ import { OceanMeshes } from '@/wgpu/resource/mesh'
 import Skybox, { SkyboxMaterialSlot } from '@/wgpu/resource/skybox'
 import { MeshInstanceRenderNode, SkyboxRenderNode } from '@/wgpu/core/render-node'
 import type Viewport from '@/wgpu/core/viewport'
+import { toRadian } from '@/wgpu/util/math'
 
 // Shaders
 import global_shader_code from '@/assets/shaders/wgpu/global.wgsl?raw'
@@ -32,11 +33,6 @@ const kOceanAlbedo: Vec3 = vec3.fromValues(0.08, 0.18, 0.33);
 
 const kCameraPosition = vec3.fromValues(0, 200, 350);
 const kCameraRotation = quat.fromEuler(quat.create(), -20, 0, 0);
-
-const kToRadianScalar = Math.PI / 180.0;
-function toRadian(degrees: number) {
-  return degrees * kToRadianScalar;
-}
 
 const bootstrap = useTemplateRef<InstanceType<typeof BootstrapWebGpu> | null>('renderer');
 let skybox: Skybox|undefined;
