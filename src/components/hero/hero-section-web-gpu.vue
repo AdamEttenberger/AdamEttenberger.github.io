@@ -1,8 +1,6 @@
 <script setup lang="ts">
-import { onUnmounted, useTemplateRef } from 'vue'
+import { useTemplateRef } from 'vue'
 import { vec2, vec3, mat4, quat, vec4, Vec3 } from 'ts-gl-matrix'
-import ocean_simulation_material_code from '@/assets/shaders/hero-section/ocean_simulation_material.wgsl?raw'
-import ocean_simulation_flipbook_normal_height_map_src from '@/assets/textures/hero-section/normal_height_map_256_64f.webp'
 import { useUserPreferencesStore } from '@/stores/user_preferences'
 import { getTextureGroupSize, TextureGroup } from '@/wgpu/resource/texture'
 import BootstrapWebGpu from '@/components/webgpu/bootstrap-web-gpu.vue'
@@ -13,6 +11,15 @@ import { OceanMeshes } from '@/wgpu/resource/mesh'
 import Skybox, { SkyboxMaterialSlot } from '@/wgpu/resource/skybox'
 import { MeshInstanceRenderNode, SkyboxRenderNode } from '@/wgpu/core/render-node'
 import type Viewport from '@/wgpu/core/viewport'
+
+// Shaders
+import global_shader_code from '@/assets/shaders/wgpu/global.wgsl?raw'
+import mesh_instance_shader_code from '@/assets/shaders/wgpu/mesh-instance.wgsl?raw'
+import ocean_simulation_material_code from '@/assets/shaders/hero-section/ocean_simulation_material.wgsl?raw'
+
+// Textures
+import ocean_simulation_flipbook_normal_height_map_src from '@/assets/textures/hero-section/normal_height_map_256_64f.webp'
+
 const user_preferences = useUserPreferencesStore();
 
 const kAnimationGridSize = vec2.fromValues(8, 8); // Number of animation frame [columns, rows]
@@ -50,7 +57,7 @@ async function onStartup(app: App) {
 
   const ocean_simulation_material = new OceanMaterial(
     app.device,
-    ocean_simulation_material_code,
+    global_shader_code + mesh_instance_shader_code + ocean_simulation_material_code,
   );
   ocean_simulation_material.uniforms.value[0].normal_height_texture[0] = ocean_simulation_datamap.layer;
   vec3.copy(ocean_simulation_material.uniforms.value[0].albedo_color, kOceanAlbedo)
@@ -123,6 +130,9 @@ defineExpose({
 <template>
   <div class="hero-section-viewport-container">
     <BootstrapWebGpu ref="renderer"
+                     :textureBudgets="{
+                      [TextureGroup._2k]: 1,
+                     }"
                      @startup="onStartup"
                      @update="onUpdate" />
   </div>

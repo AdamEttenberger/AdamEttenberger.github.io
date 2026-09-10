@@ -1,7 +1,10 @@
 import { WebGPUStruct } from '@/wgpu/resource/buffer'
 import { MaterialBase } from '@/wgpu/resource/material'
-import skybox_material_code from '@/assets/shaders/hero-section/skybox_material.wgsl?raw'
 import { vec3 } from 'ts-gl-matrix';
+
+// Shaders
+import global_shader_code from '@/assets/shaders/wgpu/global.wgsl?raw'
+import skybox_material_code from '@/assets/shaders/hero-section/skybox_material.wgsl?raw'
 
 export enum SkyboxMaterialSlot {
   DarkMode,
@@ -61,7 +64,7 @@ export class SkyboxMaterial extends MaterialBase<SkyboxMaterialData> {
 
     super(
       device,
-      skybox_material_code,
+      global_shader_code + skybox_material_code,
       uniforms,
       bindLayout,
       bindGroup,

@@ -5,8 +5,9 @@ import WebGpuLogo from '@/components/web-gpu-logo.vue'
 import { TextureGroup } from '@/wgpu/resource/texture'
 import type Viewport from '@/wgpu/core/viewport';
 
-defineProps<{
+const props = defineProps<{
   showWebGPULogo?: boolean;
+  textureBudgets?: Partial<Record<TextureGroup, number>>;
 }>();
 
 const canvas = useTemplateRef<HTMLCanvasElement>('canvas');
@@ -52,9 +53,7 @@ onMounted(async () => {
     throw new Error('Cannot find canvas element.')
   }
   try {
-    const app = new App(canvas.value, new Map<TextureGroup, number>([
-      [TextureGroup._2k, 1]
-    ]));
+    const app = new App(canvas.value, props.textureBudgets);
     exposedApp.value = app;
     app.on_update.subscribe(handleUpdate);
     await app.ready;
@@ -109,9 +108,9 @@ const emits = defineEmits<{
     <canvas ref="canvas"
             @click.capture.prevent="handleMouseClickEvent"
             @contextmenu.capture.prevent="handleContextMenuEvent"
-            @mousedown.capture.prevent="handleMouseDownEvent"
-            @mouseup.capture.prevent="handleMouseUpEvent"
-            @mousemove.capture.prevent="handleMouseMoveEvent">
+            @mousedown.capture="handleMouseDownEvent"
+            @mouseup.capture="handleMouseUpEvent"
+            @mousemove.capture="handleMouseMoveEvent">
     </canvas>
     <div v-if="startupError" class='error'>
       <WebGpuLogo type="standard" :width='128' :height='128' />

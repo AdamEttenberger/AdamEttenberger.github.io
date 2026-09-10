@@ -97,12 +97,12 @@ export default class App {
 
   constructor(
     canvas: HTMLCanvasElement,
-    texture_group_budgets: Map<TextureGroup, number>,
+    textureBudgets?: Partial<Record<TextureGroup, number>>,
   ) {
     if (!navigator.gpu) {
       throw new TypeError('WebGPU is not supported by this browser.');
     }
-    this._initializing = this.initAsync(canvas, texture_group_budgets);
+    this._initializing = this.initAsync(canvas, textureBudgets);
   }
 
   public get ready(): Promise<void> {
@@ -111,7 +111,7 @@ export default class App {
 
   private async initAsync(
     canvas: HTMLCanvasElement,
-    texture_group_budgets: Map<TextureGroup, number>,
+    textureBudgets?: Partial<Record<TextureGroup, number>>,
   ) {
     const context: GPUCanvasContext | null = canvas.getContext('webgpu');
     if (!context) {
@@ -127,11 +127,7 @@ export default class App {
     }
     const viewport = new Viewport(device, canvas, context);
 
-    const texture_registry = new TextureRegistry(device, texture_group_budgets);
-    const texture_group_2k: GPUTextureView|undefined = texture_registry.get_group(TextureGroup._2k);
-    if (texture_group_2k === undefined) {
-      throw new Error('WebGPU Texture group not available');
-    }
+    const texture_registry = new TextureRegistry(device, textureBudgets);
 
     const global_uniforms = new GlobalUniforms(device);
     const global_bind_group_layout = device.createBindGroupLayout({
@@ -169,6 +165,60 @@ export default class App {
         },
         {
           binding: 6,
+          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+          texture: {
+            sampleType: 'float',
+            viewDimension: '2d-array',
+            multisampled: false,
+          },
+        },
+        {
+          binding: 7,
+          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+          texture: {
+            sampleType: 'float',
+            viewDimension: '2d-array',
+            multisampled: false,
+          },
+        },
+        {
+          binding: 8,
+          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+          texture: {
+            sampleType: 'float',
+            viewDimension: '2d-array',
+            multisampled: false,
+          },
+        },
+        {
+          binding: 9,
+          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+          texture: {
+            sampleType: 'float',
+            viewDimension: '2d-array',
+            multisampled: false,
+          },
+        },
+        {
+          binding: 10,
+          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+          texture: {
+            sampleType: 'float',
+            viewDimension: '2d-array',
+            multisampled: false,
+          },
+        },
+        {
+          binding: 11,
+          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+          texture: {
+            sampleType: 'float',
+            viewDimension: '2d-array',
+            multisampled: false,
+          },
+        },
+        {
+          binding: 12,
           visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
           texture: {
             sampleType: 'float',
@@ -235,10 +285,13 @@ export default class App {
             compare: 'less-equal',
           })
         },
-        {
-          binding: 6,
-          resource: texture_group_2k,
-        },
+        { binding: 6,   resource: texture_registry.createView(TextureGroup._32)   },
+        { binding: 7,   resource: texture_registry.createView(TextureGroup._64)   },
+        { binding: 8,   resource: texture_registry.createView(TextureGroup._128)  },
+        { binding: 9,   resource: texture_registry.createView(TextureGroup._256)  },
+        { binding: 10,  resource: texture_registry.createView(TextureGroup._512)  },
+        { binding: 11,  resource: texture_registry.createView(TextureGroup._1k)   },
+        { binding: 12,  resource: texture_registry.createView(TextureGroup._2k)   },
       ],
     })
     
@@ -299,7 +352,7 @@ export default class App {
   }
 
   public handleMouseDownEvent(event: PointerEvent): boolean {
-    if (!this._state) {
+    if (!this._state || (event.button !== 0 && event.button !== 2)) {
       return false;
     }
     event.stopPropagation();
@@ -307,7 +360,7 @@ export default class App {
   }
 
   public handleMouseUpEvent(event: PointerEvent): boolean {
-    if (!this._state) {
+    if (!this._state || (event.button !== 0 && event.button !== 2)) {
       return false;
     }
     event.stopPropagation();

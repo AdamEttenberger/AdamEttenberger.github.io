@@ -1,19 +1,4 @@
 const kFrameRate: f32 = 7.0;
-const PI: f32 = 3.14159265359;
-
-struct GlobalUniforms {
-  vMatrix: mat4x4f,
-  pMatrix: mat4x4f,
-  vMatrixInverse: mat4x4f,
-  pMatrixInverse: mat4x4f,
-  iResolution: vec4f, // {physicalWidth, physicalHeight, devicePixelRatio, aspect}
-  iCameraPosition: vec3f,
-  iTime: f32, // (seconds)
-  iMouse: vec2f, // normalized range: [0, 1]
-  iDarkMode: u32,
-  iSunDirection: vec3f,
-  iSunLightColor: vec3f,
-};
 
 struct MaterialData {
   normal_height_texture: u32,
@@ -24,22 +9,7 @@ struct MaterialData {
   texel_margin: f32,
 };
 
-struct InstanceData {
-  mMatrix: mat4x4f,
-  normalMatrix: mat4x4f,
-  material_id: u32,
-};
-
-@group(0) @binding(0) var<uniform> global: GlobalUniforms;
-@group(0) @binding(1) var s_linear_repeat: sampler;
-@group(0) @binding(2) var s_linear_clamp: sampler;
-@group(0) @binding(3) var s_nearest_repeat: sampler;
-@group(0) @binding(4) var s_nearest_clamp: sampler;
-@group(0) @binding(5) var s_shadow_compare: sampler_comparison;
-@group(0) @binding(6) var global_texture_bucket: texture_2d_array<f32>;
-
 @group(1) @binding(0) var<storage, read> materials: array<MaterialData>;
-@group(2) @binding(0) var<storage, read> instances: array<InstanceData>;
 
 struct VertexInput {
   @builtin(instance_index) instance_id: u32,
@@ -68,11 +38,6 @@ struct CookTorranceReflectance {
   specular: vec3f,
   fresnel: vec3f,
   diffuse_ratio: vec3f,
-};
-
-struct DirectionDerivative {
-  dx: vec2f,
-  dy: vec2f,
 };
 
 fn distribution_ggx(NoH: f32, roughness: f32) -> f32 {
@@ -142,8 +107,8 @@ fn get_flipbook_coords(material: MaterialData, uv: vec2f) -> FlipbookFrameCoords
 }
 
 fn get_surface_sample(material: MaterialData, frame_coords: FlipbookFrameCoords) -> vec4f {
-  let a: vec4f = textureSampleLevel(global_texture_bucket, s_linear_repeat, frame_coords.uv1, material.normal_height_texture, 0.0);
-  let b: vec4f = textureSampleLevel(global_texture_bucket, s_linear_repeat, frame_coords.uv2, material.normal_height_texture, 0.0);
+  let a: vec4f = textureSampleLevel(textures_2k, s_linear_repeat, frame_coords.uv1, material.normal_height_texture, 0.0);
+  let b: vec4f = textureSampleLevel(textures_2k, s_linear_repeat, frame_coords.uv2, material.normal_height_texture, 0.0);
   let value = mix(a, b, fract(global.iTime * kFrameRate)) * 2.0 - 1.0;
   return vec4f(normalize(value.rgb), value.a * 0.5);
 }

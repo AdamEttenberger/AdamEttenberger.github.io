@@ -1,4 +1,4 @@
-import { reduceEnum } from '@/util/enum'
+import { enumValues, reduceEnum } from '@/util/enum'
 
 export enum TextureGroup {
   _32,
@@ -8,8 +8,6 @@ export enum TextureGroup {
   _512,
   _1k,
   _2k,
-  _4k,
-  _8k,
 };
 
 const TextureGroupSize = new Map<TextureGroup, number>([
@@ -20,8 +18,6 @@ const TextureGroupSize = new Map<TextureGroup, number>([
   [TextureGroup._512, (1 << 9)],
   [TextureGroup._1k,  (1 << 10)],
   [TextureGroup._2k,  (1 << 11)],
-  [TextureGroup._4k,  (1 << 12)],
-  [TextureGroup._8k,  (1 << 13)],
 ]);
 
 const SizeToTextureGroup = new Map<number, TextureGroup>(Array.from(TextureGroupSize, ([group, size]) => [size, group]));
@@ -31,7 +27,7 @@ export function getTextureGroupSize(group: TextureGroup): number {
 }
 
 export interface ITextureLocation {
-  readonly group: number;
+  readonly group: TextureGroup;
   readonly layer: number;
 }
 
@@ -68,16 +64,19 @@ class TexturePool {
   // TextureRegistry guarantees no duplicate entries, so Array<> should
   // be significantly faster than Set<> for a free-list container.
   private _free: Array<number> = new Array<number>();
-  private _next: number = 0;
+  private _next: number = 1;
 
   constructor(
     device: GPUDevice,
     group: TextureGroup,
-    layers: number,
+    min_layers: number,
   ) {
     this._device = device;
     this.group = group;
-    this.layers = layers;
+    // There must be at-least 1 texture in all pools to satisfy the binding.
+    // TODO: Replace with Math.max(1, min_layers) and sample from (layer - 1u),
+    // otherwise sample a dedicated 1x1 magenta "error" texture for layer (0u).
+    this.layers = min_layers + 1;
     this._texture = this.makeTextureGroup();
   }
 
@@ -139,30 +138,24 @@ class TexturePool {
 }
 
 export default class TextureRegistry {
-  private _pools: Map<TextureGroup, TexturePool>;
+  private _pools: Record<TextureGroup, TexturePool>;
   private _pending: Map<string, PendingTexture> = new Map<string, PendingTexture>();
   private _locations: Map<string, ITextureLocation> = new Map<string, ITextureLocation>();
 
-  constructor(device: GPUDevice, max_layers: Map<TextureGroup, number>) {
+  constructor(device: GPUDevice, textureBudgets?: Partial<Record<TextureGroup, number>>) {
     this._pools = reduceEnum(
       TextureGroup,
       (result, group) => {
-        let layers: number|undefined = max_layers.get(group);
-        if (layers !== undefined) {
-          result.set(group, new TexturePool(device, group, layers));
-        }
+        let min_layers: number = (textureBudgets?.[group] ?? 0);
+        result[group] = new TexturePool(device, group, min_layers);
         return result;
       },
-      new Map<TextureGroup, TexturePool>()
+      {} as Record<TextureGroup, TexturePool>
     );
   }
 
-  public get_group(group: TextureGroup): GPUTextureView|undefined {
-    let pool: TexturePool|undefined = this._pools.get(group);
-    if (pool === undefined) {
-      return;
-    }
-    return pool.createView();
+  public createView(group: TextureGroup): GPUTextureView {
+    return this._pools[group].createView();
   }
 
   public async get(path: string): Promise<ITextureLocation|undefined> {
@@ -185,7 +178,7 @@ export default class TextureRegistry {
         if (group === undefined) {
           return;
         }
-        let location: ITextureLocation|undefined = this._pools.get(group)!.add(image);
+        let location: ITextureLocation|undefined = this._pools[group].add(image);
         if (location !== undefined) {
           this._locations.set(path, location);
         }
@@ -199,7 +192,7 @@ export default class TextureRegistry {
   public delete(path: string): boolean {
     let location: ITextureLocation|undefined = this._locations.get(path);
     if (location !== undefined) {
-      this._pools.get(location.group)!.release(location.layer);
+      this._pools[location.group].release(location.layer);
       return this._locations.delete(path);
     }
     let pending: PendingTexture|undefined = this._pending.get(path);
@@ -211,9 +204,11 @@ export default class TextureRegistry {
   }
 
   public destroy() {
-    this._pools.forEach(pool => pool.destroy());
+    Array.from(enumValues(TextureGroup)).forEach((group: TextureGroup) => {
+      this._pools[group].destroy();
+      delete this._pools[group];
+    });
     this._pending.clear();
-    this._pools.clear();
   }
 
   private async loadImageAsync(path: string, signal: AbortSignal): Promise<ImageBitmap|undefined> {
