@@ -34,6 +34,7 @@ export function date_formatJSON(value: MaybeRefOrGetter<DateLike>): string {
 
 export function date_formatShortDate(value: MaybeRefOrGetter<DateLike>): string {
   return date_from(value).toLocaleDateString(undefined, {
+    timeZone: 'UTC',
     year: 'numeric',
     month: 'short',
   });
@@ -41,28 +42,41 @@ export function date_formatShortDate(value: MaybeRefOrGetter<DateLike>): string 
 
 export function date_formatLongDate(value: MaybeRefOrGetter<DateLike>): string {
   return date_from(value).toLocaleDateString(undefined, {
+    timeZone: 'UTC',
     year: 'numeric',
     month: 'long',
   });
 }
 
 export function date_formatYear(value: MaybeRefOrGetter<DateLike>): string {
-  return date_from(value).getFullYear().toFixed();
+  return date_from(value).toLocaleDateString(undefined, {
+    timeZone: 'UTC',
+    year: 'numeric',
+  });
 }
 
 export function date_formatYearMonthDay(value: MaybeRefOrGetter<DateLike>): string {
   const date = date_from(value);
-  return `${date.getFullYear()}/${date.getMonth()+1}/${date.getDate()}`;
+  return [
+    date.toLocaleDateString(undefined, { timeZone: 'UTC', year: 'numeric' }),
+    date.toLocaleDateString(undefined, { timeZone: 'UTC', month: 'short' }),
+    date.toLocaleDateString(undefined, { timeZone: 'UTC', day: 'numeric' }),
+  ].join('/');
 }
 
-export function date_formatTime(value: MaybeRefOrGetter<DateLike>): string {
-  const date = date_from(value);
-  return `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+export function date_formatTime(value: MaybeRefOrGetter<DateLike>, hour12: boolean = false): string {
+  return date_from(value).toLocaleTimeString(undefined, {
+    timeZone: 'UTC',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12
+  });
 }
 
-export function date_formatYearMonthDayTime(value: MaybeRefOrGetter<DateLike>): string {
+export function date_formatYearMonthDayTime(value: MaybeRefOrGetter<DateLike>, hour12: boolean = false): string {
   const date = date_from(value);
-  return `${date_formatYearMonthDay(date)} ${date_formatTime(date)}`;
+  return `${date_formatYearMonthDay(date)} ${date_formatTime(date, hour12)}`;
 }
 
 export function date_formatUTCString(value: MaybeRefOrGetter<DateLike>): string {
@@ -72,8 +86,8 @@ export function date_formatUTCString(value: MaybeRefOrGetter<DateLike>): string 
 export function date_formatMLA(value: MaybeRefOrGetter<DateLike>): string {
   const date = date_from(value);
   return [
-    date.toLocaleDateString(undefined, { day: 'numeric' }),
-    date.toLocaleDateString(undefined, { month: 'short' }),
-    date.toLocaleDateString(undefined, { year: 'numeric' }),
+    date.toLocaleDateString(undefined, { timeZone: 'UTC', day: 'numeric' }),
+    date.toLocaleDateString(undefined, { timeZone: 'UTC', month: 'short' }),
+    date.toLocaleDateString(undefined, { timeZone: 'UTC', year: 'numeric' }),
   ].join(' ');
 }
