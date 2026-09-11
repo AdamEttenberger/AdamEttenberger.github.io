@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import PropertyEditor from '@/components/property_editor/property_editor.vue'
+import PropertyEditor from '@/components/property_editor/property-editor.vue'
 import {
   ComboBoxRow,
   ToggleRow,

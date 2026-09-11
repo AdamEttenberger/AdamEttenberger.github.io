@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Layer from '@/components/layer.vue'
 import IndeterminateProgress from '@/components/progress/indeterminate-progress.vue'
-import PropertyRow from '@/components/property_editor/property_row.vue'
+import PropertyRow from '@/components/property_editor/property-row.vue'
 import { PropertyEmits } from '@/util/property_editor/property_interfaces'
 import { type PropertyModelRecords, type PropertyOptionRecords } from '@/composables/property_editor_model'
 import useTheme, { type IThemeProps, type ThemeOptions } from '@/composables/theme'

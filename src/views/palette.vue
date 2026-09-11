@@ -8,7 +8,7 @@ import Details from '@/components/details.vue'
 import Divider from '@/components/divider.vue'
 import Formula from '@/components/formula.vue'
 import Note from '@/components/note.vue'
-import PropertyEditor from '@/components/property_editor/property_editor.vue'
+import PropertyEditor from '@/components/property_editor/property-editor.vue'
 import {
   NumberRangeRow,
 } from '@/util/property_editor/property_types'

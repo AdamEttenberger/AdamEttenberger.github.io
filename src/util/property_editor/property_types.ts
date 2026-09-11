@@ -44,15 +44,15 @@ class PropertyMeta implements IPropertyMeta {
 
 const PropertyMetatables: PropertyMetaRecord = toRecords([
   //             { kind,                      with_label, with_reset, with_click,   component? }
-  new PropertyMeta(PropertyKind.Button,       false,      false,      true,         () => import('@/components/property_editor/rows/property_button.vue')),
+  new PropertyMeta(PropertyKind.Button,       false,      false,      true,         () => import('@/components/property_editor/rows/property-button.vue')),
   new PropertyMeta(PropertyKind.Color3,       true,       true,       false,        undefined),
   new PropertyMeta(PropertyKind.Color4,       true,       true,       false,        undefined),
-  new PropertyMeta(PropertyKind.ComboBox,     true,       true,       false,        () => import('@/components/property_editor/rows/property_combo_box.vue')),
-  new PropertyMeta(PropertyKind.Divider,      false,      false,      false,        () => import('@/components/property_editor/rows/property_divider.vue')),
-  new PropertyMeta(PropertyKind.Group,        false,      false,      false,        () => import('@/components/property_editor/rows/property_group.vue')),
-  new PropertyMeta(PropertyKind.Label,        true,       false,      false,        () => import('@/components/property_editor/rows/property_label.vue')),
-  new PropertyMeta(PropertyKind.NumberRange,  true,       true,       false,        () => import('@/components/property_editor/rows/property_number_range.vue')),
-  new PropertyMeta(PropertyKind.Toggle,       true,       true,       true,         () => import('@/components/property_editor/rows/property_toggle.vue')),
+  new PropertyMeta(PropertyKind.ComboBox,     true,       true,       false,        () => import('@/components/property_editor/rows/property-combo-box.vue')),
+  new PropertyMeta(PropertyKind.Divider,      false,      false,      false,        () => import('@/components/property_editor/rows/property-divider.vue')),
+  new PropertyMeta(PropertyKind.Group,        false,      false,      false,        () => import('@/components/property_editor/rows/property-group.vue')),
+  new PropertyMeta(PropertyKind.Label,        true,       false,      false,        () => import('@/components/property_editor/rows/property-label.vue')),
+  new PropertyMeta(PropertyKind.NumberRange,  true,       true,       false,        () => import('@/components/property_editor/rows/property-number-range.vue')),
+  new PropertyMeta(PropertyKind.Toggle,       true,       true,       true,         () => import('@/components/property_editor/rows/property-toggle.vue')),
 ]);
 
 class NumberReciprocalConverter implements IPropertyConverter<number> {

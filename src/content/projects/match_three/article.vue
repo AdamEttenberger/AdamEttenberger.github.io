@@ -8,7 +8,7 @@ import MatchThreeProperties from '@/content/settings/match_three_properties.vue'
 import { bit_width } from '@/util/math'
 import Link from '@/components/link.vue'
 import Player from '@/components/player.vue'
-import PropertyEditor from '@/components/property_editor/property_editor.vue'
+import PropertyEditor from '@/components/property_editor/property-editor.vue'
 import {
   Color4Row,
   DividerRow,
