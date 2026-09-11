@@ -21,6 +21,10 @@ import ocean_simulation_material_code from '@/assets/shaders/hero-section/ocean_
 // Textures
 import ocean_simulation_flipbook_normal_height_map_src from '@/assets/textures/hero-section/normal_height_map_256_64f.webp'
 
+defineProps<{
+  fillContainer?: boolean;
+}>();
+
 const user_preferences = useUserPreferencesStore();
 
 const kAnimationGridSize = vec2.fromValues(8, 8); // Number of animation frame [columns, rows]
@@ -112,7 +116,7 @@ function onUpdate(app: App, viewport: Viewport, timestamp: number) {
   app.setDarkMode(darkMode);
   const skyboxMaterialSlot = darkMode ? SkyboxMaterialSlot.DarkMode : SkyboxMaterialSlot.LightMode;
   vec3.normalize(app.globalUniforms.value[0].iSunDirection, vec3.transformQuat(vec3.create(), vec3.fromValues(0, 0, -1), quat.fromEuler(quat.create(), 190, sun_yaw, 0)));
-  vec3.copy(app.globalUniforms.value[0].iSunLightColor, 
+  vec3.copy(app.globalUniforms.value[0].iSunLightColor,
             skybox.material.uniforms.value[skyboxMaterialSlot].sunColor);
   skybox.uniforms.value[0].material_id[0] = skyboxMaterialSlot;
   skybox.uniforms.submit();
@@ -126,6 +130,7 @@ defineExpose({
 <template>
   <div class="hero-section-viewport-container">
     <BootstrapWebGpu ref="renderer"
+                     :fillContainer
                      :textureBudgets="{
                       [TextureGroup._2k]: 1,
                      }"

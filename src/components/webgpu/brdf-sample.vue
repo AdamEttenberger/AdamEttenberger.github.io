@@ -25,7 +25,7 @@ import displacement_src from '@/assets/textures/3dtextures.me/sci-fi-wall-016/di
 import ambient_occlusion_src from '@/assets/textures/3dtextures.me/sci-fi-wall-016/ambient-occlusion.jpg'
 import emissive_src from '@/assets/textures/3dtextures.me/sci-fi-wall-016/emissive.jpg'
 
-let quad: MeshInstance; 
+let quad: MeshInstance;
 let plane: MeshInstance;
 
 function updateMeshInstance(meshes: MeshInstance, instance_id: number, offset: Vec3Like, t: number) {
@@ -104,7 +104,7 @@ async function onStartup(app: App) {
     new Plane(app.device),
     brdf_material,
   );
-  
+
   plane = new MeshInstance(
     app.device,
     1,
@@ -150,11 +150,11 @@ function onUpdate(app: App, viewport: Viewport, timestamp: number) {
 
 <template>
   <BootstrapWebGpu class="player"
-                    :textureBudgets="{
-                      [TextureGroup._1k]: 7,
-                    }"
-                    @startup="onStartup"
-                    @update="onUpdate" />
+                   :textureBudgets="{
+                     [TextureGroup._1k]: 7,
+                   }"
+                   @startup="onStartup"
+                   @update="onUpdate" />
 </template>
 
 <style scoped>

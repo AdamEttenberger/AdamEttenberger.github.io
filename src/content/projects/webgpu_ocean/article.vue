@@ -39,7 +39,5 @@ const user_preferences = useUserPreferencesStore();
 </template>
 
 <style scoped>
-.player {
-  aspect-ratio: 4/3;
-}
+
 </style>

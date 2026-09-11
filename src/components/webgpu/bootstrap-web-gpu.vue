@@ -6,6 +6,7 @@ import { TextureGroup } from '@/wgpu/resource/texture'
 import type Viewport from '@/wgpu/core/viewport';
 
 const props = defineProps<{
+  fillContainer?: boolean;
   showWebGPULogo?: boolean;
   textureBudgets?: Partial<Record<TextureGroup, number>>;
 }>();
@@ -104,7 +105,7 @@ const emits = defineEmits<{
 </script>
 
 <template>
-  <div class="webgpu-bootstrap">
+  <div :class="['webgpu-bootstrap', fillContainer?'':'player']">
     <canvas ref="canvas"
             @click.capture.prevent="handleMouseClickEvent"
             @contextmenu.capture.prevent="handleContextMenuEvent"
@@ -127,6 +128,10 @@ const emits = defineEmits<{
   position: relative;
   width: 100%;
   height: 100%;
+
+  &.player {
+    aspect-ratio: 4/3;
+  }
 
   & > canvas {
     position: absolute;
