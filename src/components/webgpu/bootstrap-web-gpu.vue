@@ -4,12 +4,21 @@ import App from '@/wgpu/core/app'
 import WebGpuLogo from '@/components/web-gpu-logo.vue'
 import { TextureGroup } from '@/wgpu/resource/texture'
 import type Viewport from '@/wgpu/core/viewport';
+import type { DateLike } from '@/util/date';
+import Figure from '../figure.vue';
+import ProjectLabel from '../project-label.vue';
 
-const props = defineProps<{
-  fillContainer?: boolean;
-  showWebGPULogo?: boolean;
+const props = withDefaults(defineProps<{
+  hideWebGPULogo?: boolean;
   textureBudgets?: Partial<Record<TextureGroup, number>>;
-}>();
+
+  title?: string;
+  aspect?: number;
+  date?: DateLike;
+  lastmod?: DateLike;
+}>(), {
+  aspect: (4 / 3),
+});
 
 const canvas = useTemplateRef<HTMLCanvasElement>('canvas');
 let startupError = ref(false);
@@ -105,33 +114,39 @@ const emits = defineEmits<{
 </script>
 
 <template>
-  <div :class="['webgpu-bootstrap', fillContainer?'':'player']">
-    <canvas ref="canvas"
-            @click.capture.prevent="handleMouseClickEvent"
-            @contextmenu.capture.prevent="handleContextMenuEvent"
-            @mousedown.capture="handleMouseDownEvent"
-            @mouseup.capture="handleMouseUpEvent"
-            @mousemove.capture="handleMouseMoveEvent">
-    </canvas>
-    <div v-if="startupError" class='error'>
-      <WebGpuLogo type="standard" :width='128' :height='128' />
-      <h2>This page requires support for HTML5 Canvas and WebGPU</h2>
+  <Figure class="webgpu-bootstrap">
+    <div class="player">
+      <canvas ref="canvas"
+              @click.capture.prevent="handleMouseClickEvent"
+              @contextmenu.capture.prevent="handleContextMenuEvent"
+              @mousedown.capture="handleMouseDownEvent"
+              @mouseup.capture="handleMouseUpEvent"
+              @mousemove.capture="handleMouseMoveEvent">
+      </canvas>
+      <div v-if="startupError" class='error'>
+        <WebGpuLogo type="standard" :width='128' :height='128' />
+        <h2>This page requires support for HTML5 Canvas and WebGPU</h2>
+      </div>
+      <div v-else-if="!hideWebGPULogo" class="overlay">
+        <WebGpuLogo type="horizontal" />
+      </div>
     </div>
-    <div v-else-if="showWebGPULogo" class="overlay">
-      <WebGpuLogo type="horizontal" />
-    </div>
-  </div>
+    <template v-slot:caption>
+      <ProjectLabel v-if="title" :title="title" :date="date" :lastmod="lastmod" />
+    </template>
+  </Figure>
 </template>
 
 <style scoped>
-.webgpu-bootstrap {
+.webgpu-bootstrap,
+.player {
   position: relative;
   width: 100%;
   height: 100%;
+}
 
-  &.player {
-    aspect-ratio: 4/3;
-  }
+.player {
+  aspect-ratio: v-bind(aspect);
 
   & > canvas {
     position: absolute;
@@ -153,7 +168,7 @@ const emits = defineEmits<{
   & > .overlay img {
     position: absolute;
     inset: 0 0 auto auto;
-    height: 5rem;
+    height: 3rem;
     pointer-events: none;
   }
 }

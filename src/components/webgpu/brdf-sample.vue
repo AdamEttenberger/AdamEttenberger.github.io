@@ -150,6 +150,9 @@ function onUpdate(app: App, viewport: Viewport, timestamp: number) {
 
 <template>
   <BootstrapWebGpu class="player"
+                   title="BRDF Sample"
+                   :date="new Date('2026/09/10')"
+                   :lastmod="new Date('2026/09/11')"
                    :textureBudgets="{
                      [TextureGroup._1k]: 7,
                    }"

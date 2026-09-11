@@ -12,6 +12,7 @@ import Skybox, { SkyboxMaterialSlot } from '@/wgpu/resource/skybox'
 import { MeshInstanceRenderNode, SkyboxRenderNode } from '@/wgpu/core/render-node'
 import type Viewport from '@/wgpu/core/viewport'
 import { toRadian } from '@/wgpu/util/math'
+import type { DateLike } from '@/util/date'
 
 // Shaders
 import global_shader_code from '@/assets/shaders/wgpu/global.wgsl?raw'
@@ -21,9 +22,14 @@ import ocean_simulation_material_code from '@/assets/shaders/hero-section/ocean_
 // Textures
 import ocean_simulation_flipbook_normal_height_map_src from '@/assets/textures/hero-section/normal_height_map_256_64f.webp'
 
-defineProps<{
-  fillContainer?: boolean;
-}>();
+const props = withDefaults(defineProps<{
+  title?: string;
+  aspect?: number;
+  date?: DateLike;
+  lastmod?: DateLike;
+}>(), {
+  aspect: (4 / 3),
+});
 
 const user_preferences = useUserPreferencesStore();
 
@@ -130,7 +136,10 @@ defineExpose({
 <template>
   <div class="hero-section-viewport-container">
     <BootstrapWebGpu ref="renderer"
-                     :fillContainer
+                     :title
+                     :aspect
+                     :date
+                     :lastmod
                      :textureBudgets="{
                       [TextureGroup._2k]: 1,
                      }"

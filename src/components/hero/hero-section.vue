@@ -27,7 +27,7 @@ function onPassthroughMouseMove(event: MouseEvent) {
 <template>
   <section class="hero-section">
     <div class="overlay" @mousemove.capture="onPassthroughMouseMove">
-      <HeroSectionWebGpu ref="renderer" :fillContainer="true" />
+      <HeroSectionWebGpu ref="renderer" />
       <div class="mobile-rotate" v-html="MobileRotateIcon"></div>
       <HeroSectionScrollIndicator class="scroll-indicators" @scroll-to-content="$emit('scrollToContent')" />
       <div class="content">
