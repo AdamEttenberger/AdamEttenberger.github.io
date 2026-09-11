@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import DateText from '@/components/date_text.vue';
+import DateText from '@/components/date-text.vue';
 import { date_from, date_same_month, type DateLike } from '@/util/date'
 import { computed } from 'vue';
 const props = defineProps<{

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import DateLabel from '@/components/date_label.vue'
+import DateLabel from '@/components/date-label.vue'
 import { type DateLike } from '@/util/date'
 defineProps<{
   title: string;

@@ -34,7 +34,7 @@ const routes = [
       },
       ...LicensesList.map(item => ({
         path: item.subpath,
-        component: () => import('@/views/files/license_file.vue'),
+        component: () => import('@/views/files/license-file.vue'),
         props: item,
       }))
     ],

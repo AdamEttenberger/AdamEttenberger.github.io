@@ -2,7 +2,7 @@
 import { computed, isRef, ref, type Ref } from 'vue'
 import CodeMirror from '@/components/code-mirror.vue'
 import Term from '@/components/term.vue'
-import TermList from '@/components/term_list.vue'
+import TermList from '@/components/term-list.vue'
 import Details from '@/components/details.vue'
 import Link from '@/components/link.vue'
 import Figure from '@/components/figure.vue'
@@ -1766,7 +1766,7 @@ const property_editors: Record<DemosWithPropertyEditor, IUsePropertyEditorModel>
                       caption="Example use of useIntersectionObserver"
                       content="
             <script setup lang='ts'>
-            import ChildComponent from '@/components/child_component.vue'
+            import ChildComponent from '@/components/child-component.vue'
             import useIntersectionObserver from '@/util/use_intersection_observer';
 
             const observable_states = ref({});

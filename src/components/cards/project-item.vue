@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Button from '@/components/buttons/button.vue'
 import Layer from '@/components/layer.vue'
-import DateText from '@/components/date_text.vue'
+import DateText from '@/components/date-text.vue'
 import { type IThemeProps } from '@/composables/theme'
 import { type DateLike } from '@/util/date'
 

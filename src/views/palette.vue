@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import CodeMirror from '@/components/code-mirror.vue'
-import ColorPalette from '@/content/experiments/color_palette.vue'
+import ColorPalette from '@/content/experiments/color-palette.vue'
 import Link from '@/components/link.vue'
 import Layer from '@/components/layer.vue'
 import Details from '@/components/details.vue'
@@ -15,9 +15,9 @@ import {
 import Quote from '@/components/quote.vue'
 import Section from '@/components/section.vue'
 import { getNoteHeading, getThemeColorName, ThemeDepthGradient, NoteThemeColors, CoreThemeColors } from '@/composables/theme'
-import TermList from '@/components/term_list.vue'
+import TermList from '@/components/term-list.vue'
 import Term from '@/components/term.vue'
-import VarietyText from '@/components/placeholders/variety_text.vue'
+import VarietyText from '@/components/placeholders/variety-text.vue'
 import universal_gravitation from '@/assets/formulas/universal_gravitation.latex?raw'
 import usePropertyEditorModel from '@/composables/property_editor_model'
 

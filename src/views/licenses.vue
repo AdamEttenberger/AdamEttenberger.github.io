@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Button from '@/components/buttons/button.vue'
 import Section from '@/components/section.vue'
-import LicenseItem from '@/components/licenses/license_item.vue'
+import LicenseItem from '@/components/licenses/license-item.vue'
 import { type ILicenseInfo } from '@/types/license_types';
 defineProps({
   licenses: { type: Array<ILicenseInfo>, required: true },

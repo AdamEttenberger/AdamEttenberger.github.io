@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Term from '@/components/term.vue'
-import TermList from '@/components/term_list.vue'
+import TermList from '@/components/term-list.vue'
 import { type ILicenseInfo } from '@/types/license_types'
 import { date_formatYear } from '@/util/date'
 defineProps<ILicenseInfo>();

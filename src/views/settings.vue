@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import Button from '@/components/buttons/button.vue'
-import ConsentProperties from '@/content/settings/consent_properties.vue'
-import UserPreferencesProperties from '@/content/settings/user_preferences_properties.vue'
-import MatchThreeProperties from '@/content/settings/match_three_properties.vue'
+import ConsentProperties from '@/content/settings/consent-properties.vue'
+import UserPreferencesProperties from '@/content/settings/user-preferences-properties.vue'
+import MatchThreeProperties from '@/content/settings/match-three-properties.vue'
 import Section from '@/components/section.vue'
 import { ThemeColor } from '@/composables/theme'
 // Pinia Stores

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Term from '@/components/term.vue';
-import TermList from '@/components/term_list.vue';
+import TermList from '@/components/term-list.vue';
 import { ThemeColor, ThemeGradientSlots } from '@/composables/theme';
 </script>
 

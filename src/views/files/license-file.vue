@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { type ILicenseInfo } from '@/types/license_types'
 import Layer from '@/components/layer.vue'
-import TermList from '@/components/term_list.vue'
+import TermList from '@/components/term-list.vue'
 import Term from '@/components/term.vue'
 import useTextDocument from '@/types/text_document'
 import { date_formatYear } from '@/util/date'

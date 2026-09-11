@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useTemplateRef, type ShallowRef } from 'vue'
 import Figure from '@/components/figure.vue'
-import ProjectLabel from '@/components/project_label.vue'
+import ProjectLabel from '@/components/project-label.vue'
 import { PlayerState } from '@/types/player_state'
 import Button from '@/components/buttons/button.vue'
 import { type DateLike } from '@/util/date'
