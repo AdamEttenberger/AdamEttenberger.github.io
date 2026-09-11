@@ -32,7 +32,8 @@ const user_preferences = useUserPreferencesStore();
 
     <Section heading="References">
       <WebPageCitation firstname='João' lastname='Paulo'
-                       website-title='3DTextures.me' webpage-title='Sci-Fi Wall 016'
+                       websiteTitle='3DTextures.me' webpageTitle='Sci-Fi Wall 016'
+                       :datePublished="new Date('2025/03/18')"
                        url='https://3dtextures.me/2025/03/18/sci-fi-wall-016/' />
     </Section>
   </article>

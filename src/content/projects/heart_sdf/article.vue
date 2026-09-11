@@ -1794,19 +1794,19 @@ const property_editors: Record<DemosWithPropertyEditor, IUsePropertyEditorModel>
 
     <Section heading="References">
       <WebPageCitation firstname='Inigo' lastname='Quilez'
-                       website-title='Inigo Quilez' webpage-title='Inigo Quilez'
+                       websiteTitle='Inigo Quilez' webpageTitle='Inigo Quilez'
                        url='https://iquilezles.org/' />
       <WebPageCitation firstname='Inigo' lastname='Quilez'
-                       website-title='Inigo Quilez' webpage-title='2D Distance Functions'
+                       websiteTitle='Inigo Quilez' webpageTitle='2D Distance Functions'
                        url='https://iquilezles.org/articles/distfunctions2d/' />
       <WebPageCitation firstname='Inigo' lastname='Quilez'
-                       website-title='Inigo Quilez' webpage-title='2D Distance and Gradient Functions'
+                       websiteTitle='Inigo Quilez' webpageTitle='2D Distance and Gradient Functions'
                        url='https://iquilezles.org/articles/distgradfunctions2d/' />
       <WebPageCitation firstname='Inigo' lastname='Quilez'
-                       website-title='Inigo Quilez' webpage-title='3D Distance Functions'
+                       websiteTitle='Inigo Quilez' webpageTitle='3D Distance Functions'
                        url='https://iquilezles.org/articles/distfunctions/' />
       <WebPageCitation firstname='Inigo' lastname='Quilez'
-                       website-title='Inigo Quilez' webpage-title='smooth minimum - 2013'
+                       websiteTitle='Inigo Quilez' webpageTitle='smooth minimum - 2013'
                        url='https://iquilezles.org/articles/smin/' />
     </Section>
   </article>
