@@ -79,8 +79,8 @@ fn distribution_ggx(NoH: f32, roughness: f32) -> f32 {
 
 // The {k} term for geometry_smith for direct lighting calculations.
 fn geometry_schlick_ggx_roughness_direct(roughness: f32) -> f32 {
-  let a = roughness + 1.0;
-  return (a * a) / 8.0;
+  let a = roughness * roughness;
+  return ((a + 1) * (a + 1)) / 8.0;
 }
 
 // The {k} term for geometry_smith for Image-based lighting (IBL) calculations.
