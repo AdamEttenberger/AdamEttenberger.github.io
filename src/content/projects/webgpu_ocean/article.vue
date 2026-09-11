@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import WebPageCitation from '@/components/citation/web-page-citation.vue'
 import HeroSectionWebGpu from '@/components/hero/hero-section-web-gpu.vue'
 import Note from '@/components/note.vue'
 import Section from '@/components/section.vue'
@@ -27,6 +28,12 @@ const user_preferences = useUserPreferencesStore();
 
     <Section heading="BRDF Sample">
       <BrdfSample />
+    </Section>
+
+    <Section heading="References">
+      <WebPageCitation firstname='João' lastname='Paulo'
+                       website-title='3DTextures.me' webpage-title='Sci-Fi Wall 016'
+                       url='https://3dtextures.me/2025/03/18/sci-fi-wall-016/' />
     </Section>
   </article>
 </template>
