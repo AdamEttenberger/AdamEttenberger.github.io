@@ -25,6 +25,7 @@ export interface IGlobalUniforms {
   iTime:            Float32Array<ArrayBuffer>;
   iMouse:           Float32Array<ArrayBuffer>;
   iDarkMode:        Float32Array<ArrayBuffer>;
+  iAmbientColor:    Float32Array<ArrayBuffer>;
   iSunDirection:    Float32Array<ArrayBuffer>;
   iSunLightColor:   Float32Array<ArrayBuffer>;
 }
@@ -44,6 +45,7 @@ class GlobalUniforms extends WebGPUStruct<IGlobalUniforms>
       iTime:            { type: 'f32'     },
       iMouse:           { type: 'vec2f'   },
       iDarkMode:        { type: 'u32'     },
+      iAmbientColor:    { type: 'vec3f'   },
       iSunDirection:    { type: 'vec3f'   },
       iSunLightColor:   { type: 'vec3f'   },
     }, 1, GPUBufferUsage.UNIFORM);

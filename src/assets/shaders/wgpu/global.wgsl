@@ -12,6 +12,7 @@ struct GlobalUniforms {
   iTime: f32, // (seconds)
   iMouse: vec2f, // normalized range: [0, 1]
   iDarkMode: u32,
+  iAmbientColor: vec3f,
   iSunDirection: vec3f,
   iSunLightColor: vec3f,
 };

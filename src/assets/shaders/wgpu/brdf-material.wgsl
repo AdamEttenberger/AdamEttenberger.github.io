@@ -69,24 +69,22 @@ struct CookTorranceReflectance {
   diffuse_ratio: vec3f,
 };
 
-fn distribution_ggx(NoH: f32, roughness: f32) -> f32 {
-    let a = roughness * roughness;
-    let a2 = a * a;
-    let n_dot_h2 = NoH * NoH;
-    let denom = n_dot_h2 * (a2 - 1.0) + 1.0;
-    return a2 / (PI * max(denom * denom, 1e-7));
+fn distribution_ggx(context: ShadingContext, roughness: f32) -> f32 {
+  // alpha is the roughness squared based on Disney's mapping.
+  let a2 = roughness * roughness * roughness * roughness;
+  let NoH2 = context.NoH * context.NoH;
+  let denom = NoH2 * (a2 - 1.0) + 1.0;
+  return a2 / max(PI * denom * denom, 1e-7);
 }
 
 // The {k} term for geometry_smith for direct lighting calculations.
 fn geometry_schlick_ggx_roughness_direct(roughness: f32) -> f32 {
-  let a = roughness * roughness;
-  return ((a + 1) * (a + 1)) / 8.0;
+  return ((roughness + 1) * (roughness + 1)) / 8.0;
 }
 
 // The {k} term for geometry_smith for Image-based lighting (IBL) calculations.
 fn geometry_schlick_ggx_roughness_ibl(roughness: f32) -> f32 {
-  let a = roughness + 1.0;
-  return (a * a) / 2.0;
+  return (roughness * roughness) / 2.0;
 }
 
 // Helper to compute the {G1} and {G2} terms for geometry_smith.
@@ -94,12 +92,12 @@ fn geometry_schlick_ggx(NoV: f32, k: f32) -> f32 {
     return NoV / (NoV * (1.0 - k) + k);
 }
 
-fn geometry_smith(NoV: f32, NoL: f32, k: f32) -> f32 {
-    return geometry_schlick_ggx(NoV, k) * geometry_schlick_ggx(NoL, k);
+fn geometry_smith(context: ShadingContext, k: f32) -> f32 {
+    return geometry_schlick_ggx(context.NoV, k) * geometry_schlick_ggx(context.NoL, k);
 }
 
-fn fresnel_schlick(cos_theta: f32, f0: vec3f) -> vec3f {
-    return f0 + (vec3f(1.0) - f0) * pow(clamp(1.0 - cos_theta, 0.0, 1.0), 5.0);
+fn fresnel_schlick(context: ShadingContext, f0: vec3f) -> vec3f {
+    return f0 + (vec3f(1.0) - f0) * pow(clamp(1.0 - context.LoH, 0.0, 1.0), 5.0);
 }
 
 fn cook_torrance_reflectance(
@@ -111,9 +109,9 @@ fn cook_torrance_reflectance(
   var result: CookTorranceReflectance;
 
   let specular_reflectance: vec3f = mix(vec3f(kMinDielectricF0), albedo, metallic);
-  let D: f32 = distribution_ggx(context.NoH, roughness);
-  let G: f32 = geometry_smith(context.NoV, context.NoL, geometry_schlick_ggx_roughness_direct(roughness));
-  let F: vec3f = fresnel_schlick(context.LoH, specular_reflectance);
+  let D: f32 = distribution_ggx(context, roughness);
+  let G: f32 = geometry_smith(context, geometry_schlick_ggx_roughness_direct(roughness));
+  let F: vec3f = fresnel_schlick(context, specular_reflectance);
 
   result.specular = (D * G * F) / max(4.0 * context.NoV * context.NoL, 1e-4);
   result.fresnel = F;
@@ -122,7 +120,7 @@ fn cook_torrance_reflectance(
 }
 
 fn calculate_irradiance(context: ShadingContext) -> vec3f {
-  return global.iSunLightColor * context.NoL;
+  return (global.iSunLightColor * PI) * context.NoL;
 }
 
 fn aces_tonemap(color: vec3f) -> vec3f {
@@ -233,13 +231,13 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {
   // before scattering or reflection towards the camera.
   let irradiance: vec3f = calculate_irradiance(context);
 
+  // Placeholder for environment mapping
+  let ambient_irradiance: vec3f = global.iAmbientColor;
+  let ambient_diffuse: vec3f = ambient_irradiance * albedo * (1.0 - metallic) * ambient_occlusion;
+
   // total light leaving the surface towards the camera.
   let outgoing_radiance: vec3f = BRDF * irradiance;
 
-  const globalAmbientLight = 0.125;
-  let ambientDiffuseMask: f32 = mix(1.0 - kMinDielectricF0, 0.0, metallic);
-  let ambient: vec3f = albedo * ambient_occlusion * globalAmbientLight * ambientDiffuseMask;
-  let color: vec3f = ambient + outgoing_radiance + emissive;
-  let exposure: f32 = 2.0; // Closer match to Godot's ACES rendering.
-  return vec4f(linearToSRGB(aces_tonemap(color * exposure)), 1.0);
+  let color: vec3f = outgoing_radiance + ambient_diffuse + emissive;
+  return vec4f(linearToSRGB(aces_tonemap(color)), 1.0);
 }

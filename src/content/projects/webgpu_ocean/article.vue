@@ -14,7 +14,7 @@ const user_preferences = useUserPreferencesStore();
 
 <template>
   <article>
-    <HeroSectionWebGpu class="player" />
+    <HeroSectionWebGpu class="player" :title :date :lastmod />
 
     <Note :color="ThemeColor.Info">
       Try switching to <b>{{user_preferences.oppositeColorScheme}} theme</b> using the lightbulb in the upper-right corner to change between day and night in the scene.
@@ -35,6 +35,21 @@ const user_preferences = useUserPreferencesStore();
                        websiteTitle='3DTextures.me' webpageTitle='Sci-Fi Wall 016'
                        :datePublished="new Date('2025/03/18')"
                        url='https://3dtextures.me/2025/03/18/sci-fi-wall-016/' />
+
+      <WebPageCitation firstname="Stephen" lastname="Hill"
+                       websiteTitle='Self Shadow' webpageTitle='SIGGRAPH 2025 Course: Physically Based Shading in Theory and Practice'
+                       :yearPublished="new Date('2025')"
+                       url="https://blog.selfshadow.com/publications/s2025-shading-course/" />
+
+      <WebPageCitation firstname="Stephen" lastname="Hill"
+                       websiteTitle='Self Shadow' webpageTitle='SIGGRAPH 2013 Course: Physically Based Shading in Theory and Practice'
+                       :yearPublished="new Date('2013')"
+                       url="https://blog.selfshadow.com/publications/s2013-shading-course/" />
+
+      <WebPageCitation firstname="Brian" lastname="Karis"
+                       websiteTitle="SIGGRAPH 2013" documentTitle="Real Shading in Unreal Engine 4"
+                       :yearPublished="new Date('2013')"
+                       url="https://cdn2.unrealengine.com/Resources/files/2013SiggraphPresentationsNotes-26915738.pdf" />
     </Section>
   </article>
 </template>
