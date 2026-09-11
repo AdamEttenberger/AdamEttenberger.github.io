@@ -1,16 +1,24 @@
-const kFrameRate: f32 = 7.0;
 const kMinDielectricF0 = 4e-2;
 
-struct MaterialData {
-  normal_height_texture: u32,
-  albedo_color: vec3f,
-  grid_size: vec2f,
-  cell_size: vec2f,
-  texel_size: vec2f,
-  texel_margin: f32,
+struct BRDFMaterialData {
+  albedo_color: vec3f,            // base color, or tint with texture 
+  albedo_texture: u32,            // texture containing albedo color data
+  metallic_scale: f32,            // [0, 1] : [non-metal, metal]
+  metallic_texture: u32,          // texture containing metallic lighting data
+  roughness_scale: f32,           // [0, 1] : [mirror, blurry]
+  roughness_texture: u32,         // texture containing roughness lighting data
+  normal_scale: f32,              // [0, 1] : [flat-lighting, directional-lighting]
+  normal_texture: u32,            // texture containing normal lighting data
+  displacement_scale: f32,        // [0, 1] : [flat-geometry, displaced-geometry]
+  displacement_texture: u32,      // texture containing vertex height/displacement data
+  emissive_color: vec3f,          // base emissive color, or multiplicative tint with texture
+  emissive_scale: f32,            // [0, 16] : multiplier for light emitted
+  emissive_texture: u32,          // texture containing emissive lighting data
+  ambient_occlusion_scale: f32,   // [0, 1] : [no-shadows, self-shadows]
+  ambient_occlusion_texture: u32, // texture containing self-occluded shadows
 };
 
-@group(1) @binding(0) var<storage, read> materials: array<MaterialData>;
+@group(1) @binding(0) var<storage, read> materials: array<BRDFMaterialData>;
 
 struct VertexInput {
   @builtin(instance_index) instance_id: u32,
@@ -28,11 +36,6 @@ struct VertexOutput {
   @location(3) world_bitangent: vec3f,
   @location(4) uv: vec2f,
   @location(5) @interpolate(flat) material_id: u32,
-};
-
-struct FlipbookFrameCoords {
-  uv1: vec2f, // The upper-left uv coodinate of the *current* frame.
-  uv2: vec2f, // The upper-left uv coodinate of the *next* frame.
 };
 
 struct ShadingContext {
@@ -118,32 +121,6 @@ fn cook_torrance_reflectance(
   return result;
 }
 
-fn frame_to_uv(frame: f32, grid_size: vec2f) -> vec2f {
-  return fract(vec2f(frame, floor(frame / grid_size.x)) / grid_size);
-}
-
-fn get_flipbook_coords(material: MaterialData, uv: vec2f) -> FlipbookFrameCoords {
-  let local_uv = fract(uv);
-  let pad_uv = material.texel_margin * material.texel_size;
-  let cell_local_uv = (pad_uv + local_uv * (1.0 - 2.0 * pad_uv)) / material.grid_size;
-
-  let frame: f32 = floor(global.iTime * kFrameRate);
-  let uv_frame_1: vec2f = frame_to_uv(frame, material.grid_size);
-  let uv_frame_2: vec2f = frame_to_uv(frame + 1.0, material.grid_size);
-
-  return FlipbookFrameCoords(
-    uv_frame_1 + cell_local_uv,
-    uv_frame_2 + cell_local_uv
-  );
-}
-
-fn get_surface_sample(material: MaterialData, frame_coords: FlipbookFrameCoords) -> vec4f {
-  let a: vec4f = textureSampleLevel(textures_2k, s_linear_repeat, frame_coords.uv1, material.normal_height_texture, 0.0);
-  let b: vec4f = textureSampleLevel(textures_2k, s_linear_repeat, frame_coords.uv2, material.normal_height_texture, 0.0);
-  let value = mix(a, b, fract(global.iTime * kFrameRate)) * 2.0 - 1.0;
-  return vec4f(normalize(value.rgb), value.a * 0.5);
-}
-
 fn calculate_irradiance(context: ShadingContext) -> vec3f {
   return global.iSunLightColor * context.NoL;
 }
@@ -172,16 +149,14 @@ fn linearToSRGB(linear_color: vec3f) -> vec3f {
 
 @vertex
 fn vs_main(input: VertexInput) -> VertexOutput {
-
   let instance = instances[input.instance_id];
   let material = materials[instance.material_id];
 
-  let frame_coords: FlipbookFrameCoords = get_flipbook_coords(material, input.uv);
-  let local_normal_displacement: vec4f = get_surface_sample(material, frame_coords);
-
   var position: vec3f = input.position;
-  let disp = local_normal_displacement.w;
-  position += input.normal * disp;
+  if (material.displacement_texture != 0u) {
+    var disp: vec3f = textureSampleLevel(textures_1k, s_linear_repeat, input.uv, material.displacement_texture, 0.0).xyz;
+    position += input.normal * disp * material.displacement_scale;
+  }
 
   let normalMatrix3x3 = mat3x3f(
     instance.normalMatrix[0].xyz,
@@ -209,33 +184,45 @@ fn vs_main(input: VertexInput) -> VertexOutput {
 fn fs_main(input: VertexOutput) -> @location(0) vec4f {
   let material = materials[input.material_id];
 
-  let frame_coords: FlipbookFrameCoords = get_flipbook_coords(material, input.uv);
-  let local_normal_displacement: vec4f = get_surface_sample(material, frame_coords);
-  var N = normalize(input.world_normal);
-  {
+  var albedo: vec3f = material.albedo_color;
+  if (material.albedo_texture != 0u) {
+    albedo *= textureSampleLevel(textures_1k_srgb, s_linear_repeat, input.uv, material.albedo_texture, 0.0).rgb;
+  }
+  var metallic: f32 = material.metallic_scale;
+  if (material.metallic_texture != 0u) {
+    metallic *= textureSampleLevel(textures_1k, s_linear_repeat, input.uv, material.metallic_texture, 0.0).r;
+  }
+  var roughness: f32 = material.roughness_scale;
+  if (material.roughness_texture != 0u) {
+    roughness *= textureSampleLevel(textures_1k, s_linear_repeat, input.uv, material.roughness_texture, 0.0).r;
+  }
+  var ambient_occlusion: f32 = material.ambient_occlusion_scale;
+  if (material.ambient_occlusion_texture != 0u) {
+    ambient_occlusion *= textureSampleLevel(textures_1k, s_linear_repeat, input.uv, material.ambient_occlusion_texture, 0.0).r;
+  }
+  var emissive: vec3f = material.emissive_color * material.emissive_scale;
+  if (material.emissive_texture != 0u) {
+    emissive *= textureSampleLevel(textures_1k_srgb, s_linear_repeat, input.uv, material.emissive_texture, 0.0).rgb;
+  }
+
+  var N: vec3f = normalize(input.world_normal);
+  if (material.normal_texture != 0u) {
     let T = normalize(input.world_tangent);
     let B = normalize(input.world_bitangent);
     let TBN = mat3x3f(T, B, N);
-    N = normalize(TBN * local_normal_displacement.xyz);
+
+    var local_normal: vec3f = textureSampleLevel(textures_1k, s_linear_repeat, input.uv, material.normal_texture, 0.0).rgb;
+    local_normal = local_normal * 2.0 - 1.0;
+    local_normal.x *= material.normal_scale;
+    local_normal.y *= material.normal_scale;
+    local_normal = normalize(local_normal);
+    N = normalize(TBN * local_normal);
   }
+
   let V: vec3f = normalize(global.iCameraPosition - input.world_position.xyz);
   let L: vec3f = normalize(-global.iSunDirection);
-  
+
   let context: ShadingContext = makeShadingContext(N, V, L);
-
-  var albedo: vec3f = material.albedo_color;
-  // Color grading so waves look "deeper" at their shallowest and closer to "foam" for peaking wave crests.
-  let scalar_displacement = smoothstep(-0.5, 0.5, local_normal_displacement.w);
-  albedo = mix(vec3f(0.0), albedo, smoothstep(0.25, 1.0, scalar_displacement));
-  albedo = mix(albedo, vec3f(0.8), smoothstep(0.75, 0.9, scalar_displacement));
-
-  let metallic: f32 = 0.0;
-
-  // - Mirror-like / Glassy Bay: [0.01, 0.03]
-  // - Gentle Open Ocean: [0.05, 0.10]
-  // - Windy / Choppy Sea: [0.15, 0.25]
-  // - Stormy / Whitecaps: [0.30, 0.40]
-  let roughness: f32 = 0.2;
 
   // PBR material properties; bidirectional reflectance distribution function.
   let reflectance: CookTorranceReflectance = cook_torrance_reflectance(context, albedo, metallic, roughness);
@@ -251,7 +238,7 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {
 
   const globalAmbientLight = 0.125;
   let ambientDiffuseMask: f32 = mix(1.0 - kMinDielectricF0, 0.0, metallic);
-  let ambient: vec3f = albedo * globalAmbientLight * ambientDiffuseMask;
-  let color: vec3f = ambient + outgoing_radiance;
+  let ambient: vec3f = albedo * ambient_occlusion * globalAmbientLight * ambientDiffuseMask;
+  let color: vec3f = ambient + outgoing_radiance + emissive;
   return vec4f(linearToSRGB(aces_tonemap(color)), 1.0);
 }

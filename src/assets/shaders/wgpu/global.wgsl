@@ -22,10 +22,18 @@ struct GlobalUniforms {
 @group(0) @binding(3) var s_nearest_repeat: sampler;
 @group(0) @binding(4) var s_nearest_clamp: sampler;
 @group(0) @binding(5) var s_shadow_compare: sampler_comparison;
+
 @group(0) @binding(6) var textures_32: texture_2d_array<f32>;
-@group(0) @binding(7) var textures_64: texture_2d_array<f32>;
-@group(0) @binding(8) var textures_128: texture_2d_array<f32>;
-@group(0) @binding(9) var textures_256: texture_2d_array<f32>;
-@group(0) @binding(10) var textures_512: texture_2d_array<f32>;
-@group(0) @binding(11) var textures_1k: texture_2d_array<f32>;
-@group(0) @binding(12) var textures_2k: texture_2d_array<f32>;
+@group(0) @binding(7) var textures_32_srgb: texture_2d_array<f32>;
+@group(0) @binding(8) var textures_64: texture_2d_array<f32>;
+@group(0) @binding(9) var textures_64_srgb: texture_2d_array<f32>;
+@group(0) @binding(10) var textures_128: texture_2d_array<f32>;
+@group(0) @binding(11) var textures_128_srgb: texture_2d_array<f32>;
+@group(0) @binding(12) var textures_256: texture_2d_array<f32>;
+@group(0) @binding(13) var textures_256_srgb: texture_2d_array<f32>;
+@group(0) @binding(14) var textures_512: texture_2d_array<f32>;
+@group(0) @binding(15) var textures_512_srgb: texture_2d_array<f32>;
+@group(0) @binding(16) var textures_1k: texture_2d_array<f32>;
+@group(0) @binding(17) var textures_1k_srgb: texture_2d_array<f32>;
+@group(0) @binding(18) var textures_2k: texture_2d_array<f32>;
+@group(0) @binding(19) var textures_2k_srgb: texture_2d_array<f32>;

@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import HeroSectionWebGpu from '@/components/hero/hero-section-web-gpu.vue'
 import Note from '@/components/note.vue'
+import Section from '@/components/section.vue'
 import TableOfContents from '@/components/table-of-contents.vue'
+import BrdfSample from '@/components/webgpu/brdf-sample.vue'
 import { ThemeColor } from '@/composables/theme'
 import { useUserPreferencesStore } from '@/stores/user_preferences'
 import { type IProjectInfo } from '@/types/project_types'
@@ -22,6 +24,10 @@ const user_preferences = useUserPreferencesStore();
     <Note :color="ThemeColor.Todo">
       Article planned for a future date.
     </Note>
+
+    <Section heading="BRDF Sample">
+      <BrdfSample />
+    </Section>
   </article>
 </template>
 

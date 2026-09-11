@@ -7,6 +7,7 @@ import TextureRegistry from '@/wgpu/resource/texture';
 import { vec2, vec4 } from 'ts-gl-matrix';
 import { type IRenderNode } from '@/wgpu/core/render-node';
 import OnAppUpdateHandler from '@/wgpu/event/app/on-app-update';
+import { enumValues } from '@/util/enum';
 
 export enum BindGroupIndex {
   Global,
@@ -163,69 +164,30 @@ export default class App {
           visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
           sampler: { type: 'comparison' },
         },
-        {
-          binding: 6,
-          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
-          texture: {
-            sampleType: 'float',
-            viewDimension: '2d-array',
-            multisampled: false,
+        ...enumValues(TextureGroup).reduce(
+          (result, _group, index) => {
+            result.push({
+              binding: 6 + (index * 2),
+              visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+              texture: {
+                sampleType: 'float',
+                viewDimension: '2d-array',
+                multisampled: false,
+              },
+            });
+            result.push({
+              binding: 6 + (index * 2) + 1,
+              visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+              texture: {
+                sampleType: 'float',
+                viewDimension: '2d-array',
+                multisampled: false,
+              },
+            });
+            return result;
           },
-        },
-        {
-          binding: 7,
-          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
-          texture: {
-            sampleType: 'float',
-            viewDimension: '2d-array',
-            multisampled: false,
-          },
-        },
-        {
-          binding: 8,
-          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
-          texture: {
-            sampleType: 'float',
-            viewDimension: '2d-array',
-            multisampled: false,
-          },
-        },
-        {
-          binding: 9,
-          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
-          texture: {
-            sampleType: 'float',
-            viewDimension: '2d-array',
-            multisampled: false,
-          },
-        },
-        {
-          binding: 10,
-          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
-          texture: {
-            sampleType: 'float',
-            viewDimension: '2d-array',
-            multisampled: false,
-          },
-        },
-        {
-          binding: 11,
-          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
-          texture: {
-            sampleType: 'float',
-            viewDimension: '2d-array',
-            multisampled: false,
-          },
-        },
-        {
-          binding: 12,
-          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
-          texture: {
-            sampleType: 'float',
-            viewDimension: '2d-array',
-            multisampled: false,
-          },
-        },
+          [] as GPUBindGroupLayoutEntry[]
+        ),
       ]
     });
     const instance_bind_group_layout = device.createBindGroupLayout({
@@ -285,13 +247,20 @@ export default class App {
             compare: 'less-equal',
           })
         },
-        { binding: 6,   resource: texture_registry.createView(TextureGroup._32)   },
-        { binding: 7,   resource: texture_registry.createView(TextureGroup._64)   },
-        { binding: 8,   resource: texture_registry.createView(TextureGroup._128)  },
-        { binding: 9,   resource: texture_registry.createView(TextureGroup._256)  },
-        { binding: 10,  resource: texture_registry.createView(TextureGroup._512)  },
-        { binding: 11,  resource: texture_registry.createView(TextureGroup._1k)   },
-        { binding: 12,  resource: texture_registry.createView(TextureGroup._2k)   },
+        ...enumValues(TextureGroup).reduce(
+          (result, group, index) => {
+            result.push({
+              binding: 6 + (index * 2),
+              resource: texture_registry.createView(group, 'rgba8unorm'),
+            });
+            result.push({
+              binding: 6 + (index * 2) + 1,
+              resource: texture_registry.createView(group, 'rgba8unorm-srgb'),
+            });
+            return result;
+          },
+          [] as GPUBindGroupEntry[]
+        ),
       ],
     })
     

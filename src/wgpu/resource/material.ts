@@ -35,6 +35,49 @@ class OceanMaterialData extends WebGPUStruct<IOceanMaterialData> {
   }
 }
 
+interface IBRDFMaterialData {
+  albedo_color:               Float32Array<ArrayBuffer>;
+  albedo_texture:             Uint32Array<ArrayBuffer>;
+  metallic_scale:             Float32Array<ArrayBuffer>;
+  metallic_texture:           Uint32Array<ArrayBuffer>;
+  roughness_scale:            Float32Array<ArrayBuffer>;
+  roughness_texture:          Uint32Array<ArrayBuffer>;
+  normal_scale:               Float32Array<ArrayBuffer>;
+  normal_texture:             Uint32Array<ArrayBuffer>;
+  displacement_scale:         Float32Array<ArrayBuffer>;
+  displacement_texture:       Uint32Array<ArrayBuffer>;
+  emissive_color:             Float32Array<ArrayBuffer>;
+  emissive_scale:             Float32Array<ArrayBuffer>;
+  emissive_texture:           Uint32Array<ArrayBuffer>;
+  ambient_occlusion_scale:    Float32Array<ArrayBuffer>;
+  ambient_occlusion_texture:  Uint32Array<ArrayBuffer>;
+}
+
+class BRDFMaterialData extends WebGPUStruct<IBRDFMaterialData> {
+  constructor(
+    device: GPUDevice,
+    instances: number,
+  ) {
+    super(device, {
+      albedo_color:               { type: 'vec3f' },
+      albedo_texture:             { type: 'u32'   },
+      metallic_scale:             { type: 'f32'   },
+      metallic_texture:           { type: 'u32'   },
+      roughness_scale:            { type: 'f32'   },
+      roughness_texture:          { type: 'u32'   },
+      normal_scale:               { type: 'f32'   },
+      normal_texture:             { type: 'u32'   },
+      displacement_scale:         { type: 'f32'   },
+      displacement_texture:       { type: 'u32'   },
+      emissive_color:             { type: 'vec3f' },
+      emissive_scale:             { type: 'f32'   },
+      emissive_texture:           { type: 'u32'   },
+      ambient_occlusion_scale:    { type: 'f32'   },
+      ambient_occlusion_texture:  { type: 'u32'   },
+    }, instances, GPUBufferUsage.STORAGE);
+  }
+}
+
 export class MaterialBase<TUniformStruct extends WebGPUStruct<any>> implements IMaterial {
   public readonly hash: number;
   public readonly shader: GPUShaderModule;
@@ -58,6 +101,43 @@ export class MaterialBase<TUniformStruct extends WebGPUStruct<any>> implements I
 
   public destroy(): void {
     this.uniforms.destroy();
+  }
+}
+
+export class BRDFMaterial extends MaterialBase<BRDFMaterialData> {
+  constructor(
+    device: GPUDevice,
+    shader_code: string,
+    instances: number = 1,
+  ) {
+    const uniforms = new BRDFMaterialData(device, instances);
+    const bindLayout = device.createBindGroupLayout({
+      label: "BDRFMaterial",
+      entries: [
+        {
+          binding: 0,
+          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+          buffer: {
+            type: 'read-only-storage',
+            hasDynamicOffset: false,
+          },
+        },
+      ],
+    });
+    const bindGroup = device.createBindGroup({
+      layout: bindLayout,
+      entries: [
+        { binding: 0, resource: { buffer: uniforms.gpuBuffer } },
+      ],
+    });
+
+    super(
+      device,
+      shader_code,
+      uniforms,
+      bindLayout,
+      bindGroup,
+    );
   }
 }
 

@@ -62,18 +62,14 @@ export function isEnumName<
  * @param enumType The `enum` type
  * @returns Itereator over enum keys.
  */
-export function enumNames<
+export function* enumNames<
   T extends EnumLike
 >(
   enumType: T
-): Iterable<EnumName<T>> {
-  return {
-    *[Symbol.iterator]() {
-      for (const name of Object.keys(enumType)) {
-        if (isEnumName(enumType, name)) {
-          yield name;
-        }
-      }
+): Generator<EnumName<T>, void, void> {
+  for (const name of Object.keys(enumType)) {
+    if (isEnumName(enumType, name)) {
+      yield name;
     }
   }
 }
@@ -83,18 +79,14 @@ export function enumNames<
  * @param enumType The `enum` type
  * @returns Itereator over enum values.
  */
-export function enumValues<
+export function* enumValues<
   T extends EnumLike
 >(
   enumType: T
-): Iterable<EnumValue<T>> {
-  return {
-      *[Symbol.iterator]() {
-      for (const name of enumNames(enumType)) {
-        yield enumType[name] as EnumValue<T>;
-      }
-    }
-  };
+): Generator<EnumValue<T>, void, void> {
+  for (const name of enumNames(enumType)) {
+    yield enumType[name] as EnumValue<T>;
+  }
 }
 
 /**
@@ -102,16 +94,15 @@ export function enumValues<
  * @param enumType The `enum` type
  * @returns List of enum entries in key, value order.
  */
-export function enumNameValueEntries<
+export function* enumNameValueEntries<
   T extends EnumLike
 >(
   enumType: T
-): EnumNameValueEntry<T>[] {
+): Generator<EnumNameValueEntry<T>, void, void> {
   const result: EnumNameValueEntry<T>[] = [];
   for (const name of enumNames(enumType)) {
-    result.push([name, enumType[name]] as EnumNameValueEntry<T>);
+    yield [name, enumType[name]] as EnumNameValueEntry<T>;
   }
-  return result;
 }
 
 /**
@@ -119,41 +110,13 @@ export function enumNameValueEntries<
  * @param enumType The `enum` type
  * @returns List of enum entries in value, key order.
  */
-export function enumValueNameEntries<
+export function* enumValueNameEntries<
   T extends EnumLike
 >(
   enumType: T
-): EnumValueNameEntry<T>[] {
+): Generator<EnumValueNameEntry<T>, void, void> {
   const result: EnumValueNameEntry<T>[] = [];
   for (const name of enumNames(enumType)) {
-    result.push([enumType[name], name] as EnumValueNameEntry<T>);
+    yield [enumType[name], name] as EnumValueNameEntry<T>;
   }
-  return result;
-}
-
-/**
- * Performs the "reduce" transformation for mapping or aggregating with enum entries.
- * @param enumType The `enum` type
- * @param callbackfn Callback used to aggregate values into the `initialValue`.
- * @param initialValue The container to aggregate values into.
- * @returns The completed transformation.
- */
-export function reduceEnum<
-  T extends EnumLike,
-  U
->(
-  enumType: T,
-  callbackfn: EnumReduceCallback<T, U>,
-  initialValue: U
-): U {
-  let result = initialValue;
-  for (const name of enumNames(enumType)) {
-    result = callbackfn(
-      result,
-      enumType[name] as EnumValue<T>,
-      name as EnumName<T>,
-      enumType,
-    );
-  }
-  return result;
 }

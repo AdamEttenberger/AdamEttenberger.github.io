@@ -1,4 +1,8 @@
-import { enumValues, reduceEnum } from '@/util/enum'
+import { enumNames, enumValues } from '@/util/enum'
+import { promiseAllRecord, reduceRecord } from '@/util/record';
+
+type SupportedTextureFormats = Extract<GPUTextureFormat, 'rgba8unorm'|'rgba8unorm-srgb'>;
+type BRDFTextureSlot = 'albedo'|'metallic'|'roughness'|'normal'|'displacement'|'ambient_occlusion'|'emissive';
 
 export enum TextureGroup {
   _32,
@@ -9,6 +13,7 @@ export enum TextureGroup {
   _1k,
   _2k,
 };
+export const TextureGroup_Count: number = enumNames(TextureGroup).reduce((result) => ++result, 0);
 
 const TextureGroupSize = new Map<TextureGroup, number>([
   [TextureGroup._32,  (1 << 5)],
@@ -113,11 +118,12 @@ class TexturePool {
     this._free.push(layer);
   }
 
-  public createView(): GPUTextureView {
+  public createView(format: SupportedTextureFormats): GPUTextureView {
     return this._texture.createView({
       dimension: '2d-array',
       baseArrayLayer: 0,
-      arrayLayerCount: this.layers
+      arrayLayerCount: this.layers,
+      format,
     });
   }
 
@@ -131,6 +137,7 @@ class TexturePool {
     return this._device.createTexture({
       size: { width: size, height: size, depthOrArrayLayers: this.layers },
       format: 'rgba8unorm',
+      viewFormats: ['rgba8unorm-srgb'],
       mipLevelCount: 3, // TODO: Generalize this
       usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
     });
@@ -143,8 +150,7 @@ export default class TextureRegistry {
   private _locations: Map<string, ITextureLocation> = new Map<string, ITextureLocation>();
 
   constructor(device: GPUDevice, textureBudgets?: Partial<Record<TextureGroup, number>>) {
-    this._pools = reduceEnum(
-      TextureGroup,
+    this._pools = enumValues(TextureGroup).reduce(
       (result, group) => {
         let min_layers: number = (textureBudgets?.[group] ?? 0);
         result[group] = new TexturePool(device, group, min_layers);
@@ -154,8 +160,30 @@ export default class TextureRegistry {
     );
   }
 
-  public createView(group: TextureGroup): GPUTextureView {
-    return this._pools[group].createView();
+  public createView(group: TextureGroup, format: SupportedTextureFormats): GPUTextureView {
+    return this._pools[group].createView(format);
+  }
+
+  public async getBundle(bundle: Record<BRDFTextureSlot, string>): Promise<Record<BRDFTextureSlot, ITextureLocation>> {
+    const maybe_results = await promiseAllRecord(reduceRecord(
+      bundle,
+      (result, src, key) => {
+        result[key] = this.get(src);
+        return result;
+      },
+      {} as Record<BRDFTextureSlot, Promise<ITextureLocation|undefined>>
+    ));
+    return reduceRecord(
+      maybe_results,
+      (result, value, key) => {
+        if (!value) {
+          throw new Error(`Failed to load texture (${key}): ${bundle[key]}`);
+        }
+        result[key] = value;
+        return result;
+      },
+      {} as Record<BRDFTextureSlot, ITextureLocation>
+    );
   }
 
   public async get(path: string): Promise<ITextureLocation|undefined> {
@@ -204,7 +232,7 @@ export default class TextureRegistry {
   }
 
   public destroy() {
-    Array.from(enumValues(TextureGroup)).forEach((group: TextureGroup) => {
+    enumValues(TextureGroup).forEach((group) => {
       this._pools[group].destroy();
       delete this._pools[group];
     });
