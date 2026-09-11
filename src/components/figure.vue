@@ -1,25 +1,13 @@
 <script setup lang="ts">
+import { getThemedImageSource, type ImageSourcePath, type MaybeThemedImage } from '@/types/themed-image';
 import { computed } from 'vue'
-// Pinia Stores
-import { useUserPreferencesStore } from '@/stores/user_preferences'
-const preferences = useUserPreferencesStore();
-
 const props = defineProps<{
-  src?: string;
-  srcLight?: string;
-  srcDark?: string;
+  image?: MaybeThemedImage;
   alt?: string;
   caption?: string;
 }>();
 
-const image_source = computed<undefined|string>(() => {
-  if (props.srcLight && props.srcDark) {
-    return preferences.useDarkMode ? props.srcDark : props.srcLight;
-  } else if (props.src) {
-    return props.src;
-  }
-  return undefined;
-});
+const image_source = computed(() => getThemedImageSource(props.image));
 </script>
 
 <template>

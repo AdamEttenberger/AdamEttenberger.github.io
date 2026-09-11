@@ -42,7 +42,7 @@ defineProps<IProjectInfo>();
         As for myself, I did nearly all of the programming and I designed each of the levels.
       </p>
       <Figure class="team"
-              src="/images/projects/renu/team.jpg"
+              image="/images/projects/renu/team.jpg"
               alt="Profile pictures of the team members.">
         <template v-slot:caption>
           <ol class="columns authors list-none" aria-label="team members">
@@ -63,9 +63,9 @@ defineProps<IProjectInfo>();
         This allowed us to quickly create, modify, and transition between maps without having to write out each individual location or learning a new tool.
         We were able to create maps using MS-Paint.
       </p>
-      <Figure src="/images/projects/renu/levelSample.png"
+      <Figure image="/images/projects/renu/levelSample.png"
               alt="Example of the bitmap level file used in the previous game screen image." />
-      <Figure src="/images/projects/renu/gameplay.png"
+      <Figure image="/images/projects/renu/gameplay.png"
               alt="Player shooting at an enemy, showing the full game screen." />
     </Section>
 
@@ -75,7 +75,7 @@ defineProps<IProjectInfo>();
         Additionally, we decided that instead of having health or lives, we would allow the player to continue from the beginning of the level as many times as they would like.
         This not only reduced some development time, but also in my opinion made the game less frustrating if you ended up dying a lot on a certain level.
       </p>
-      <Figure src="/images/projects/renu/death_animation.gif"
+      <Figure image="/images/projects/renu/death_animation.gif"
               alt="Animation illustrating the physics-based player death animation." />
     </Section>
 
@@ -87,17 +87,17 @@ defineProps<IProjectInfo>();
         One thing the player will notice immediately about walking on the cleaned patches versus the grimy patches is that friction is much higher on the clean paths.
         This causes the player to slow down much faster when they are not trying to move in any direction, which in turn makes some jumps easier to make.
       </p>
-      <Figure src="/images/projects/renu/slippery_tiles.gif"
+      <Figure image="/images/projects/renu/slippery_tiles.gif"
               alt="Animation demonstrating how one tile type has lass friction, slippery movement." />
-      <Figure src="/images/projects/renu/sticky_tiles.gif"
+      <Figure image="/images/projects/renu/sticky_tiles.gif"
               alt="Animation demonstrating how one tile type has more friction, sticky movement." />
-      <Figure src="/images/projects/renu/tile_difference.gif"
+      <Figure image="/images/projects/renu/tile_difference.gif"
               alt="Animation demonstrating the difference in friction between the two terrain tile types." />
       <p>
         Another subtle feature is the floaty-jump, which makes the slippery platforming more forgiving.
         Players are allowed 1 jump action which resets after the touching the ground.
       </p>
-      <Figure src="/images/projects/renu/floaty_jump.gif"
+      <Figure image="/images/projects/renu/floaty_jump.gif"
               alt="Animation demonstrating a player jumping in mid-air after walking off a platform." />
     </Section>
 
@@ -108,7 +108,7 @@ defineProps<IProjectInfo>();
         As I mentioned before, when your squirt gun pellets hit a tile, it cleans it as well as increases friction for that tile.
         This produced an interesting challenge where you needed to dodge this giant bouncing slime, as well as make sure you don't miss because that reduces your ability to dodge the boss.
       </p>
-      <Figure src="/images/projects/renu/boss.png"
+      <Figure image="/images/projects/renu/boss.png"
               alt="Player (on the left) standing next to the enemy boss (on the right)." />
     </Section>
   </article>

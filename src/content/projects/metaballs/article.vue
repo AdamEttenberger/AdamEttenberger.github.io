@@ -22,6 +22,7 @@ import usePropertyEditorModel from '@/composables/property_editor_model'
 import usePostMessage from '@/composables/post_message'
 import { FrameContainerSymbol, isFrameContainer, type IFrameContainer } from '@/types/frame_container'
 import useFunctionRef, { toComponent, type WeakElement } from '@/composables/function_ref'
+import { makeThemedImage } from '@/types/themed-image'
 
 defineProps<IProjectInfo>();
 
@@ -194,16 +195,14 @@ function onPresetChanged() {
         Afterwards the base texture is used as input for the remaining 3 quadrants, each applying a slightly different pixel shader.
       </p>
 
-      <Figure src-light="/images/projects/metaballs/viewport_explanation_light.png"
-              src-dark="/images/projects/metaballs/viewport_explanation_dark.png"
+      <Figure :image="makeThemedImage('/images/projects/metaballs/viewport_explanation_{theme}.png')"
               alt="Image describing the quadrants in the live demo at the top of the page.
                   (1) upper-left: base texture,
                   (2) upper-right: diffuse metaball,
                   (3) lower-left: diffuse metaball + outline,
                   (4) lower-right: hue + outline." />
 
-      <Figure src-light="/images/projects/metaballs/hierarchy_light.png"
-              src-dark="/images/projects/metaballs/hierarchy_dark.png"
+      <Figure :image="makeThemedImage('/images/projects/metaballs/hierarchy_{theme}.png')"
               alt="Image describing the the scene hierarchy.
                   (1) VertexPositionColor[] data,
                   (2) Base Texture,

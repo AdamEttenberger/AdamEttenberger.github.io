@@ -107,7 +107,7 @@ function onScrollToContent() {
         <ProjectItem v-for="item in projects"
                     :key="item.subpath"
                     :title="item.title"
-                    :image="item.icon"
+                    :thumbnail="item.thumbnail"
                     :to="`/projects/${item.subpath}/`"
                     :date="item.date"
                     :color="item.color" />

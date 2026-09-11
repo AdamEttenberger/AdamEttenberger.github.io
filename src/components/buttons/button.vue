@@ -4,13 +4,14 @@ import Link from '@/components/link.vue'
 import Layer from '@/components/layer.vue'
 import type EmailTemplate from '@/types/email_template'
 import { type IThemeProps } from '@/composables/theme'
+import { type MaybeThemedImageOrFontAwesomeIcon } from '@/types/themed-image'
 
 defineEmits(['click']);
 
 const props = defineProps<IThemeProps & {
   to?: string|EmailTemplate;
   alt?: string;
-  icon?: string|Array<string>;
+  icon?: MaybeThemedImageOrFontAwesomeIcon;
 
   text?: string;
   disabled?: boolean;

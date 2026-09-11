@@ -1,12 +1,14 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import Button from '@/components/buttons/button.vue'
 import Layer from '@/components/layer.vue'
 import DateText from '@/components/date-text.vue'
 import { type IThemeProps } from '@/composables/theme'
 import { type DateLike } from '@/util/date'
+import { getThemedImageSource, type ImageSourcePath, type MaybeThemedImage } from '@/types/themed-image'
 
-defineProps<IThemeProps & {
-  image: string|Array<string>;
+const props = defineProps<IThemeProps & {
+  thumbnail: MaybeThemedImage;
   title: string;
   date: DateLike;
   to: string;
@@ -15,7 +17,7 @@ defineProps<IThemeProps & {
 
 <template>
   <Layer class="project-item">
-    <Button class="thumbnail-button" :to :icon="image" :alt="title" transparent />
+    <Button class="thumbnail-button" :to :icon="thumbnail" :alt="title" transparent />
     <Layer class="text-layer" :color>
       <b class="title">{{ title }}</b>
       <DateText class="date" :date />

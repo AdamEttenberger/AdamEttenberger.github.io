@@ -4,6 +4,7 @@ import { RouterLink } from 'vue-router'
 import type EmailTemplate from '@/types/email_template';
 import { LinkType, link_type } from '@/util/link';
 import useTheme, { type IThemeProps, type ThemeOptions } from '@/composables/theme';
+import { getThemedFontAwesomeIcon, getThemedImageSource, isMaybeThemedFontAwesomeIcon, type MaybeThemedImageOrFontAwesomeIcon } from '@/types/themed-image';
 
 defineEmits(['click']);
 
@@ -13,7 +14,7 @@ const props = defineProps<IThemeProps & {
   alt?: string;
   hideExt?: boolean;
 
-  icon?: string|Array<string>;
+  icon?: MaybeThemedImageOrFontAwesomeIcon;
   public?: boolean;
   button?: boolean;
 
@@ -27,19 +28,8 @@ const kind = computed<LinkType>(() => {
   return props.kind ?? link_type(props.to);
 });
 
-const fontawesome_src = computed<undefined|Array<string>>(() => {
-  if (!Array.isArray(props.icon)) {
-    return;
-  }
-  return props.icon;
-});
-
-const image_src = computed<undefined|string>(() => {
-  if (Array.isArray(props.icon)) {
-    return;
-  }
-  return props.icon;
-});
+const fontawesome_src = computed(() => getThemedFontAwesomeIcon(props.icon));
+const image_src = computed(() => getThemedImageSource(props.icon));
 
 const destination = computed<string>(() => {
   return (kind.value === LinkType.Email)
