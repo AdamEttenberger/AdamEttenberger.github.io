@@ -14,7 +14,7 @@ import { PlayerState } from '@/types/player_state'
 import PropertyEditor from '@/components/property_editor/property_editor.vue'
 import Section from '@/components/section.vue'
 import { ThemeColor } from '@/composables/theme'
-import WebPageCitation from '@/components/citation/web_page_citation.vue'
+import WebPageCitation from '@/components/citation/web-page-citation.vue'
 import {
   Color4Row,
   ComboBoxRow,
