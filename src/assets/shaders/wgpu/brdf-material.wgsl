@@ -240,5 +240,6 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {
   let ambientDiffuseMask: f32 = mix(1.0 - kMinDielectricF0, 0.0, metallic);
   let ambient: vec3f = albedo * ambient_occlusion * globalAmbientLight * ambientDiffuseMask;
   let color: vec3f = ambient + outgoing_radiance + emissive;
-  return vec4f(linearToSRGB(aces_tonemap(color)), 1.0);
+  let exposure: f32 = 2.0; // Closer match to Godot's ACES rendering.
+  return vec4f(linearToSRGB(aces_tonemap(color * exposure)), 1.0);
 }
