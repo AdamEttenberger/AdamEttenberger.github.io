@@ -37,5 +37,6 @@ cite {
   display: flex;
   flex-direction: column;
   text-align: center;
+  overflow-wrap: break-word;
 }
 </style>
